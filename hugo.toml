@@ -1,0 +1,48 @@
+baseURL = "https://swordin.board/"
+languageCode = "en-us"
+title = "Sword in Board Workshop"
+theme = "hermit"
+enableEmoji = true
+rssLimit = 10
+
+[params]
+  author = "Sword in Board Workshop"
+  dateform        = "Jan 2, 2006"
+  dateformShort   = "Jan 2"
+  dateformNum     = "2006-01-02"
+  dateformNumTime = "2006-01-02 15:04 -0700"
+
+  themeColor      = "#494f5c"
+  homeSubtitle    = ""
+  footerCopyright = ""
+
+  customCSS = ["css/home.css"]
+
+[taxonomies]
+  tag = "tags"
+
+[menu]
+  [[menu.main]]
+    name   = "Shop"
+    url    = "/shop/"
+    weight = 10
+
+  [[menu.main]]
+    name   = "Classes"
+    url    = "/classes/"
+    weight = 20
+
+  [[menu.main]]
+    name   = "Gallery"
+    url    = "/gallery/"
+    weight = 30
+
+  [[menu.main]]
+    name   = "About"
+    url    = "/about/"
+    weight = 40
+
+  [[menu.main]]
+    name   = "Contact"
+    url    = "/contact/"
+    weight = 50

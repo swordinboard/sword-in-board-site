@@ -1,0 +1,15 @@
+{{ define "main" }}
+<div id="spotlight" class="animated fadeIn">
+  <div id="home-center">
+    <div id="home-logo">
+      <img src="/images/logo.svg" alt="{{ .Site.Title }}" />
+    </div>
+    <nav id="home-nav" class="site-nav">
+      {{ partialCached "menu.html" . }}
+    </nav>
+  </div>
+  <div id="home-footer">
+    <p>&copy; {{ now.Format "2006" }} {{ .Site.Author.name }}</p>
+  </div>
+</div>
+{{ end }}
