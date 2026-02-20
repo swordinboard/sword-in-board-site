@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" rx="20" fill="#1a1a2e"/>
+  <!-- Shield -->
+  <path d="M100 30 L150 55 L150 110 Q150 150 100 175 Q50 150 50 110 L50 55 Z" fill="#2c3e50" stroke="#c0392b" stroke-width="3"/>
+  <!-- Sword -->
+  <line x1="100" y1="45" x2="100" y2="155" stroke="#e0e0e0" stroke-width="6" stroke-linecap="round"/>
+  <line x1="80" y1="90" x2="120" y2="90" stroke="#e0e0e0" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="155" r="8" fill="#c0392b"/>
+  <polygon points="100,45 95,65 105,65" fill="#e0e0e0"/>
+  <!-- Text: SIB -->
+  <text x="100" y="192" font-family="sans-serif" font-size="12" font-weight="bold" fill="#c0392b" text-anchor="middle">SiB</text>
+</svg>

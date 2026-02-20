@@ -1,0 +1,50 @@
+---
+title: "Technical Stack"
+intro: "The tools and technologies we rely on to build reliable, modern web experiences."
+
+technical_groups:
+  - title: "Static Site Generators"
+    skills:
+      - name: "Hugo"
+        icon: "cube"
+        devicon_name: "hugo"
+        devicon_style: "plain"
+
+  - title: "Front-End"
+    skills:
+      - name: "HTML5"
+        icon: "html5"
+        devicon_name: "html5"
+        devicon_style: "plain"
+      - name: "CSS3"
+        icon: "css3-alt"
+        devicon_name: "css3"
+        devicon_style: "plain"
+      - name: "JavaScript"
+        icon: "js"
+        devicon_name: "javascript"
+        devicon_style: "plain"
+      - name: "Tailwind CSS"
+        icon: "wind"
+        devicon_name: "tailwindcss"
+        devicon_style: "plain"
+
+  - title: "Hosting & DevOps"
+    skills:
+      - name: "Netlify"
+        icon: "cloud"
+        devicon_name: "netlify"
+        devicon_style: "plain"
+      - name: "Git"
+        icon: "code-branch"
+        devicon_name: "git"
+        devicon_style: "plain"
+      - name: "GitHub"
+        icon: "github"
+        devicon_name: "github"
+        devicon_style: "original"
+      - name: "Bash"
+        icon: "terminal"
+        devicon_name: "bash"
+        devicon_style: "plain"
+---
