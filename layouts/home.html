@@ -1,0 +1,27 @@
+{{ define "head" }}
+<style>
+  #home-logo {
+    text-align: center;
+    margin-bottom: 1.5em;
+  }
+  #home-logo img {
+    max-width: 340px;
+    width: 85%;
+    height: auto;
+  }
+</style>
+{{ end }}
+
+{{ define "main" }}
+<div id="spotlight" {{- if ne false .Site.Params.usesAnimation }} class="animated fadeIn" {{- end -}}>
+  <div id="home-center">
+    <div id="home-logo">
+      <img src="/images/sib-logo.svg" alt="Sword in Board Workshop">
+    </div>
+    <nav id="home-nav" class="site-nav">
+      {{ partialCached "menu.html" . }}
+    </nav>
+  </div>
+  <div id="home-footer">{{ partial "footer.html" . }}</div>
+</div>
+{{ end }}

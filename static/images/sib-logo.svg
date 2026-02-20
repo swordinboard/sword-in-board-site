@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 160" width="480" height="160">
+  <!-- Sword icon -->
+  <g transform="translate(240, 30)">
+    <!-- Blade -->
+    <polygon points="0,-28 -3,28 3,28" fill="#494f5c"/>
+    <!-- Crossguard -->
+    <rect x="-18" y="20" width="36" height="5" rx="2" fill="#494f5c"/>
+    <!-- Grip -->
+    <rect x="-3" y="25" width="6" height="18" rx="1" fill="#6b7280"/>
+    <!-- Pommel -->
+    <ellipse cx="0" cy="44" rx="6" ry="5" fill="#494f5c"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="240" y="108" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="bold" text-anchor="middle" fill="#494f5c">Sword in Board</text>
+  <!-- Tagline -->
+  <text x="240" y="140" font-family="Arial, Helvetica, sans-serif" font-size="14" text-anchor="middle" fill="#c4933f" letter-spacing="5">WORKSHOP</text>
+</svg>

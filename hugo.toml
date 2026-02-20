@@ -1,0 +1,37 @@
+baseURL = "/"
+languageCode = "en-us"
+title = "Sword in Board Workshop"
+theme = "hermit-v2"
+enableRobotsTXT = true
+
+[params]
+  themeColor = "#494f5c"
+  accentColor = "#c4933f"
+  footerCopyright = "Sword in Board Workshop"
+  scrollToTop = false
+  code_copy_button = false
+  homeSubtitlePrinter = false
+  shareSocial = false
+  justifyContent = false
+  relatedPosts = false
+
+[menu]
+  [[menu.main]]
+    name = "Services"
+    url = "/services/"
+    weight = 10
+
+  [[menu.main]]
+    name = "About"
+    url = "/about/"
+    weight = 20
+
+  [[menu.main]]
+    name = "Blog"
+    url = "/posts/"
+    weight = 30
+
+  [[menu.main]]
+    name = "Contact"
+    url = "/contact/"
+    weight = 40
