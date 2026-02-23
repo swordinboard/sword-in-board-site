@@ -2,7 +2,6 @@
 title: "First Post"
 date: 2026-02-23
 author: Anthony
-weight: 1
 ---
 
 I'm not much of a blogger. I tend to go do whatever it is I'm trying to do, and full send when I'm finished. My process is pretty much hyper-focus and aggressive hammer it in until it works. Not much of a "jot down your steps and thoughts" type of guy. It does feel like it's time for that to change. Not that there are a lot of eyes on me by any means, but in an effort to provide a public-facing product I realize that there should be some insight into the process as it develops.
