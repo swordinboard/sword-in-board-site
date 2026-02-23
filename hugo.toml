@@ -29,7 +29,7 @@ enableRobotsTXT = true
 
   [[params.socialLinks]]
    name = 'email'
-   url = swordinboard@gmail.com
+   url = 'swordinboard@gmail.com'
 
 
 [[menu.main]]
