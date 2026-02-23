@@ -1,4 +1,6 @@
 ---
 title: "Projects"
-draft: true
+date: 2026-02-23
 ---
+
+Pending...
