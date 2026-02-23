@@ -23,9 +23,13 @@ enableRobotsTXT = true
     name = 'github'
     url = 'https://github.com/swordinboard'
 
-  # [[params.socialLinks]]
-  #   name = 'reddit'
-  #   url = 'https://reddit.com/r/theseluckystars/'
+  [[params.socialLinks]]
+   name = 'reddit'
+   url = 'https://reddit.com/r/theseluckystars/'
+
+  [[params.socialLinks]]
+   name = 'email'
+   url = swordinboard@gmail.com
 
 
 [[menu.main]]
