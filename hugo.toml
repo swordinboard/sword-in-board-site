@@ -7,12 +7,16 @@ enableEmoji = true
 enableRobotsTXT = true
 
 [params]
-  homeSubtitle = 'A createve space for a not so creative caveman. Welcome to the workshop.'
+  homeSubtitle = 'A creative space for a not so creative caveman. Welcome to the workshop.'
+  homeSubtitlePrinter = true
+  # bgImg = none # homepage backgroubd URL
   description = 'Sword in Board Workshop'
   themeColor = '#494f5c'
   readTime = true
   code_copy_button = true
+  scrollToTop = true # need scrolltotop: true in page frontmatter
   footerHideThemeName = true
+  # pinned = "Pinned Posts" # enables pinned post section on homepage. enable in frontmatter with pin: true
   legacyLayout = false
 
   [params.author]
@@ -49,3 +53,18 @@ enableRobotsTXT = true
 
 [taxonomies]
   tag = 'tags'
+  
+  
+# page frontmatter example
+# ---
+# title: "My First Post"
+# date: 2026-02-22
+# draft: false
+# tags: ["hugo", "web"]
+# categories: ["tutorials"]
+# featuredImg: "/images/my-image.jpg"
+# description: "A short description for meta tags and list views"
+# author: "Anthony"
+# toc: true
+# pin: true
+# ---
