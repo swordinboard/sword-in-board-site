@@ -1,4 +1,4 @@
 ---
-title: Projects
-Weight: 1
+title: "Projects"
+draft: true
 ---

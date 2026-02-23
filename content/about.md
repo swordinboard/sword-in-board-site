@@ -1,6 +1,5 @@
 ---
-title: "About
-weight: 3
+title: "About"
 draft: true
 ---
 
