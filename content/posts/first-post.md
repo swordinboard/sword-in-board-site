@@ -1,5 +1,5 @@
 ---
-title: First Post
+title: "First Post"
 Date: 2026-02-23
 author: Anthony
 weight 1
@@ -7,7 +7,7 @@ weight 1
 
 I'm not much of a blogger. I tend to go do whatever it is I'm trying to do, and full send when I'm finished. My process is pretty much hyper-focus and aggressive hammer it in until it works. Not much of a "jot down your steps and thoughts" type of guy. It does feel like it's time for that to change. Not that there are a lot of eyes on me by any means, but in an effort to provide a public-facing product I realize that there should be some insight into the process as it develops.
 
-I am currently in the early stages of transferring the core SRD of These Lucky Stars from a word document to the [website](https://theseluckystars.com). I've learned quite a bit along the way between game development, website building, and deciding what to do with Sword in Board as a whole and These Lucky Stars as a system. 
+As of writing this I am in the early stages of transferring the core SRD of These Lucky Stars from a word document to the [website](https://theseluckystars.com). I've learned quite a bit along the way between game development, website building, and deciding what to do with Sword in Board as a whole and These Lucky Stars as a system. 
 
 The latter was the easier of the two. A roadmap for These Lucky Stars will be setup in another post, but the goal is to have it finalized and published with a free SRD and some module releases. 
 
