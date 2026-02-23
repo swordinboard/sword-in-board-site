@@ -1,0 +1,47 @@
+baseURL = 'https://swordinboard.com/'
+languageCode = 'en-us'
+title = 'Sword in Board Workshop'
+theme = 'hermit-v2'
+
+enableEmoji = true
+enableRobotsTXT = true
+
+[params]
+  homeSubtitle = 'A createve space for a not so creative caveman. Welcome to the workshop.'
+  description = 'Sword in Board Workshop'
+  themeColor = '#494f5c'
+  readTime = true
+  code_copy_button = true
+  footerHideThemeName = true
+  legacyLayout = false
+
+  [params.author]
+    name = 'Anthony'
+    about = 'about'
+
+  [[params.socialLinks]]
+    name = 'github'
+    url = 'https://github.com/swordinboard'
+
+  # [[params.socialLinks]]
+  #   name = 'reddit'
+  #   url = 'https://reddit.com/r/theseluckystars/'
+
+
+[[menu.main]]
+  name = 'Blog'
+  url = '/posts/'
+  weight = 1
+
+[[menu.main]]
+  name = 'Projects'
+  url = '/projects/'
+  weight = 2
+
+[[menu.main]]
+  name = 'About'
+  url = '/about/'
+  weight = 3
+
+[taxonomies]
+  tag = 'tags'
