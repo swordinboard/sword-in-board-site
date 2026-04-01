@@ -10,7 +10,7 @@ I'm not much of a blogger. I tend to go do whatever it is I'm trying to do, and 
 
 I am currently transferring the core SRD of These Lucky Stars from a word document to the [website](https://theseluckystars.com). I've learned quite a bit along the way between game development, website building, and deciding what to do with Sword in Board as a whole and These Lucky Stars as a system.
 
-The latter was the easier of the two. I'm pushing forward, even if just for the thrill of publishing something. You can track progress on the [roadmap](https://theseluckystars.com/roadmap). We are currently nearing the end of phase one.
+The latter was the easier of the two. I'm pushing forward, even if just for the thrill of publishing something. You can track progress on the [roadmap](https://theseluckystars.com/docs/roadmap). We are currently nearing the end of phase one.
 
 As for Sword in Board, well. I just can't part with the name. I've used it twice for different concepts and see no reason to be rid of it. Sword in Board Workshop will be the hub for my projects, as both a publishing entity and a host for smaller items that lack their own proper home.
 
