@@ -1,6 +1,6 @@
 import type { Config } from '@netlify/functions';
 import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
-import { emptyBoard, loadBoard, saveBoard } from './_lib/store';
+import { emptyBoard, expiryOf, loadBoard, saveBoard, touchBoard } from './_lib/store';
 import type { BoardItem, BoardState, FrameStyle, HangerStyle } from '../../shared/types';
 
 const FRAMES: FrameStyle[] = ['paper', 'polaroid', 'clipping', 'framed', 'note'];
@@ -54,7 +54,9 @@ export default async (req: Request): Promise<Response> => {
   if (req.method === 'GET') {
     const board = await loadBoard(boardId);
     if (!board) return session.master ? json(emptyBoard(boardId)) : notFound();
-    return json(board);
+    // Looking counts as keeping it: a board only expires if truly abandoned.
+    await touchBoard(boardId);
+    return json({ ...board, expiresAt: expiryOf(board) });
   }
 
   if (req.method === 'PUT') {
@@ -74,13 +76,15 @@ export default async (req: Request): Promise<Response> => {
     const next: BoardState = {
       version: 1,
       id: boardId,
+      createdAt: current.createdAt,
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
       title: str(body.title, 120) ?? current.title,
       items,
       updatedAt: current.updatedAt,
     };
-    return json(await saveBoard(next));
+    const saved = await saveBoard({ ...next, lastSeenAt: new Date().toISOString() });
+    return json({ ...saved, expiresAt: expiryOf(saved) });
   }
 
   return json({ error: 'method not allowed' }, { status: 405 });

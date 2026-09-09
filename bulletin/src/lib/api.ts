@@ -2,6 +2,9 @@ import type {
   AccessKey,
   BoardState,
   BoardSummary,
+  Invite,
+  NewBoardResult,
+  SiteInfo,
   Role,
   SessionInfo,
   Submission,
@@ -38,7 +41,23 @@ export class ApiError extends Error {
   }
 }
 
+export const getSite = () => request<SiteInfo>('/api/site');
+
 export const getSession = () => request<SessionInfo>('/api/auth');
+
+export const createOwnBoard = (input: { title: string; invite?: string; email?: string }) =>
+  request<NewBoardResult>('/api/create', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+export const recoverByEmail = (email: string) =>
+  request<{ ok: true; message: string }>('/api/recover', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
 
 export const login = (password: string) =>
   request<SessionInfo>('/api/auth', {
@@ -138,5 +157,18 @@ export const createKey = (input: {
 
 export const revokeKey = (id: string) =>
   request<{ deleted: true }>(`/api/keys/${id}`, { method: 'DELETE' });
+
+export const getInvites = () =>
+  request<{ invites: Invite[] }>('/api/invites').then((r) => r.invites);
+
+export const createInvite = (input: { label: string; maxUses: number; code?: string }) =>
+  request<Invite>('/api/invites', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+export const revokeInvite = (id: string) =>
+  request<{ deleted: true }>(`/api/invites/${id}`, { method: 'DELETE' });
 
 export type { Role };

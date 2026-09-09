@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { BoardItem, BoardState, SessionInfo } from '../shared/types';
+import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
 import { BOARD_TITLE } from './lib/config';
 import * as api from './lib/api';
 import Board, { type BoardHandle } from './components/Board';
@@ -11,9 +11,10 @@ import InboxDialog from './components/InboxDialog';
 import ItemInspector from './components/ItemInspector';
 import BoardsDialog from './components/BoardsDialog';
 import KeysDialog from './components/KeysDialog';
+import InvitesDialog from './components/InvitesDialog';
 import { shareBoard } from './lib/share';
 
-type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | null;
+type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | 'invites' | null;
 
 interface Toast {
   text: string;
@@ -24,6 +25,7 @@ const SAVE_DELAY_MS = 600;
 
 export default function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [site, setSite] = useState<SiteInfo | null>(null);
   const [board, setBoard] = useState<BoardState | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -53,6 +55,7 @@ export default function App() {
   /* ---------- session and initial load ---------- */
 
   useEffect(() => {
+    api.getSite().then(setSite).catch(() => undefined);
     api
       .getSession()
       .then(setSession)
@@ -204,10 +207,23 @@ export default function App() {
   if (!session.authenticated) {
     return (
       <LoginGate
-        title={BOARD_TITLE}
+        title={site?.title || BOARD_TITLE}
+        site={site}
         onEntered={(next) => {
           setSession(next);
           say('Welcome in.');
+        }}
+        onCreated={(result) => {
+          setBoard(result.board);
+          setActiveBoardId(result.board.id);
+          setSession({
+            authenticated: true,
+            role: 'editor',
+            master: false,
+            boardId: result.board.id,
+          });
+          setEditMode(true);
+          say('Your board is up. Pin something to it.');
         }}
       />
     );
@@ -285,6 +301,7 @@ export default function App() {
           role={session.role!}
           master={session.master}
           title={title}
+          expiresAt={board.expiresAt}
           itemCount={board.items.length}
           pendingCount={pendingCount}
           editMode={editMode}
@@ -315,6 +332,10 @@ export default function App() {
             setPanelOpen(false);
             setKeysFor({ id: board.id, title: board.title });
             setDialog('keys');
+          }}
+          onInvites={() => {
+            setPanelOpen(false);
+            setDialog('invites');
           }}
           onToggleEdit={() => {
             setEditMode((on) => !on);
@@ -353,6 +374,10 @@ export default function App() {
             setAddSrc(undefined);
           }}
         />
+      ) : null}
+
+      {dialog === 'invites' ? (
+        <InvitesDialog site={site} onClose={() => setDialog(null)} />
       ) : null}
 
       {dialog === 'boards' ? (

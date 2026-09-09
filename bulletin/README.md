@@ -47,6 +47,7 @@ bulletin/
       ItemInspector.tsx    edit the selected item
       BoardsDialog.tsx     switch, add, rename, delete boards
       KeysDialog.tsx       make, read back, and revoke passwords
+      InvitesDialog.tsx    invite codes and the current signup mode
     lib/                   api client, image helpers, frame geometry, config
     styles/                cork, wood, frames, chrome
   netlify/functions/
@@ -54,6 +55,11 @@ bulletin/
     board.ts               read the board; write it as editor
     boards.ts              list, add, rename, delete boards (master only)
     keys.ts                make and revoke access keys (master only)
+    site.ts                public: what the login screen needs to know
+    create.ts              public: put up a new board
+    recover.ts             public: email a forgotten passphrase back
+    invites.ts             make and revoke invite codes (master only)
+    sweep.ts               scheduled: clear boards nobody has touched
     media.ts               gated image read; upload; delete
     submissions.ts         create, list, triage, delete
     _lib/                  auth, blob stores, email, guessing defences, wordlist
@@ -130,6 +136,49 @@ first run and kept in the store beside the data it protects — enough to stop c
 but not defence against someone who already holds the store. Setting it is one variable and
 worth doing.
 
+### Who can put up a board
+
+`SIGNUP_MODE` decides, and it is a Netlify setting rather than code, so it changes without a
+redeploy:
+
+- `closed` — only you, using the master password.
+- `invite` — anyone holding a code you generated. **This is the default**, including when the
+  variable is unset or misspelt, because the setting that can surprise nobody is the
+  restrictive one.
+- `open` — anyone who finds the site.
+
+Putting up a board hands back one passphrase, shown once. It is that board's editor key, so
+its holder owns the board: they can pin things up and cut their own viewing keys for it, and
+nothing else. They cannot see other boards exist, list them, or make invite codes. Those stay
+with the master password.
+
+Creation is capped at 3 boards per address per day and 60 site-wide per hour.
+
+**Before opening it up**, two things are worth being deliberate about. Any open image upload
+eventually attracts material you would not want hosted under your domain and your Netlify
+account. And the master password already opens every board — that is your only way to look at
+what has been posted, and the reason the create screen tells people plainly that whoever runs
+the site can see their board. Leave `SIGNUP_MODE` on `invite` unless you are prepared to
+police it.
+
+### Forgetting the passphrase
+
+There are no accounts, so there is nothing to reset. The create screen offers an optional
+email; it is never a login, never shown to anyone, and used for exactly one thing — sending
+that passphrase back. Skip it and a lost passphrase means a lost board, which the screen says
+out loud before it lets anyone past.
+
+`/api/recover` answers identically whether or not it recognises an address, so it cannot be
+used to find out who has a board here, and passphrases only ever leave by email.
+
+### Boards that go quiet
+
+A board is cleared once nobody has **looked at or changed it** for `BOARD_TTL_DAYS`, which
+defaults to 180. Viewing counts, so only genuinely abandoned boards ever expire, and the date
+sits in the board's own menu because with no accounts there is no way to warn anyone first.
+Clearing takes the board's items, images, submissions and keys with it. `sweep.ts` runs daily
+on Netlify's scheduler; there is nothing else to host.
+
 ### Sharing
 
 The share button in the menu hands out the site link and nothing else — no password, no board
@@ -171,6 +220,8 @@ same repository.
 | `EDITOR_PASSWORD` | yes | The master password. Opens every board and manages keys. Keep it to yourself. |
 | `AUTH_SECRET` | strongly advised | Signs cookies and protects stored keys. Any long random string. See above for what leaving it unset costs. |
 | `BOARD_PASSWORD` | no | Only for upgrades from the first release: it becomes a viewer key on the first board, then the variable can be deleted. |
+| `SIGNUP_MODE` | no | `closed`, `invite`, or `open`. Defaults to `invite`. |
+| `BOARD_TTL_DAYS` | no | Days untouched before a board is cleared. Defaults to 180. |
 | `BOARD_TITLE` | no | Board name stored in board state. |
 | `VITE_BOARD_TITLE` | no | Board name in the browser tab and login screen. Build-time. |
 | `NOTIFY_EMAIL` | no | Where submission notifications are sent. |
@@ -225,7 +276,11 @@ directory, with the environment variables set.
 - Submissions are limited to 12 per IP per hour, and 8 images each.
 - Board layout is a single JSON document, so two editors saving at the same time means last
   write wins. Fine for one editor; something to revisit if that changes.
-- Up to 50 boards, and 40 keys per board.
+- Up to 50 boards from the master editor, 40 keys per board, and 100 invite codes.
+- Images are served through a function rather than off a CDN, because they are gated. That is
+  the right trade for a private board and the thing that scales worst: at real adoption it is
+  what would push this off a free tier.
+- Deleting a board is immediate and total. There is no undo and no bin.
 - A password is not a person. Two people handed the same key are indistinguishable, and
   labels are your own record of who has what, not something the app can verify.
 - The per-IP counter is not atomic — Netlify Blobs has no compare-and-set — so simultaneous

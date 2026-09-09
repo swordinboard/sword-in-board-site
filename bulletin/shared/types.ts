@@ -31,6 +31,14 @@ export interface BoardItem {
 export interface BoardState {
   version: 1;
   id: string;
+  createdAt?: string;
+  /**
+   * Last time anyone looked at or changed this board. Viewing counts, so a
+   * board only ever expires if it is genuinely abandoned.
+   */
+  lastSeenAt?: string;
+  /** When this board will be cleared if nobody touches it. */
+  expiresAt?: string;
   /** Fixed board size in board coordinates. Items never reflow. */
   width: number;
   height: number;
@@ -91,6 +99,43 @@ export interface AccessKey {
 }
 
 export const KEY_MIN_LENGTH = 8;
+
+/** Who may put up a new board. */
+export type SignupMode = 'closed' | 'invite' | 'open';
+
+/** What the login screen needs to know before anyone has signed in. */
+export interface SiteInfo {
+  signupMode: SignupMode;
+  /** True when a board can be made right now, with or without a code. */
+  canCreate: boolean;
+  /** True when making one needs an invite code. */
+  needsInvite: boolean;
+  /** Days of being untouched before a board is cleared. */
+  ttlDays: number;
+  /** True when a forgotten passphrase can be emailed back. */
+  recoveryAvailable: boolean;
+  title: string;
+}
+
+/** A code that lets someone put up a board while signups are invite-only. */
+export interface Invite {
+  id: string;
+  label: string;
+  /** Returned only to the master editor. */
+  code?: string;
+  maxUses: number;
+  uses: number;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+/** What comes back after putting up a new board. */
+export interface NewBoardResult {
+  board: BoardState;
+  /** The owner's passphrase. Shown once; never recoverable without an email. */
+  passphrase: string;
+  recoveryEmailSaved: boolean;
+}
 
 /**
  * How hard a chosen password must be to guess, in bits. A generated passphrase

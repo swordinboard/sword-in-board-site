@@ -4,7 +4,9 @@ import {
   BOARD_DEFAULTS,
   type AccessKey,
   type BoardState,
+  type Invite,
   type Role,
+  type SignupMode,
   type Submission,
 } from '../../../shared/types';
 import { decryptSecret, encryptSecret, lookupIndex } from './secrets';
@@ -30,9 +32,12 @@ export const newId = () => randomUUID().replace(/-/g, '');
 /* ---------------------------------------------------------------- boards */
 
 export function emptyBoard(id: string, title?: string): BoardState {
+  const now = new Date().toISOString();
   return {
     version: 1,
     id,
+    createdAt: now,
+    lastSeenAt: now,
     width: BOARD_DEFAULTS.width,
     height: BOARD_DEFAULTS.height,
     title: title || process.env.BOARD_TITLE || BOARD_DEFAULTS.title,
@@ -118,6 +123,7 @@ export async function deleteBoard(id: string): Promise<void> {
     ...media.map((mediaId) => mediaStore().delete(mediaId)),
     ...subs.map((sub) => submissionStore().delete(sub.id)),
     ...keys.map((key) => revokeKey(key.id)),
+    forgetRecovery(id),
     boardStore().delete(id),
   ]);
 }
@@ -260,4 +266,173 @@ export async function allowAttempt(fingerprint: string, limit: number, windowMs:
   if (record.count >= limit) return false;
   await store.setJSON(key, { count: record.count + 1, start: record.start });
   return true;
+}
+
+/* --------------------------------------------------------------- signups */
+
+/** Invite codes, by their own id. */
+export const inviteStore = () => getStore('invites');
+/** Code index -> invite id. */
+export const inviteIndexStore = () => getStore('invite-index');
+/** Per-board secrets never sent to a browser, such as a recovery address. */
+export const boardSecretStore = () => getStore('board-secrets');
+/** Email index -> the boards that address can recover. */
+export const recoveryIndexStore = () => getStore('recovery-index');
+
+export function signupMode(): SignupMode {
+  const raw = (process.env.SIGNUP_MODE ?? '').trim().toLowerCase();
+  if (raw === 'open' || raw === 'closed') return raw;
+  // Anything unset or unrecognised means invite-only, which is the setting
+  // that cannot surprise anyone by being more permissive than intended.
+  return 'invite';
+}
+
+/** Days a board may sit untouched before it is cleared. */
+export function boardTtlDays(): number {
+  const raw = Number(process.env.BOARD_TTL_DAYS);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 180;
+}
+
+export function expiryOf(board: BoardState): string {
+  const seen = board.lastSeenAt ?? board.updatedAt;
+  return new Date(new Date(seen).getTime() + boardTtlDays() * 86400_000).toISOString();
+}
+
+/**
+ * Marks a board as still wanted. Writes are throttled to once an hour so that
+ * simply looking at a board does not mean a store write per page load.
+ */
+export async function touchBoard(id: string): Promise<void> {
+  const board = await loadBoard(id);
+  if (!board) return;
+  const last = board.lastSeenAt ? new Date(board.lastSeenAt).getTime() : 0;
+  if (Date.now() - last < 60 * 60 * 1000) return;
+  await boardStore().setJSON(id, { ...board, lastSeenAt: new Date().toISOString() });
+}
+
+interface StoredInvite {
+  id: string;
+  label: string;
+  sealed: string;
+  index: string;
+  maxUses: number;
+  uses: number;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export async function createInvite(input: {
+  label: string;
+  code: string;
+  maxUses: number;
+}): Promise<Invite> {
+  const index = await lookupIndex(input.code);
+  if (await inviteIndexStore().get(index, { type: 'text' })) {
+    throw new Error('That code already exists. Choose another.');
+  }
+  const stored: StoredInvite = {
+    id: newId(),
+    label: input.label,
+    sealed: await encryptSecret(input.code),
+    index,
+    maxUses: input.maxUses,
+    uses: 0,
+    createdAt: new Date().toISOString(),
+  };
+  await inviteStore().setJSON(stored.id, stored);
+  await inviteIndexStore().set(index, stored.id);
+  return {
+    id: stored.id,
+    label: stored.label,
+    code: input.code,
+    maxUses: stored.maxUses,
+    uses: 0,
+    createdAt: stored.createdAt,
+  };
+}
+
+export async function listInvites(): Promise<Invite[]> {
+  const { blobs } = await inviteStore().list();
+  const loaded = await Promise.all(
+    blobs.map((b) => inviteStore().get(b.key, { type: 'json' }) as Promise<StoredInvite | null>),
+  );
+  return Promise.all(
+    loaded
+      .filter((i): i is StoredInvite => i !== null)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .map(async (i) => ({
+        id: i.id,
+        label: i.label,
+        code: (await decryptSecret(i.sealed)) ?? undefined,
+        maxUses: i.maxUses,
+        uses: i.uses,
+        createdAt: i.createdAt,
+        lastUsedAt: i.lastUsedAt,
+      })),
+  );
+}
+
+export async function revokeInvite(id: string): Promise<boolean> {
+  const invite = (await inviteStore().get(id, { type: 'json' })) as StoredInvite | null;
+  if (!invite) return false;
+  await Promise.all([inviteIndexStore().delete(invite.index), inviteStore().delete(id)]);
+  return true;
+}
+
+/** Spends one use of a code, or returns false if it is unknown or exhausted. */
+export async function consumeInvite(code: string): Promise<boolean> {
+  const index = await lookupIndex(code);
+  const id = (await inviteIndexStore().get(index, { type: 'text' })) as string | null;
+  if (!id) return false;
+  const invite = (await inviteStore().get(id, { type: 'json' })) as StoredInvite | null;
+  if (!invite) return false;
+  if (invite.maxUses > 0 && invite.uses >= invite.maxUses) return false;
+  await inviteStore().setJSON(id, {
+    ...invite,
+    uses: invite.uses + 1,
+    lastUsedAt: new Date().toISOString(),
+  });
+  return true;
+}
+
+/* -------------------------------------------------------------- recovery */
+
+export async function rememberRecoveryEmail(boardId: string, email: string): Promise<void> {
+  const normalised = email.trim().toLowerCase();
+  await boardSecretStore().setJSON(boardId, { emailSealed: await encryptSecret(normalised) });
+  const index = await lookupIndex(normalised);
+  const existing = ((await recoveryIndexStore().get(index, { type: 'json' })) ?? []) as string[];
+  if (!existing.includes(boardId)) {
+    await recoveryIndexStore().setJSON(index, [...existing, boardId]);
+  }
+}
+
+/** Board ids an address can recover. Empty for an address we do not hold. */
+export async function boardsForEmail(email: string): Promise<string[]> {
+  const index = await lookupIndex(email.trim().toLowerCase());
+  return ((await recoveryIndexStore().get(index, { type: 'json' })) ?? []) as string[];
+}
+
+async function forgetRecovery(boardId: string): Promise<void> {
+  const secret = (await boardSecretStore().get(boardId, { type: 'json' })) as
+    | { emailSealed?: string }
+    | null;
+  if (secret?.emailSealed) {
+    const email = await decryptSecret(secret.emailSealed);
+    if (email) {
+      const index = await lookupIndex(email);
+      const ids = ((await recoveryIndexStore().get(index, { type: 'json' })) ?? []) as string[];
+      const left = ids.filter((id) => id !== boardId);
+      if (left.length) await recoveryIndexStore().setJSON(index, left);
+      else await recoveryIndexStore().delete(index);
+    }
+  }
+  await boardSecretStore().delete(boardId);
+}
+
+/** Boards untouched for longer than the site's limit. */
+export async function expiredBoards(): Promise<BoardState[]> {
+  const now = Date.now();
+  const boards = await listBoards();
+  return boards.filter((board) => new Date(expiryOf(board)).getTime() < now);
 }

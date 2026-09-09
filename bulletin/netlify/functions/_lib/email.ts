@@ -117,3 +117,52 @@ export async function notifyAttack(notice: AttackNotice): Promise<void> {
     console.error('[guard] alert threw', error);
   }
 }
+
+/**
+ * Sends someone the passphrase for boards registered to their address. This is
+ * the only way back in for a board whose passphrase has been lost, since there
+ * are no accounts to reset.
+ */
+export async function sendRecovery(
+  to: string,
+  boards: { title: string; passphrase: string }[],
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn(`[recovery] ${boards.length} board(s) for a caller, but RESEND_API_KEY is unset`);
+    return;
+  }
+
+  const rows = boards
+    .map(
+      (board) =>
+        `<li><strong>${escapeHtml(board.title)}</strong><br>` +
+        `<code style="font-size:16px">${escapeHtml(board.passphrase)}</code></li>`,
+    )
+    .join('\n');
+
+  const html = [
+    `<h2>Your board${boards.length > 1 ? 's' : ''}</h2>`,
+    `<p>Type the passphrase on the board's front page to get back in.</p>`,
+    `<ul>${rows}</ul>`,
+    `<p style="color:#666;font-size:13px">If you did not ask for this, nothing has changed`,
+    `and you can ignore it. Anyone holding a passphrase can open that board, so keep it`,
+    `to yourself.</p>`,
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.NOTIFY_FROM || 'onboarding@resend.dev',
+        to: [to],
+        subject: 'Getting back into your board',
+        html,
+      }),
+    });
+    if (!res.ok) console.error(`[recovery] send failed: ${res.status} ${await res.text()}`);
+  } catch (error) {
+    console.error('[recovery] send threw', error);
+  }
+}

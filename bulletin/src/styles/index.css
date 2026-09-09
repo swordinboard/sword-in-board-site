@@ -575,3 +575,111 @@ button {
     right: 12px;
   }
 }
+
+/* ---------- gate variants for making and recovering a board ---------- */
+
+.gate-card.wide {
+  width: min(460px, 100%);
+  text-align: left;
+}
+
+.gate-card.wide h1,
+.gate-card.wide > p {
+  text-align: center;
+}
+
+.gate-card .btn.wide-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.gate-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gate-links button {
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.gate-card .fine {
+  margin: 14px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.gate-card .fine.ok {
+  color: #7fdcb4;
+}
+
+.secret.standalone {
+  margin: 4px 0 0;
+  padding: 16px;
+}
+
+.secret.standalone code {
+  font-size: 18px;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  color: var(--panel-text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.confirm input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.gate-card .field label {
+  text-align: left;
+}
+
+.mode-note {
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--panel-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mode-note.open {
+  border-color: rgba(192, 57, 43, 0.5);
+  background: rgba(192, 57, 43, 0.14);
+}
+
+.mode-note .how {
+  display: block;
+  margin-top: 6px;
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.mode-note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}

@@ -14,6 +14,8 @@ interface Props {
   onInbox: () => void;
   onBoards: () => void;
   onKeys: () => void;
+  onInvites: () => void;
+  expiresAt?: string;
   onToggleEdit: () => void;
   onFit: () => void;
   onLogout: () => void;
@@ -56,6 +58,8 @@ export default function SidePanel({
   onInbox,
   onBoards,
   onKeys,
+  onInvites,
+  expiresAt,
   onToggleEdit,
   onFit,
   onLogout,
@@ -136,6 +140,12 @@ export default function SidePanel({
                 hint="Each one has its own passwords"
                 onClick={onBoards}
               />
+              <NavItem
+                glyph="&#9993;"
+                label="Invite codes"
+                hint="Let other people put up boards"
+                onClick={onInvites}
+              />
             </>
           ) : null}
 
@@ -151,6 +161,19 @@ export default function SidePanel({
             {itemCount} {itemCount === 1 ? 'item' : 'items'} on the board.
             <br />
             Drag the cork to pan. Scroll or pinch to zoom.
+            {expiresAt ? (
+              <>
+                <br />
+                <br />
+                Kept until{' '}
+                {new Date(expiresAt).toLocaleDateString(undefined, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+                . Looking at it pushes that back.
+              </>
+            ) : null}
           </p>
         </div>
       </nav>
