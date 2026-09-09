@@ -146,6 +146,10 @@ and appearing only when things look wrong — the seam is already there. The 429
 carries `challenge: true`, and `challengeSatisfied()` in `netlify/functions/_lib/guard.ts`
 documents the four steps. Nothing else has to move.
 
+Whoever holds an editor key manages keys on their own board and no other: they can cut and
+revoke passwords for it, but cannot see, make, or revoke a key anywhere else, and cannot
+revoke the key they are currently holding, which would lock them out with no way back.
+
 **Access keys are stored reversibly, on purpose.** They are encrypted at rest with
 AES-256-GCM and shown back to you in the keys dialog, so you can read a password out to
 someone weeks after making it without having written it down somewhere worse. If you would
@@ -181,6 +185,24 @@ account. And the master password already opens every board — that is your only
 what has been posted, and the reason the create screen tells people plainly that whoever runs
 the site can see their board. Leave `SIGNUP_MODE` on `invite` unless you are prepared to
 police it.
+
+### Telling the site's own boards apart
+
+Board titles are labels, not addresses. Nothing routes by them, they need not be unique, and
+two boards may share one — so a title cannot be squatted, and pre-making boards to hold names
+achieves nothing.
+
+Passwords are the opposite: they are the one globally unique thing here, since each must
+resolve to exactly one board. `RESERVED_PASSWORDS` in `shared/types.ts` therefore holds back
+the obvious ones — welcome, demo, help, the site's own name — for the site's own boards. Only
+the master editor may use them. Without that, a stranger claiming "welcome" would mean that
+telling somebody "the demo password is welcome" walked them onto that stranger's board.
+
+The durable mark is `official`, a flag on the board that **only the master editor can set**.
+That is the whole point of it: it is the one thing a person putting up a board cannot award
+themselves, by the API or by smuggling the field into a board save. It shows as a badge
+beside the board's name, so whoever opens a board can tell whether it is run by the site or
+by a person.
 
 ### Forgetting the passphrase
 

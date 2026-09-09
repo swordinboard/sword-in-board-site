@@ -715,3 +715,24 @@ button {
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+/* Marks a board as the site's own. Only the master editor can set it. */
+.panel header h1 .official {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.2);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.tag.official-tag {
+  background: rgba(217, 164, 65, 0.24);
+  color: var(--accent);
+}

@@ -77,6 +77,9 @@ export default async (req: Request): Promise<Response> => {
       version: 1,
       id: boardId,
       createdAt: current.createdAt,
+      // Never taken from the request: an editor saving their board must not be
+      // able to promote it by including the field.
+      official: current.official,
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
       title: str(body.title, 120) ?? current.title,

@@ -83,6 +83,7 @@ export default function BoardsDialog({ currentId, onOpen, onManageKeys, onClose 
                 <div>
                   <div className="row-title">
                     {board.title}
+                    {board.official ? <span className="tag official-tag">official</span> : null}
                     {board.id === currentId ? <span className="tag">open</span> : null}
                   </div>
                   <div className="row-sub">
@@ -119,6 +120,18 @@ export default function BoardsDialog({ currentId, onOpen, onManageKeys, onClose 
                   </button>
                   <button className="btn ghost" onClick={() => rename(board)}>
                     Rename
+                  </button>
+                  <button
+                    className="btn ghost"
+                    title="Mark this as a board run by the site rather than by a person"
+                    onClick={async () => {
+                      await api
+                        .setBoardOfficial(board.id, !board.official)
+                        .catch((e: Error) => setError(e.message));
+                      await load();
+                    }}
+                  >
+                    {board.official ? 'Unmark official' : 'Mark official'}
                   </button>
                   <button className="btn ghost" onClick={() => setConfirming(board.id)}>
                     Delete

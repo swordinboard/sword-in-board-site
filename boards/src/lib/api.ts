@@ -137,6 +137,13 @@ export const renameBoard = (id: string, title: string) =>
     body: JSON.stringify({ title }),
   });
 
+export const setBoardOfficial = (id: string, official: boolean) =>
+  request<BoardState>(`/api/boards/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ official }),
+  });
+
 export const deleteBoard = (id: string) =>
   request<{ deleted: true }>(`/api/boards/${id}`, { method: 'DELETE' });
 

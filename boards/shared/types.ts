@@ -31,6 +31,12 @@ export interface BoardItem {
 export interface BoardState {
   version: 1;
   id: string;
+  /**
+   * Marks a board as the site's own rather than somebody's. Only the master
+   * editor can set it, which is the whole point: it is the one thing a person
+   * putting up a board cannot claim for themselves.
+   */
+  official?: boolean;
   createdAt?: string;
   /**
    * Last time anyone looked at or changed this board. Viewing counts, so a
@@ -77,6 +83,7 @@ export interface SessionInfo {
 export interface BoardSummary {
   id: string;
   title: string;
+  official?: boolean;
   itemCount: number;
   keyCount: number;
   updatedAt: string;
@@ -104,6 +111,24 @@ export interface AccessKey {
  * stranger onto somebody's board by accident.
  */
 export const KEY_MIN_LENGTH = 6;
+
+/**
+ * Passwords only the site's own boards may use.
+ *
+ * Passwords are the one genuinely scarce, global thing here — they must be
+ * unique across every board — so the obvious ones are worth holding back. If a
+ * stranger claimed "welcome", then telling anyone "the demo password is
+ * welcome" would walk them onto that stranger's board instead.
+ *
+ * Board titles need no such protection: they are labels, not addresses, and
+ * nothing routes by them.
+ */
+export const RESERVED_PASSWORDS: readonly string[] = [
+  'welcome', 'demo', 'example', 'sample', 'help', 'support', 'about', 'info',
+  'official', 'admin', 'administrator', 'moderator', 'staff', 'team', 'system',
+  'start', 'hello', 'home', 'index', 'main', 'test', 'preview', 'tour',
+  'borough', 'boroughboards', 'borough-boards', 'boards', 'board',
+];
 
 /** Who may put up a new board. */
 export type SignupMode = 'closed' | 'invite' | 'open';

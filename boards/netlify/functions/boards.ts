@@ -33,6 +33,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
         id: board.id,
         title: board.title,
         itemCount: board.items.length,
+        official: board.official,
         keyCount: await countKeys(board.id),
         updatedAt: board.updatedAt,
       })),
@@ -71,7 +72,11 @@ export default async (req: Request, context: Context): Promise<Response> => {
       typeof body.title === 'string' && body.title.trim()
         ? body.title.trim().slice(0, 120)
         : board.title;
-    return json(await saveBoard({ ...board, title }));
+    // Only reachable by the master, which is what makes the badge mean
+    // anything: it is the one mark a board's own owner cannot give itself.
+    const official =
+      typeof body.official === 'boolean' ? body.official : Boolean(board.official);
+    return json(await saveBoard({ ...board, title, official }));
   }
 
   if (req.method === 'DELETE') {

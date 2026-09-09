@@ -1,26 +1,52 @@
 import type { Config, Context } from '@netlify/functions';
-import { forbidden, json, masterPassword, notFound, safeEqual, sessionFor, unauthorized } from './_lib/auth';
-import { createKey, listKeys, loadBoard, revokeKey } from './_lib/store';
+import {
+  forbidden,
+  json,
+  masterPassword,
+  notFound,
+  safeEqual,
+  sessionFor,
+  unauthorized,
+} from './_lib/auth';
+import { createKey, keyById, listKeys, loadBoard, revokeKey } from './_lib/store';
 import { estimateBits, generatePassphrase } from './_lib/secrets';
-import { KEY_MIN_BITS, KEY_MIN_LENGTH, type Role } from '../../shared/types';
+import {
+  KEY_MIN_BITS,
+  KEY_MIN_LENGTH,
+  RESERVED_PASSWORDS,
+  type Role,
+} from '../../shared/types';
 
 const MAX_KEYS_PER_BOARD = 40;
 
+const isReserved = (password: string) =>
+  RESERVED_PASSWORDS.includes(password.trim().toLowerCase().replace(/\s+/g, '-'));
+
 /**
- * Access keys, master editor only. Each key is a password that opens exactly
- * one board at one role, and can be revoked on its own without disturbing the
- * other people holding keys to the same board.
+ * Access keys.
+ *
+ * The master editor manages keys on any board. Whoever holds an editor key
+ * manages keys on their own board and no other — they own that board, and the
+ * menu has always offered them this.
  */
 export default async (req: Request, context: Context): Promise<Response> => {
   const session = await sessionFor(req);
   if (!session) return unauthorized();
-  if (!session.master) return forbidden();
+  if (session.role !== 'editor') return forbidden();
 
   const id = (context.params as Record<string, string | undefined>)?.id;
+  /** A board this session is allowed to touch, or null. */
+  const scopeFor = (boardId: string | null | undefined): string | null => {
+    if (session.master) return boardId ?? null;
+    if (!boardId || boardId === session.boardId) return session.boardId;
+    return null;
+  };
 
   if (req.method === 'GET') {
-    const boardId = new URL(req.url).searchParams.get('board') ?? undefined;
-    return json({ keys: await listKeys(boardId) });
+    const asked = new URL(req.url).searchParams.get('board');
+    const boardId = scopeFor(asked);
+    if (!session.master && !boardId) return forbidden();
+    return json({ keys: await listKeys(boardId ?? undefined) });
   }
 
   if (req.method === 'POST') {
@@ -31,9 +57,10 @@ export default async (req: Request, context: Context): Promise<Response> => {
       return json({ error: 'bad request' }, { status: 400 });
     }
 
-    const boardId = typeof body.boardId === 'string' ? body.boardId : '';
+    const boardId = scopeFor(typeof body.boardId === 'string' ? body.boardId : null);
+    if (!boardId) return forbidden();
     const board = await loadBoard(boardId);
-    if (!boardId || !board) return notFound();
+    if (!board) return notFound();
 
     const existing = await listKeys(boardId);
     if (existing.length >= MAX_KEYS_PER_BOARD) {
@@ -59,14 +86,19 @@ export default async (req: Request, context: Context): Promise<Response> => {
     if (safeEqual(password, masterPassword())) {
       return json({ error: 'That is the master password. Choose another.' }, { status: 409 });
     }
+    // Words the site keeps for its own boards, so that "the demo password is
+    // welcome" can never lead somebody onto a stranger's board.
+    if (supplied && !session.master && isReserved(password)) {
+      return json(
+        { error: 'That word is kept for this site’s own boards. Choose another.' },
+        { status: 409 },
+      );
+    }
 
     // Strength is advice here, not a wall. A password opens exactly one board,
     // so a weak one risks only that board, and a board meant to be passed
     // around freely may quite reasonably want its own name as the password.
     // What the owner may not do is choose it without being told.
-    //
-    // The board's title is deliberately NOT forbidden: wanting the title as
-    // the password is a legitimate thing to want, not a mistake to prevent.
     if (supplied) {
       const bits = estimateBits(password);
       if (bits < KEY_MIN_BITS && body.acknowledgeWeak !== true) {
@@ -93,6 +125,17 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
   if (req.method === 'DELETE') {
     if (!id) return notFound();
+    const key = await keyById(id);
+    if (!key) return notFound();
+    if (!scopeFor(key.boardId)) return forbidden();
+    // Revoking the key you are holding would lock you out mid-action, with no
+    // way back unless you had written it down.
+    if (!session.master && key.id === session.keyId) {
+      return json(
+        { error: 'That is the key you are using. Another key has to revoke it.' },
+        { status: 409 },
+      );
+    }
     return (await revokeKey(id)) ? json({ deleted: true }) : notFound();
   }
 

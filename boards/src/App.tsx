@@ -302,6 +302,7 @@ export default function App() {
           master={session.master}
           title={title}
           expiresAt={board.expiresAt}
+          official={board.official}
           itemCount={board.items.length}
           pendingCount={pendingCount}
           editMode={editMode}

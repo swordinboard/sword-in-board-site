@@ -16,6 +16,7 @@ interface Props {
   onKeys: () => void;
   onInvites: () => void;
   expiresAt?: string;
+  official?: boolean;
   onToggleEdit: () => void;
   onFit: () => void;
   onLogout: () => void;
@@ -60,6 +61,7 @@ export default function SidePanel({
   onKeys,
   onInvites,
   expiresAt,
+  official,
   onToggleEdit,
   onFit,
   onLogout,
@@ -69,7 +71,14 @@ export default function SidePanel({
       <div className="scrim" onPointerDown={onClose} />
       <nav className="panel" aria-label="Board menu">
         <header>
-          <h1>{title}</h1>
+          <h1>
+            {title}
+            {official ? (
+              <span className="official" title="A board run by this site">
+                official
+              </span>
+            ) : null}
+          </h1>
           <button type="button" onClick={onClose} aria-label="Close menu">
             &times;
           </button>
