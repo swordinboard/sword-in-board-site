@@ -207,6 +207,23 @@ themselves, by the API or by smuggling the field into a board save. It shows as 
 beside the board's name, so whoever opens a board can tell whether it is run by the site or
 by a person.
 
+### Renaming the product
+
+`scripts/rename-site.py "New Name"` changes the name everywhere it is written
+down: `SITE_DEFAULT_NAME`, the `<title>`, the package name, the netlify.toml
+header, the README, the alt text on all three SVGs, the name-derived entries in
+`RESERVED_PASSWORDS`, and the test fixtures. It reads the current name out of
+`SITE_DEFAULT_NAME` rather than assuming one, so it can be run again later.
+
+It cannot do the last of it, and says so when it finishes: the logo draws
+letterforms as vector paths and `icon-180.png` is a bitmap, so a name with
+different initials needs the mark redrawn; and `SITE_NAME` / `VITE_SITE_NAME`
+in Netlify override the built-in default, so a stale value left set there will
+look exactly like the rename failed.
+
+Passwords are stored, not derived, so a password that was the old name keeps
+working. Reserving the new one only stops it being claimed from now on.
+
 ### Names that would speak for the site
 
 A title cannot be squatted, but it can mislead. `titleObjection` in
@@ -215,10 +232,13 @@ editor: the site's own name, and the handful of words in `RESERVED_TITLES` — o
 moderator, support, security, billing and their like — which read as a notice from whoever
 runs the place rather than from a person.
 
-It compares titles flattened the way somebody would actually read them: case folded,
-punctuation and spacing dropped, and digits standing in for letters put back, so
-`B0r0ugh  B.o.a.r.d.s` is caught alongside the plain spelling. Reserved words only bind
-on their own, so *Administrative Nightmares* is fine while a bare *Admin* is not.
+It compares titles by the shape a person would read them as: case folded, punctuation and
+spacing dropped, and every group of glyphs that read as each other — `o`/`0`, `i`/`l`/`1`/`|`/`!`,
+`a`/`4`/`@`, and so on — collapsed to one symbol. Both sides go through it, which is the
+point: expanding digits back into letters cannot work, because `1` stands for both `i` and
+`l`, so mapping it to either lets the other through. Collapsing has no such choice to get
+wrong, and `B0r0ugh  B.o.a.r.d.s` is caught alongside the plain spelling. Reserved words
+only bind on their own, so *Administrative Nightmares* is fine while a bare *Admin* is not.
 
 The guard runs on `/api/create` and again on any rename by a board's own editor, since a
 guard only on creation would be worth nothing — name it plainly, rename it after. A save that
