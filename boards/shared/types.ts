@@ -188,6 +188,60 @@ export const BOARD_DEFAULTS = {
 /** What the app itself is called. Override per instance with SITE_NAME. */
 export const SITE_DEFAULT_NAME = 'Borough Boards';
 
+/**
+ * Titles nobody but the master editor may use, matched exactly once stripped
+ * of punctuation and case. A board called "Official" is claiming to speak for
+ * the site; "Official Fan Club" plainly is not, so only the bare word is held.
+ */
+export const RESERVED_TITLES: readonly string[] = [
+  'official', 'admin', 'administrator', 'moderator', 'mod', 'support',
+  'staff', 'system', 'help', 'helpdesk', 'security', 'billing',
+];
+
+/**
+ * Why a board was reported. Deliberately confined to things that may be
+ * against the law: the site is not in the business of judging taste, only of
+ * not hosting crime.
+ */
+export type ReportReason = 'csam' | 'violence' | 'stolen' | 'other-illegal';
+
+export const REPORT_REASONS: { value: ReportReason; label: string; hint: string }[] = [
+  {
+    value: 'csam',
+    label: 'Sexual content involving a child',
+    hint: 'Reported and removed immediately, and passed to the authorities.',
+  },
+  {
+    value: 'violence',
+    label: 'Threats or incitement to violence',
+    hint: 'Credible threats against a person or group.',
+  },
+  {
+    value: 'stolen',
+    label: 'Stolen or copyrighted material',
+    hint: 'Posted without the right to post it.',
+  },
+  {
+    value: 'other-illegal',
+    label: 'Something else against the law',
+    hint: 'Say what it is below.',
+  },
+];
+
+export type ReportStatus = 'open' | 'actioned' | 'dismissed';
+
+export interface Report {
+  id: string;
+  boardId: string;
+  boardTitle: string;
+  reason: ReportReason;
+  detail: string;
+  createdAt: string;
+  status: ReportStatus;
+  /** Which key the reporter held, so a misused report button is traceable. */
+  keyId: string | null;
+}
+
 export const PIN_COLORS = [
   '#c0392b',
   '#d68910',

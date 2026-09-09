@@ -5,6 +5,7 @@ import {
   type AccessKey,
   type BoardState,
   type Invite,
+  type Report,
   type Role,
   type SignupMode,
   type Submission,
@@ -146,6 +147,7 @@ export async function deleteBoard(id: string, knownMedia?: string[]): Promise<vo
     ...subs.map((sub) => submissionStore().delete(sub.id)),
     ...keys.map((key) => revokeKey(key.id)),
     forgetRecovery(id),
+    closeReportsFor(id),
     boardStore().delete(id),
   ]);
 }
@@ -457,4 +459,41 @@ export async function expiredBoards(): Promise<BoardState[]> {
   const now = Date.now();
   const boards = await listBoards();
   return boards.filter((board) => new Date(expiryOf(board)).getTime() < now);
+}
+
+/* --------------------------------------------------------------- reports */
+
+/** Reports of possibly illegal content, oldest first when listed. */
+export const reportStore = () => getStore('reports');
+
+export async function listReports(): Promise<Report[]> {
+  const { blobs } = await reportStore().list();
+  const loaded = await Promise.all(
+    blobs.map((b) => reportStore().get(b.key, { type: 'json' }) as Promise<Report | null>),
+  );
+  return loaded
+    .filter((r): r is Report => Boolean(r))
+    // Open ones first, then newest, because an open report is the only kind
+    // that needs doing anything about.
+    .sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+      return b.createdAt.localeCompare(a.createdAt);
+    });
+}
+
+/**
+ * Settles any open report against a board that no longer exists. Removing the
+ * board is the strongest answer a report can get, so leaving the report open
+ * afterwards would only keep the badge lit over work already done. The record
+ * stays, marked as acted on.
+ */
+export async function closeReportsFor(boardId: string): Promise<void> {
+  const open = (await listReports()).filter((r) => r.boardId === boardId && r.status === 'open');
+  await Promise.all(
+    open.map((r) => reportStore().setJSON(r.id, { ...r, status: 'actioned' })),
+  );
+}
+
+export async function countOpenReports(): Promise<number> {
+  return (await listReports()).filter((r) => r.status === 'open').length;
 }

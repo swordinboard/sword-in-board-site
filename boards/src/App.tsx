@@ -12,9 +12,11 @@ import ItemInspector from './components/ItemInspector';
 import BoardsDialog from './components/BoardsDialog';
 import KeysDialog from './components/KeysDialog';
 import InvitesDialog from './components/InvitesDialog';
+import ReportDialog from './components/ReportDialog';
+import ReportsDialog from './components/ReportsDialog';
 import { shareBoard } from './lib/share';
 
-type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | 'invites' | null;
+type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | 'invites' | 'report' | 'reports' | null;
 
 interface Toast {
   text: string;
@@ -33,6 +35,7 @@ export default function App() {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [openReports, setOpenReports] = useState(0);
   /**
    * Which board is on screen. The master editor switches this freely; a
    * key-backed session is pinned to its own board by the server regardless.
@@ -62,6 +65,15 @@ export default function App() {
       .catch(() => setSession({ authenticated: false, role: null, master: false, boardId: null }));
   }, []);
 
+  const refreshReports = useCallback(async () => {
+    try {
+      const all = await api.getReports();
+      setOpenReports(all.filter((r) => r.status === 'open').length);
+    } catch {
+      // Only the master can read these; for anyone else the badge stays at zero.
+    }
+  }, []);
+
   const refreshPending = useCallback(async () => {
     try {
       const subs = await api.getSubmissions(activeBoardId);
@@ -88,11 +100,12 @@ export default function App() {
         setActiveBoardId(next.id);
       })
       .catch((e: Error) => say(e.message, 'error'));
+    if (session.master) void refreshReports();
     if (session.role === 'editor') {
       void refreshPending();
       if (new URLSearchParams(window.location.search).has('review')) setDialog('inbox');
     }
-  }, [session, activeBoardId, refreshPending, say]);
+  }, [session, activeBoardId, refreshPending, refreshReports, say]);
 
   /* ---------- persistence ---------- */
 
@@ -338,6 +351,15 @@ export default function App() {
             setPanelOpen(false);
             setDialog('invites');
           }}
+          onReport={() => {
+            setPanelOpen(false);
+            setDialog('report');
+          }}
+          onReports={() => {
+            setPanelOpen(false);
+            setDialog('reports');
+          }}
+          openReports={openReports}
           onToggleEdit={() => {
             setEditMode((on) => !on);
             setSelectedId(null);
@@ -374,6 +396,30 @@ export default function App() {
             setDialog(null);
             setAddSrc(undefined);
           }}
+        />
+      ) : null}
+
+      {dialog === 'report' ? (
+        <ReportDialog
+          boardTitle={board.title}
+          onClose={() => setDialog(null)}
+          onDone={(message) => {
+            setDialog(null);
+            say(message);
+            if (session.master) void refreshReports();
+          }}
+        />
+      ) : null}
+
+      {dialog === 'reports' ? (
+        <ReportsDialog
+          onOpenBoard={(id) => {
+            setActiveBoardId(id);
+            setSelectedId(null);
+            setDialog(null);
+          }}
+          onChanged={refreshReports}
+          onClose={() => setDialog(null)}
         />
       ) : null}
 

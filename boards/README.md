@@ -60,21 +60,24 @@ boards/
       BoardsDialog.tsx     switch, add, rename, delete boards
       KeysDialog.tsx       make, read back, and revoke passwords
       InvitesDialog.tsx    invite codes and the current signup mode
+      ReportDialog.tsx     flag a board as possibly illegal
+      ReportsDialog.tsx    the reports queue (master only)
     lib/                   api client, image helpers, frame geometry, config
     styles/                cork, wood, frames, chrome
   netlify/functions/
     auth.ts                password check, signed session cookie
     board.ts               read the board; write it as editor
     boards.ts              list, add, rename, delete boards (master only)
-    keys.ts                make and revoke access keys (master only)
+    keys.ts                make and revoke access keys for a board you own
     site.ts                public: what the login screen needs to know
     create.ts              public: put up a new board
     recover.ts             public: email a forgotten passphrase back
     invites.ts             make and revoke invite codes (master only)
+    report.ts              file a report; read and work the queue (master only)
     sweep.ts               scheduled: clear boards nobody has touched
     media.ts               gated image read; upload; delete
     submissions.ts         create, list, triage, delete
-    _lib/                  auth, blob stores, email, guessing defences, wordlist
+    _lib/                  auth, blob stores, email, guessing defences, title guard, wordlist
 ```
 
 ### Boards, keys, and the password gate
@@ -204,6 +207,47 @@ themselves, by the API or by smuggling the field into a board save. It shows as 
 beside the board's name, so whoever opens a board can tell whether it is run by the site or
 by a person.
 
+### Names that would speak for the site
+
+A title cannot be squatted, but it can mislead. `titleObjection` in
+`netlify/functions/_lib/naming.ts` refuses two kinds of name from anyone but the master
+editor: the site's own name, and the handful of words in `RESERVED_TITLES` — official, admin,
+moderator, support, security, billing and their like — which read as a notice from whoever
+runs the place rather than from a person.
+
+It compares titles flattened the way somebody would actually read them: case folded,
+punctuation and spacing dropped, and digits standing in for letters put back, so
+`B0r0ugh  B.o.a.r.d.s` is caught alongside the plain spelling. Reserved words only bind
+on their own, so *Administrative Nightmares* is fine while a bare *Admin* is not.
+
+The guard runs on `/api/create` and again on any rename by a board's own editor, since a
+guard only on creation would be worth nothing — name it plainly, rename it after. A save that
+leaves the title alone never trips it, so ordinary autosaves cannot fail on it. The master
+editor passes through neither check: the site's own boards are precisely the ones that should
+carry the site's name.
+
+### Reporting a board
+
+Anyone holding a password to a board can report **that** board, and no other — `/api/report`
+takes the board from the session and ignores any board named in the request, because a
+reporter can see nothing else anyway.
+
+The reasons are deliberately confined to things that may be against the law: sexual content
+involving a child, threats or incitement to violence, stolen or copyrighted material, and
+anything else illegal, which has to say what it is. The dialog says plainly that this is not
+for a board somebody merely dislikes. The site does not arbitrate taste; it declines to host
+crime, and that is the whole of the policy.
+
+Reports go to a queue only the master editor can read, work or delete — a board's own owner
+cannot see reports against it or clear them, and is never told who filed one. Each report
+carries the board's title as it stood, the reason, whatever detail was given, and the key that
+sent it. Deleting a reported board settles any open report against it, so the badge does not
+stay lit over work already done, while the record stays.
+
+Notification goes out by the same Resend path as submissions and is deliberately **not** rate
+limited: a report going unseen is the failure worth avoiding. Filing is limited to ten an hour
+per address.
+
 ### Forgetting the passphrase
 
 There are no accounts, so there is nothing to reset. The create screen offers an optional
@@ -272,8 +316,9 @@ same repository.
 | `RESEND_API_KEY` | no | Resend API key. Without it, submissions queue but do not email. |
 | `NOTIFY_FROM` | no | Verified sender address. Defaults to Resend's shared onboarding sender. |
 
-`VITE_BOARD_TITLE` is baked into the bundle at build time, so changing it needs a redeploy.
-It is a label, not a secret.
+`VITE_BOARD_TITLE` is still read as a fallback for `VITE_SITE_NAME`, left over from the
+first release. Either is a label, not a secret, and both are baked into the bundle at build
+time.
 
 ### Sending mail
 

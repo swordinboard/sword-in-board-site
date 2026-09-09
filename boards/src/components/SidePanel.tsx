@@ -15,6 +15,9 @@ interface Props {
   onBoards: () => void;
   onKeys: () => void;
   onInvites: () => void;
+  onReport: () => void;
+  onReports: () => void;
+  openReports?: number;
   expiresAt?: string;
   official?: boolean;
   onToggleEdit: () => void;
@@ -60,6 +63,9 @@ export default function SidePanel({
   onBoards,
   onKeys,
   onInvites,
+  onReport,
+  onReports,
+  openReports,
   expiresAt,
   official,
   onToggleEdit,
@@ -155,8 +161,23 @@ export default function SidePanel({
                 hint="Let other people put up boards"
                 onClick={onInvites}
               />
+              <NavItem
+                glyph="&#9873;"
+                label="Reports"
+                hint="Boards flagged as possibly illegal"
+                count={openReports}
+                onClick={onReports}
+              />
             </>
           ) : null}
+
+          <div className="section-label">This board</div>
+          <NavItem
+            glyph="&#9873;"
+            label="Report this board"
+            hint="For content that may be against the law"
+            onClick={onReport}
+          />
 
           <div className="section-label">Session</div>
           <NavItem

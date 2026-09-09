@@ -450,3 +450,47 @@
 .strength.ok {
   color: #7fdcb4;
 }
+
+/* ---------- report reasons ---------- */
+
+.reason {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--panel-text);
+  text-align: left;
+}
+
+.reason.on {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.16);
+}
+
+.reason-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reason-hint {
+  display: block;
+  margin-top: 3px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reason.on .reason-hint {
+  color: rgba(255, 171, 157, 0.85);
+}
+
+.modal .fine {
+  margin: 14px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}

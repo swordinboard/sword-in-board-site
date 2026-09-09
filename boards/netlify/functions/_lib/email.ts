@@ -166,3 +166,54 @@ export async function sendRecovery(
     console.error('[recovery] send threw', error);
   }
 }
+
+export interface ReportNotice {
+  boardTitle: string;
+  boardId: string;
+  reason: string;
+  detail: string;
+  reviewUrl: string;
+}
+
+/**
+ * Sent the moment a board is reported. Not rate-limited the way the attack
+ * alert is: a report is rare, and one going unseen is the failure worth
+ * avoiding.
+ */
+export async function notifyReport(notice: ReportNotice): Promise<void> {
+  const to = process.env.NOTIFY_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  const summary = `"${notice.boardTitle}" reported: ${notice.reason}`;
+  if (!to || !apiKey) {
+    console.warn(`[report] ${summary} (no NOTIFY_EMAIL/RESEND_API_KEY, not emailed)`);
+    return;
+  }
+
+  const html = [
+    `<h2>A board has been reported</h2>`,
+    `<p><strong>Board:</strong> ${escapeHtml(notice.boardTitle)}<br>`,
+    `<strong>Reason given:</strong> ${escapeHtml(notice.reason)}</p>`,
+    notice.detail
+      ? `<blockquote style="border-left:3px solid #ccc;padding-left:12px;white-space:pre-wrap">${escapeHtml(notice.detail)}</blockquote>`
+      : '',
+    `<p><a href="${notice.reviewUrl}">Open the board</a> — your master password shows any board.</p>`,
+    `<p style="color:#666;font-size:13px">If it is what it says it is, deleting the board removes`,
+    `its items, images, submissions and every key that opens it.</p>`,
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.NOTIFY_FROM || 'onboarding@resend.dev',
+        to: [to],
+        subject: `Reported: ${notice.boardTitle}`,
+        html,
+      }),
+    });
+    if (!res.ok) console.error(`[report] notification failed: ${res.status} ${await res.text()}`);
+  } catch (error) {
+    console.error('[report] notification threw', error);
+  }
+}

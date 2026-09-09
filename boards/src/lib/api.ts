@@ -4,6 +4,9 @@ import type {
   BoardSummary,
   Invite,
   NewBoardResult,
+  Report,
+  ReportReason,
+  ReportStatus,
   SiteInfo,
   Role,
   SessionInfo,
@@ -166,6 +169,23 @@ export const createKey = (input: {
 
 export const revokeKey = (id: string) =>
   request<{ deleted: true }>(`/api/keys/${id}`, { method: 'DELETE' });
+
+export const reportBoard = (input: { reason: ReportReason; detail?: string }) =>
+  request<{ ok: true }>('/api/report', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+export const getReports = () =>
+  request<{ reports: Report[] }>('/api/report').then((r) => r.reports);
+
+export const setReportStatus = (id: string, status: ReportStatus) =>
+  request<Report>(`/api/report/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
 
 export const getInvites = () =>
   request<{ invites: Invite[] }>('/api/invites').then((r) => r.invites);

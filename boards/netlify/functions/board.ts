@@ -1,6 +1,7 @@
 import type { Config } from '@netlify/functions';
 import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
 import { emptyBoard, expiryOf, loadBoard, saveBoard, touchBoard } from './_lib/store';
+import { titleObjection } from './_lib/naming';
 import type { BoardItem, BoardState, FrameStyle, HangerStyle } from '../../shared/types';
 
 const FRAMES: FrameStyle[] = ['paper', 'polaroid', 'clipping', 'framed', 'note'];
@@ -68,6 +69,17 @@ export default async (req: Request): Promise<Response> => {
       return json({ error: 'bad request' }, { status: 400 });
     }
     const current = (await loadBoard(boardId)) ?? emptyBoard(boardId);
+
+    // A rename has to clear the same bar as a new board, or the guard on
+    // creation is worth nothing: name it plainly, then rename it afterwards.
+    // Leaving the title alone never trips this, so an ordinary save cannot
+    // fail on it.
+    const title = str(body.title, 120) ?? current.title;
+    if (!session.master && title !== current.title) {
+      const objection = titleObjection(title);
+      if (objection) return json({ error: objection }, { status: 409 });
+    }
+
     const rawItems = Array.isArray(body.items) ? body.items.slice(0, MAX_ITEMS) : [];
     const items = rawItems
       .map((item, index) => sanitizeItem(item, index))
@@ -82,7 +94,7 @@ export default async (req: Request): Promise<Response> => {
       official: current.official,
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
-      title: str(body.title, 120) ?? current.title,
+      title,
       items,
       updatedAt: current.updatedAt,
     };

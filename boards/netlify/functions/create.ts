@@ -12,6 +12,7 @@ import {
   signupMode,
 } from './_lib/store';
 import { generatePassphrase } from './_lib/secrets';
+import { titleObjection } from './_lib/naming';
 import type { NewBoardResult } from '../../shared/types';
 
 /**
@@ -56,6 +57,9 @@ export default async (req: Request): Promise<Response> => {
 
   const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
   if (!title) return json({ error: 'Give the board a name.' }, { status: 400 });
+  // Anyone but the master, which is to say everyone reaching this endpoint.
+  const objection = titleObjection(title);
+  if (objection) return json({ error: objection }, { status: 409 });
 
   if (mode === 'invite') {
     const code = typeof body.invite === 'string' ? body.invite.trim() : '';
