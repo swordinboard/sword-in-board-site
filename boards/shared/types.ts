@@ -98,7 +98,12 @@ export interface AccessKey {
   secret?: string;
 }
 
-export const KEY_MIN_LENGTH = 8;
+/**
+ * A floor against collision rather than against guessing. Very short passwords
+ * start colliding with what other people happen to type, which would drop a
+ * stranger onto somebody's board by accident.
+ */
+export const KEY_MIN_LENGTH = 6;
 
 /** Who may put up a new board. */
 export type SignupMode = 'closed' | 'invite' | 'open';
@@ -138,9 +143,13 @@ export interface NewBoardResult {
 }
 
 /**
- * How hard a chosen password must be to guess, in bits. A generated passphrase
- * is about 42; this floor still admits an ordinary three-word phrase while
- * turning away the passwords a guesser tries first.
+ * Below this many bits a password is called weak and has to be confirmed.
+ *
+ * It is advice, not a wall. Boards sit on a spectrum: some are genuinely
+ * private, others are meant to be handed round freely and want a password as
+ * memorable as the board's own name. Since a password opens exactly one board,
+ * a weak one risks only the board that chose it, so the choice belongs to
+ * whoever owns it. A generated passphrase is about 42 bits.
  */
 export const KEY_MIN_BITS = 32;
 

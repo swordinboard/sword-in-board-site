@@ -698,3 +698,20 @@ button {
     margin-bottom: 8px;
   }
 }
+
+.confirm.compact {
+  /* Sits inside a .field, whose labels are small caps. This is a sentence. */
+  align-items: flex-start;
+  margin: 10px 0 0;
+  color: var(--panel-text);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.confirm.compact input {
+  flex-shrink: 0;
+  margin-top: 1px;
+}

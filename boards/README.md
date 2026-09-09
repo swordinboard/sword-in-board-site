@@ -108,11 +108,20 @@ of them, so the search shortens by a factor of *n*. Entropy has to cover that.
 
 A generated passphrase is three words from an 865-word list plus a four-digit number, about
 **42 bits** — `thistle-copper-lantern-4827`. Sized so that even 2,000 live keys and a
-thousand-machine botnet stay in the decades. A chosen password is measured before it is
-accepted and must clear 32 bits; the check reads the password as a guesser would, scoring
-common passwords, keyboard runs, and anything built from the board's own name near zero
-rather than trusting length and character classes. It is a floor that turns away bad choices,
-not a promise about good ones — the generated option is the reliable one.
+thousand-machine botnet stay in the decades. That is the default and the reliable option.
+
+**A chosen password is measured but not policed.** Below 32 bits it is called weak and has to
+be confirmed with a tick, and then it is allowed. This is deliberate: boards sit on a
+spectrum. Some are genuinely private; others are meant to be handed round freely and want a
+password as memorable as the board's own name. Because a password resolves to exactly one
+key on one board, guessing a weak one opens that board and gives no help at all against any
+other, so the risk is the owner's alone and so is the choice. There is even a button to fill
+in the board's title.
+
+Three things stay absolute, tick or no tick: the master password can never be reused as a
+key, a password cannot collide with one that already opens another board, and six characters
+is the minimum — that last one guards against collision rather than guessing, since very
+short passwords start matching what strangers happen to type.
 
 Two limits sit behind that:
 

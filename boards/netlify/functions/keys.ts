@@ -54,26 +54,30 @@ export default async (req: Request, context: Context): Promise<Response> => {
         { status: 400 },
       );
     }
-    // The master password must stay the one thing that opens every board.
-    // Checked before strength, so reusing it gets the accurate reason rather
-    // than a confusing complaint about guessability.
+    // The master password must stay the one thing that opens every board, so
+    // this one refusal is absolute.
     if (safeEqual(password, masterPassword())) {
       return json({ error: 'That is the master password. Choose another.' }, { status: 409 });
     }
-    // Length alone would wave through "abc12345". Weigh how guessable it is,
-    // and refuse anything built from this board's own name. The key's label is
-    // deliberately not forbidden: it is private to the master editor, so it
-    // gives a guesser nothing, and barring it would reject a sound password
-    // merely for containing the holder's name.
+
+    // Strength is advice here, not a wall. A password opens exactly one board,
+    // so a weak one risks only that board, and a board meant to be passed
+    // around freely may quite reasonably want its own name as the password.
+    // What the owner may not do is choose it without being told.
+    //
+    // The board's title is deliberately NOT forbidden: wanting the title as
+    // the password is a legitimate thing to want, not a mistake to prevent.
     if (supplied) {
-      const bits = estimateBits(password, [board.title]);
-      if (bits < KEY_MIN_BITS) {
+      const bits = estimateBits(password);
+      if (bits < KEY_MIN_BITS && body.acknowledgeWeak !== true) {
         return json(
           {
             error:
-              'That password would be guessed too easily. Try three unrelated words, ' +
-              'or leave the field blank for a generated one.',
+              role === 'editor'
+                ? 'That password is easy to guess, and this key can change the board. Confirm you want it anyway.'
+                : 'That password is easy to guess. Confirm you want it anyway.',
             bits,
+            weak: true,
           },
           { status: 400 },
         );

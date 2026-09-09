@@ -148,6 +148,8 @@ export const createKey = (input: {
   label: string;
   role: Role;
   password?: string;
+  /** Go ahead with a password the server considers easy to guess. */
+  acknowledgeWeak?: boolean;
 }) =>
   request<AccessKey>('/api/keys', {
     method: 'POST',

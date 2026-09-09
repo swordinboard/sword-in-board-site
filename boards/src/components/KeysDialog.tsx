@@ -24,6 +24,7 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [acceptWeak, setAcceptWeak] = useState(false);
 
   const load = () =>
     api
@@ -45,10 +46,12 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
         label: label.trim() || 'Unlabelled',
         role,
         password: password.trim() || undefined,
+        acknowledgeWeak: acceptWeak || undefined,
       });
       setLabel('');
       setPassword('');
       setRole('viewer');
+      setAcceptWeak(false);
       await load();
       onChanged?.();
     } catch (e) {
@@ -71,7 +74,10 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
 
   // Warn about a weak custom password before the form is sent; the server
   // makes the actual decision.
-  const strength = password.trim() ? strengthOf(password, [boardTitle]) : null;
+  // Strength is shown as advice. A weak password is allowed once it has been
+  // confirmed, because a board meant to be handed round freely may want one.
+  const strength = password.trim() ? strengthOf(password) : null;
+  const needsConfirming = strength !== null && !strength.ok;
 
   const take = async (value: string, id: string) => {
     if (await copyText(value)) {
@@ -192,15 +198,41 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Leave blank for one that is easy to say out loud"
           />
+          <div className="chooser" style={{ marginTop: 8 }}>
+            <button type="button" onClick={() => setPassword(boardTitle)}>
+              Use the board's name
+            </button>
+            <button type="button" onClick={() => setPassword('')}>
+              Generate one instead
+            </button>
+          </div>
+
           {strength ? (
             <p className={`strength ${strength.ok ? 'ok' : 'weak'}`}>
               {strength.label} &middot; about {strength.bits} bits
             </p>
           ) : null}
+
+          {needsConfirming ? (
+            <label className="confirm compact">
+              <input
+                type="checkbox"
+                checked={acceptWeak}
+                onChange={(e) => setAcceptWeak(e.target.checked)}
+              />
+              <span>
+                {role === 'editor'
+                  ? 'Use it anyway. Anyone who guesses it can change this board.'
+                  : 'Use it anyway. This board is meant to be easy to get into.'}
+              </span>
+            </label>
+          ) : null}
+
           <p className="note">
-            At least {KEY_MIN_LENGTH} characters, and it cannot already open another board. A
-            generated one looks like <code>thistle-copper-lantern-4827</code> and is about 42
-            bits &mdash; three unrelated words is the easy way to match it.
+            At least {KEY_MIN_LENGTH} characters, and it cannot already open another board.
+            Anything easy to guess is allowed once you confirm it &mdash; a password opens only
+            this board, so a simple one risks nothing else. Leave it blank for a generated
+            passphrase like <code>thistle-copper-lantern-4827</code>, about 42 bits.
           </p>
         </div>
 
@@ -209,7 +241,7 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
             className="btn"
             type="button"
             onClick={add}
-            disabled={busy || (strength !== null && !strength.ok)}
+            disabled={busy || (needsConfirming && !acceptWeak)}
           >
             {busy ? 'Cutting the key...' : 'Make a key'}
           </button>
