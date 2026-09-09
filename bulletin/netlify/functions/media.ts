@@ -1,5 +1,5 @@
 import type { Config, Context } from '@netlify/functions';
-import { json, roleFor, unauthorized } from './_lib/auth';
+import { boardIdFor, json, notFound, sessionFor, unauthorized } from './_lib/auth';
 import { mediaStore, newId } from './_lib/store';
 
 /** Netlify caps a synchronous function request body at 6MB; stay clear of it. */
@@ -7,15 +7,22 @@ const MAX_BYTES = 4_500_000;
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 export default async (req: Request, context: Context): Promise<Response> => {
-  const role = roleFor(req);
-  if (!role) return unauthorized();
+  const session = await sessionFor(req);
+  if (!session) return unauthorized();
+  const boardId = await boardIdFor(req, session);
 
   const id = (context.params as Record<string, string | undefined>)?.id;
 
   if (req.method === 'GET') {
-    if (!id) return json({ error: 'not found' }, { status: 404 });
+    if (!id) return notFound();
     const result = await mediaStore().getWithMetadata(id, { type: 'arrayBuffer' });
-    if (!result) return json({ error: 'not found' }, { status: 404 });
+    if (!result) return notFound();
+
+    // Media is owned by a board. Without this check a key for one board could
+    // read another board's images by guessing nothing more than an id.
+    const owner = result.metadata?.boardId as string | undefined;
+    if (!session.master && owner && owner !== boardId) return notFound();
+
     const contentType = (result.metadata?.contentType as string) || 'application/octet-stream';
     return new Response(result.data, {
       headers: {
@@ -45,14 +52,22 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
     const mediaId = newId();
     await mediaStore().set(mediaId, bytes, {
-      metadata: { contentType, uploadedAt: new Date().toISOString(), role },
+      metadata: {
+        contentType,
+        boardId,
+        uploadedAt: new Date().toISOString(),
+        role: session.role,
+      },
     });
     return json({ id: mediaId, url: `/api/media/${mediaId}` }, { status: 201 });
   }
 
   if (req.method === 'DELETE') {
-    if (role !== 'editor') return json({ error: 'forbidden' }, { status: 403 });
-    if (!id) return json({ error: 'not found' }, { status: 404 });
+    if (session.role !== 'editor') return json({ error: 'forbidden' }, { status: 403 });
+    if (!id) return notFound();
+    const result = await mediaStore().getWithMetadata(id, { type: 'arrayBuffer' });
+    const owner = result?.metadata?.boardId as string | undefined;
+    if (!session.master && owner && owner !== boardId) return notFound();
     await mediaStore().delete(id);
     return json({ deleted: true });
   }

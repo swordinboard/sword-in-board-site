@@ -1,6 +1,6 @@
 import type { Config } from '@netlify/functions';
-import { forbidden, json, roleFor, unauthorized } from './_lib/auth';
-import { loadBoard, saveBoard } from './_lib/store';
+import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
+import { emptyBoard, loadBoard, saveBoard } from './_lib/store';
 import type { BoardItem, BoardState, FrameStyle, HangerStyle } from '../../shared/types';
 
 const FRAMES: FrameStyle[] = ['paper', 'polaroid', 'clipping', 'framed', 'note'];
@@ -47,22 +47,25 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
 }
 
 export default async (req: Request): Promise<Response> => {
-  const role = roleFor(req);
-  if (!role) return unauthorized();
+  const session = await sessionFor(req);
+  if (!session) return unauthorized();
+  const boardId = await boardIdFor(req, session);
 
   if (req.method === 'GET') {
-    return json(await loadBoard());
+    const board = await loadBoard(boardId);
+    if (!board) return session.master ? json(emptyBoard(boardId)) : notFound();
+    return json(board);
   }
 
   if (req.method === 'PUT') {
-    if (role !== 'editor') return forbidden();
+    if (session.role !== 'editor') return forbidden();
     let body: Record<string, unknown>;
     try {
       body = (await req.json()) as Record<string, unknown>;
     } catch {
       return json({ error: 'bad request' }, { status: 400 });
     }
-    const current = await loadBoard();
+    const current = (await loadBoard(boardId)) ?? emptyBoard(boardId);
     const rawItems = Array.isArray(body.items) ? body.items.slice(0, MAX_ITEMS) : [];
     const items = rawItems
       .map((item, index) => sanitizeItem(item, index))
@@ -70,6 +73,7 @@ export default async (req: Request): Promise<Response> => {
 
     const next: BoardState = {
       version: 1,
+      id: boardId,
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
       title: str(body.title, 120) ?? current.title,

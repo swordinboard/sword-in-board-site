@@ -3,6 +3,8 @@ import { createSubmission, mediaUrl, uploadMedia } from '../lib/api';
 import { loadImage, readFileAsDataUrl } from '../lib/image';
 
 interface Props {
+  /** The board being looked at; the submission is filed against it. */
+  boardId: string;
   onClose: () => void;
   onDone: (message: string) => void;
 }
@@ -36,7 +38,7 @@ async function shrink(file: File): Promise<Blob> {
   });
 }
 
-export default function SubmitDialog({ onClose, onDone }: Props) {
+export default function SubmitDialog({ boardId, onClose, onDone }: Props) {
   const [submitter, setSubmitter] = useState('');
   const [contact, setContact] = useState('');
   const [note, setNote] = useState('');
@@ -55,8 +57,8 @@ export default function SubmitDialog({ onClose, onDone }: Props) {
         const room = MAX_FILES - pending.length;
         for (const file of [...files].slice(0, Math.max(0, room))) {
           const blob = await shrink(file);
-          const { id } = await uploadMedia(blob);
-          setPending((current) => [...current, { id, preview: mediaUrl(id) }]);
+          const { id } = await uploadMedia(blob, boardId);
+          setPending((current) => [...current, { id, preview: mediaUrl(id, boardId) }]);
         }
       } catch (e) {
         setError((e as Error).message);
@@ -64,7 +66,7 @@ export default function SubmitDialog({ onClose, onDone }: Props) {
         setUploading(false);
       }
     },
-    [pending.length],
+    [pending.length, boardId],
   );
 
   const submit = async () => {
@@ -75,12 +77,15 @@ export default function SubmitDialog({ onClose, onDone }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await createSubmission({
-        submitter: submitter.trim() || 'Anonymous',
-        contact: contact.trim() || undefined,
-        note: note.trim(),
-        mediaIds: pending.map((entry) => entry.id),
-      });
+      await createSubmission(
+        {
+          submitter: submitter.trim() || 'Anonymous',
+          contact: contact.trim() || undefined,
+          note: note.trim(),
+          mediaIds: pending.map((entry) => entry.id),
+        },
+        boardId,
+      );
       onDone('Submission sent. It will be reviewed before it goes up.');
     } catch (e) {
       setError((e as Error).message);

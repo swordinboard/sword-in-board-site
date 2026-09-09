@@ -20,6 +20,8 @@ export interface ItemDraft {
 }
 
 interface Props {
+  /** The board this item is being pinned to; media is filed against it. */
+  boardId: string;
   /** Pre-loaded source, used when placing an image straight from a submission. */
   initialSrc?: string;
   onPlace: (draft: ItemDraft) => Promise<void> | void;
@@ -34,7 +36,7 @@ const RATIOS: { label: string; value: number | null }[] = [
   { label: '16:9', value: 16 / 9 },
 ];
 
-export default function AddItemDialog({ initialSrc, onPlace, onClose }: Props) {
+export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }: Props) {
   const [mode, setMode] = useState<'image' | 'text'>('image');
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [ratio, setRatio] = useState<number | null>(null);
@@ -101,7 +103,7 @@ export default function AddItemDialog({ initialSrc, onPlace, onClose }: Props) {
         return;
       }
       const blob = await cropToBlob(image, rect);
-      const { id } = await uploadMedia(blob);
+      const { id } = await uploadMedia(blob, boardId);
       const aspect = rect.w / rect.h;
       const size = sizeFor(frame, aspect, Boolean(caption.trim()));
       await onPlace({

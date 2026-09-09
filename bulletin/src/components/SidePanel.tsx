@@ -2,14 +2,18 @@ import type { Role } from '../../shared/types';
 
 interface Props {
   role: Role;
+  master: boolean;
   title: string;
   itemCount: number;
   pendingCount: number;
   editMode: boolean;
   onClose: () => void;
+  onShare: () => void;
   onSubmit: () => void;
   onAdd: () => void;
   onInbox: () => void;
+  onBoards: () => void;
+  onKeys: () => void;
   onToggleEdit: () => void;
   onFit: () => void;
   onLogout: () => void;
@@ -40,14 +44,18 @@ function NavItem({ glyph, label, hint, count, onClick }: NavProps) {
 
 export default function SidePanel({
   role,
+  master,
   title,
   itemCount,
   pendingCount,
   editMode,
   onClose,
+  onShare,
   onSubmit,
   onAdd,
   onInbox,
+  onBoards,
+  onKeys,
   onToggleEdit,
   onFit,
   onLogout,
@@ -65,6 +73,12 @@ export default function SidePanel({
 
         <div className="body">
           <div className="section-label">The board</div>
+          <NavItem
+            glyph="&#8599;"
+            label="Share this board"
+            hint="Sends the link only — tell them the password yourself"
+            onClick={onShare}
+          />
           <NavItem
             glyph="&#9998;"
             label="Make a submission"
@@ -103,6 +117,24 @@ export default function SidePanel({
                 hint="Review what has come in"
                 count={pendingCount}
                 onClick={onInbox}
+              />
+              <NavItem
+                glyph="&#9919;"
+                label="Keys to this board"
+                hint="Make and revoke passwords"
+                onClick={onKeys}
+              />
+            </>
+          ) : null}
+
+          {master ? (
+            <>
+              <div className="section-label">All boards</div>
+              <NavItem
+                glyph="&#9707;"
+                label="Switch or add a board"
+                hint="Each one has its own passwords"
+                onClick={onBoards}
               />
             </>
           ) : null}

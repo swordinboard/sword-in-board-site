@@ -1,5 +1,5 @@
 import type { Config, Context } from '@netlify/functions';
-import { forbidden, json, roleFor, unauthorized } from './_lib/auth';
+import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
 import {
   allowAttempt,
   listSubmissions,
@@ -16,14 +16,18 @@ const SUBMIT_LIMIT = 12;
 const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
 
 export default async (req: Request, context: Context): Promise<Response> => {
-  const role = roleFor(req);
-  if (!role) return unauthorized();
+  const session = await sessionFor(req);
+  if (!session) return unauthorized();
+  const boardId = await boardIdFor(req, session);
 
   const id = (context.params as Record<string, string | undefined>)?.id;
 
+  /** Editors only ever see the inbox for the board they are looking at. */
+  const owns = (submission: Submission) => session.master || submission.boardId === boardId;
+
   if (req.method === 'GET') {
-    if (role !== 'editor') return forbidden();
-    return json({ submissions: await listSubmissions() });
+    if (session.role !== 'editor') return forbidden();
+    return json({ submissions: await listSubmissions(boardId) });
   }
 
   if (req.method === 'POST') {
@@ -61,6 +65,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
 
     const submission: Submission = {
       id: newId(),
+      boardId,
       createdAt: new Date().toISOString(),
       submitter,
       contact,
@@ -76,15 +81,15 @@ export default async (req: Request, context: Context): Promise<Response> => {
       contact,
       note,
       mediaCount: mediaIds.length,
-      reviewUrl: `${origin}/?review=${submission.id}`,
+      reviewUrl: `${origin}/?review=${submission.id}&board=${boardId}`,
     });
 
     return json({ ok: true, id: submission.id }, { status: 201 });
   }
 
   if (req.method === 'PATCH') {
-    if (role !== 'editor') return forbidden();
-    if (!id) return json({ error: 'not found' }, { status: 404 });
+    if (session.role !== 'editor') return forbidden();
+    if (!id) return notFound();
     let body: Record<string, unknown>;
     try {
       body = (await req.json()) as Record<string, unknown>;
@@ -92,7 +97,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       return json({ error: 'bad request' }, { status: 400 });
     }
     const existing = (await submissionStore().get(id, { type: 'json' })) as Submission | null;
-    if (!existing) return json({ error: 'not found' }, { status: 404 });
+    if (!existing || !owns(existing)) return notFound();
     const status = STATUSES.includes(body.status as SubmissionStatus)
       ? (body.status as SubmissionStatus)
       : existing.status;
@@ -102,14 +107,15 @@ export default async (req: Request, context: Context): Promise<Response> => {
   }
 
   if (req.method === 'DELETE') {
-    if (role !== 'editor') return forbidden();
-    if (!id) return json({ error: 'not found' }, { status: 404 });
+    if (session.role !== 'editor') return forbidden();
+    if (!id) return notFound();
     const existing = (await submissionStore().get(id, { type: 'json' })) as Submission | null;
+    if (existing && !owns(existing)) return notFound();
     if (existing && existing.mediaIds.length > 0) {
       // Media that was never placed on the board goes with the submission;
       // anything already hanging on the cork stays.
-      const board = await loadBoard();
-      const inUse = new Set(board.items.map((item) => item.mediaId).filter(Boolean));
+      const board = await loadBoard(existing.boardId);
+      const inUse = new Set((board?.items ?? []).map((item) => item.mediaId).filter(Boolean));
       const orphans = existing.mediaIds.filter((mediaId) => !inUse.has(mediaId));
       await Promise.all(orphans.map((mediaId) => mediaStore().delete(mediaId)));
     }

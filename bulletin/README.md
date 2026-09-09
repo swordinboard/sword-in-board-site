@@ -45,33 +45,61 @@ bulletin/
       SubmitDialog.tsx     the public submission form
       InboxDialog.tsx      editor review queue
       ItemInspector.tsx    edit the selected item
+      BoardsDialog.tsx     switch, add, rename, delete boards
+      KeysDialog.tsx       make, read back, and revoke passwords
     lib/                   api client, image helpers, frame geometry, config
     styles/                cork, wood, frames, chrome
   netlify/functions/
     auth.ts                password check, signed session cookie
     board.ts               read the board; write it as editor
+    boards.ts              list, add, rename, delete boards (master only)
+    keys.ts                make and revoke access keys (master only)
     media.ts               gated image read; upload; delete
     submissions.ts         create, list, triage, delete
     _lib/                  auth, blob stores, email notification
 ```
 
-### The password gate
+### Boards, keys, and the password gate
 
-There are two passwords: one for viewing, one for editing. An editor password also grants
-viewing.
+There is one **master password**, `EDITOR_PASSWORD`, held in the environment. It opens every
+board and is the only way to manage boards and keys. Everything else is an **access key**: a
+password made inside the app that opens exactly one board, at one role.
 
-A password is POSTed to `/api/auth`, compared against the environment in constant time, and
-exchanged for an HMAC-signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`, six-month
-lifetime). The browser holds it until it expires, the visitor signs out, or their site data
-is cleared. Every other endpoint, images included, requires that cookie — so media is not
-merely hidden behind an unguessable URL, it is genuinely unreadable without the password.
+**The password is the routing.** There is no board picker on the login screen and no board id
+in the link. Whoever you hand a key to types it and lands on that board; they never learn any
+other board exists. Two keys can never share a password, so a password is always unambiguous.
 
-The signing key is derived from the two passwords, so **changing either password
-immediately invalidates every session**. That is the rotation mechanism: change
-`BOARD_PASSWORD` in Netlify, and everyone re-enters the new one. Set `AUTH_SECRET` as well
-if you would rather rotate keys and passwords independently.
+A board can hold as many keys as you like, each labelled with who it was for ("Mum", "the
+Thursday crowd"). Revoking one locks that person out **immediately**, even mid-session, and
+leaves everyone else's key working. A key can be marked viewer or editor; an editor key can
+rearrange and pin things up on its own board and nothing else.
 
+Mechanically: the password is POSTed to `/api/auth` and turned into a lookup index with
+HMAC-SHA256 under a secret that lives outside the blob store, so a login is one read rather
+than a scan, and an index value cannot be worked back to its password. What comes back is an
+HMAC-signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`, six months) carrying the board and
+key it opened. Every later request re-checks that the key still exists — that is what makes
+revocation instant — and pins the request to that key's board. Media is filed against a board
+too, so a key for one board cannot read another board's images even with the exact blob id.
 Login is rate-limited to 10 attempts per IP per 15 minutes.
+
+**Access keys are stored reversibly, on purpose.** They are encrypted at rest with
+AES-256-GCM and shown back to you in the keys dialog, so you can read a password out to
+someone weeks after making it without having written it down somewhere worse. If you would
+rather they were unrecoverable, this is the thing to change.
+
+`AUTH_SECRET` is what protects all of that. Set it, and the key material lives in the
+environment where the blob store cannot reach it. Leave it unset and one is generated on
+first run and kept in the store beside the data it protects — enough to stop casual reading,
+but not defence against someone who already holds the store. Setting it is one variable and
+worth doing.
+
+### Sharing
+
+The share button in the menu hands out the site link and nothing else — no password, no board
+id, no hint about which boards exist. On a phone it opens the system share sheet; elsewhere
+it copies to the clipboard. The password travels separately, by word of mouth, so a forwarded
+link is worthless to whoever it reaches.
 
 ### Submissions
 
@@ -104,9 +132,9 @@ same repository.
 
 | Variable | Required | What it does |
 | --- | --- | --- |
-| `BOARD_PASSWORD` | yes | Password for viewing. Share this one. |
-| `EDITOR_PASSWORD` | yes | Password for editing. Keep this one. |
-| `AUTH_SECRET` | no | Extra signing salt, for rotating keys independently of passwords. |
+| `EDITOR_PASSWORD` | yes | The master password. Opens every board and manages keys. Keep it to yourself. |
+| `AUTH_SECRET` | strongly advised | Signs cookies and protects stored keys. Any long random string. See above for what leaving it unset costs. |
+| `BOARD_PASSWORD` | no | Only for upgrades from the first release: it becomes a viewer key on the first board, then the variable can be deleted. |
 | `BOARD_TITLE` | no | Board name stored in board state. |
 | `VITE_BOARD_TITLE` | no | Board name in the browser tab and login screen. Build-time. |
 | `NOTIFY_EMAIL` | no | Where submission notifications are sent. |
@@ -126,8 +154,13 @@ an address on it.
 ## Using it
 
 **Everyone.** Drag the cork to pan, scroll or pinch to zoom, and use the zoom bar to fit the
-whole board. The tridot button opens the menu; "Make a submission" sends media and a note
-for review.
+whole board. The tridot button opens the menu; "Make a submission" sends media and a note for
+review, and "Share this board" passes on the link.
+
+**Handing out access.** Open a board, then "Keys to this board". Name who it is for, choose
+viewer or editor, and either type a password or leave it blank for a generated one like
+`cedar-lantern-harbour-42` that survives being read down a phone line. Share the link with
+the share button, say the password out loud, and revoke that one key when you are done.
 
 **Editors.** Turn on editing in the menu. Drag items to move them, arrow keys to nudge
 (hold shift for ten pixels at a time), and click one to open the inspector for frame,
@@ -156,3 +189,6 @@ directory, with the environment variables set.
 - Submissions are limited to 12 per IP per hour, and 8 images each.
 - Board layout is a single JSON document, so two editors saving at the same time means last
   write wins. Fine for one editor; something to revisit if that changes.
+- Up to 50 boards, and 40 keys per board.
+- A password is not a person. Two people handed the same key are indistinguishable, and
+  labels are your own record of who has what, not something the app can verify.

@@ -3,6 +3,7 @@ import type { Submission, SubmissionStatus } from '../../shared/types';
 import { deleteSubmission, getSubmissions, mediaUrl, setSubmissionStatus } from '../lib/api';
 
 interface Props {
+  boardId: string;
   onClose: () => void;
   onPlaceMedia: (src: string) => void;
   onChanged: () => void;
@@ -16,16 +17,16 @@ const formatDate = (iso: string) =>
     minute: '2-digit',
   });
 
-export default function InboxDialog({ onClose, onPlaceMedia, onChanged }: Props) {
+export default function InboxDialog({ boardId, onClose, onPlaceMedia, onChanged }: Props) {
   const [items, setItems] = useState<Submission[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
-    getSubmissions()
+    getSubmissions(boardId)
       .then(setItems)
       .catch((e: Error) => setError(e.message));
-  }, []);
+  }, [boardId]);
 
   const update = async (id: string, status: SubmissionStatus) => {
     try {
@@ -105,9 +106,9 @@ export default function InboxDialog({ onClose, onPlaceMedia, onChanged }: Props)
                       className="thumb pickable"
                       key={id}
                       title="Crop and pin this up"
-                      onClick={() => onPlaceMedia(mediaUrl(id))}
+                      onClick={() => onPlaceMedia(mediaUrl(id, boardId))}
                     >
-                      <img src={mediaUrl(id)} alt="" />
+                      <img src={mediaUrl(id, boardId)} alt="" />
                     </div>
                   ))}
                 </div>

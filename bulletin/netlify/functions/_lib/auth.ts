@@ -1,36 +1,24 @@
 import { createHmac, createHash, timingSafeEqual, randomUUID } from 'node:crypto';
 import type { Role } from '../../../shared/types';
+import { signingKey } from './secrets';
+import { ensureBoard, keyById } from './store';
 
 const COOKIE = 'bb_session';
 /** Six months. The cookie is the "stays logged in" mechanism the board relies on. */
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 
-export interface EnvConfig {
-  viewerPassword: string;
-  editorPassword: string;
-  key: string;
+export interface Session {
+  role: Role;
+  /** True for the master editor password held in the environment. */
+  master: boolean;
+  /** The board this session may touch. Null for the master, who sees all. */
+  boardId: string | null;
+  /** The access key that opened this session, if it was not the master. */
+  keyId: string | null;
 }
 
-/**
- * Reads the passwords from the environment. The signing key defaults to a
- * digest of both passwords, so rotating either one invalidates every cookie
- * issued before the change. Set AUTH_SECRET to rotate keys and passwords
- * independently.
- */
-export function readEnv(): EnvConfig | null {
-  const viewerPassword = process.env.BOARD_PASSWORD ?? '';
-  const editorPassword = process.env.EDITOR_PASSWORD ?? '';
-  if (!viewerPassword || !editorPassword) return null;
-  const explicit = process.env.AUTH_SECRET ?? '';
-  const key = createHash('sha256')
-    .update(`${explicit} ${viewerPassword} ${editorPassword}`)
-    .digest('hex');
-  return { viewerPassword, editorPassword, key };
-}
-
-function sign(value: string, key: string): string {
-  return createHmac('sha256', key).update(value).digest('base64url');
-}
+/** The master editor password. Without it the site has no way in at all. */
+export const masterPassword = () => process.env.EDITOR_PASSWORD?.trim() ?? '';
 
 /** Compares two secrets without leaking their contents through timing. */
 export function safeEqual(a: string, b: string): boolean {
@@ -39,29 +27,35 @@ export function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ha, hb);
 }
 
-export function issueToken(role: Role, key: string): string {
-  const body = Buffer.from(
-    JSON.stringify({ r: role, i: Date.now(), n: randomUUID() }),
-  ).toString('base64url');
-  return `${body}.${sign(body, key)}`;
+interface TokenBody {
+  r: Role;
+  m: boolean;
+  b: string | null;
+  k: string | null;
+  i: number;
 }
 
-export function verifyToken(token: string, key: string): Role | null {
+export async function issueToken(payload: Omit<TokenBody, 'i'>): Promise<string> {
+  const body = Buffer.from(
+    JSON.stringify({ ...payload, i: Date.now(), n: randomUUID() }),
+  ).toString('base64url');
+  const mac = createHmac('sha256', await signingKey()).update(body).digest('base64url');
+  return `${body}.${mac}`;
+}
+
+async function verifyToken(token: string): Promise<TokenBody | null> {
   const dot = token.lastIndexOf('.');
   if (dot < 1) return null;
   const body = token.slice(0, dot);
   const mac = token.slice(dot + 1);
-  const expected = sign(body, key);
+  const expected = createHmac('sha256', await signingKey()).update(body).digest('base64url');
   if (mac.length !== expected.length) return null;
   if (!timingSafeEqual(Buffer.from(mac), Buffer.from(expected))) return null;
   try {
-    const parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as {
-      r?: string;
-      i?: number;
-    };
+    const parsed = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as TokenBody;
     if (typeof parsed.i !== 'number' || Date.now() - parsed.i > MAX_AGE_SECONDS * 1000) return null;
     if (parsed.r !== 'viewer' && parsed.r !== 'editor') return null;
-    return parsed.r;
+    return parsed;
   } catch {
     return null;
   }
@@ -86,13 +80,36 @@ export function clearCookie(): string {
   return `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
 }
 
-/** Returns the role carried by the request's cookie, or null when unauthenticated. */
-export function roleFor(req: Request): Role | null {
-  const env = readEnv();
-  if (!env) return null;
+/**
+ * Resolves the request's session. A key-backed session is re-checked against
+ * the store on every request, so revoking a key locks its holder out at once
+ * rather than whenever their cookie happens to expire.
+ */
+export async function sessionFor(req: Request): Promise<Session | null> {
+  if (!masterPassword()) return null;
   const token = readCookie(req, COOKIE);
   if (!token) return null;
-  return verifyToken(token, env.key);
+  const body = await verifyToken(token);
+  if (!body) return null;
+
+  if (body.m) return { role: 'editor', master: true, boardId: null, keyId: null };
+
+  if (!body.k || !body.b) return null;
+  const key = await keyById(body.k);
+  if (!key || key.boardId !== body.b) return null;
+  // The key's current role wins, so changing it takes effect without a re-login.
+  return { role: key.role, master: false, boardId: key.boardId, keyId: key.id };
+}
+
+/**
+ * Which board this request acts on. A key-backed session is pinned to its own
+ * board and any `board` parameter is ignored; only the master may choose.
+ */
+export async function boardIdFor(req: Request, session: Session): Promise<string> {
+  if (!session.master) return session.boardId as string;
+  const requested = new URL(req.url).searchParams.get('board');
+  if (requested) return requested;
+  return (await ensureBoard()).id;
 }
 
 export function json(body: unknown, init: ResponseInit = {}): Response {
@@ -104,8 +121,9 @@ export function json(body: unknown, init: ResponseInit = {}): Response {
 
 export const unauthorized = () => json({ error: 'unauthorized' }, { status: 401 });
 export const forbidden = () => json({ error: 'forbidden' }, { status: 403 });
+export const notFound = () => json({ error: 'not found' }, { status: 404 });
 export const misconfigured = () =>
   json(
-    { error: 'This board is not configured yet: BOARD_PASSWORD and EDITOR_PASSWORD are unset.' },
+    { error: 'This board is not configured yet: EDITOR_PASSWORD is unset.' },
     { status: 503 },
   );

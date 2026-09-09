@@ -9,8 +9,11 @@ import SubmitDialog from './components/SubmitDialog';
 import AddItemDialog, { type ItemDraft } from './components/AddItemDialog';
 import InboxDialog from './components/InboxDialog';
 import ItemInspector from './components/ItemInspector';
+import BoardsDialog from './components/BoardsDialog';
+import KeysDialog from './components/KeysDialog';
+import { shareBoard } from './lib/share';
 
-type Dialog = 'submit' | 'add' | 'inbox' | null;
+type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | null;
 
 interface Toast {
   text: string;
@@ -28,6 +31,12 @@ export default function App() {
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
+  /**
+   * Which board is on screen. The master editor switches this freely; a
+   * key-backed session is pinned to its own board by the server regardless.
+   */
+  const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
+  const [keysFor, setKeysFor] = useState<{ id: string; title: string } | null>(null);
   const [zoom, setZoom] = useState(0.5);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -47,29 +56,40 @@ export default function App() {
     api
       .getSession()
       .then(setSession)
-      .catch(() => setSession({ authenticated: false, role: null }));
+      .catch(() => setSession({ authenticated: false, role: null, master: false, boardId: null }));
   }, []);
 
   const refreshPending = useCallback(async () => {
     try {
-      const subs = await api.getSubmissions();
+      const subs = await api.getSubmissions(activeBoardId);
       setPendingCount(subs.filter((entry) => entry.status === 'new').length);
     } catch {
       // A viewer cannot read the inbox; the badge simply stays at zero.
     }
-  }, []);
+  }, [activeBoardId]);
+
+  // A review link from a notification names the board it belongs to.
+  useEffect(() => {
+    if (!session?.authenticated || !session.master) return;
+    const requested = new URLSearchParams(window.location.search).get('board');
+    if (requested) setActiveBoardId(requested);
+  }, [session]);
 
   useEffect(() => {
     if (!session?.authenticated) return;
+    setBoard(null);
     api
-      .getBoard()
-      .then(setBoard)
+      .getBoard(activeBoardId)
+      .then((next) => {
+        setBoard(next);
+        setActiveBoardId(next.id);
+      })
       .catch((e: Error) => say(e.message, 'error'));
     if (session.role === 'editor') {
       void refreshPending();
       if (new URLSearchParams(window.location.search).has('review')) setDialog('inbox');
     }
-  }, [session, refreshPending, say]);
+  }, [session, activeBoardId, refreshPending, say]);
 
   /* ---------- persistence ---------- */
 
@@ -78,7 +98,7 @@ export default function App() {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       const run = async () => {
         try {
-          const saved = await api.saveBoard(next);
+          const saved = await api.saveBoard(next, next.id);
           // Keep the server's timestamp without clobbering in-flight edits.
           setBoard((current) =>
             current ? { ...current, updatedAt: saved.updatedAt } : saved,
@@ -166,6 +186,12 @@ export default function App() {
     patchItem(selectedId, { z: maxZ + 1 });
     commit();
   }, [selectedId, patchItem, commit]);
+
+  const share = useCallback(async () => {
+    const outcome = await shareBoard(boardRef.current?.title ?? BOARD_TITLE);
+    if (outcome === 'copied') say('Link copied. The password still has to come from you.');
+    else if (outcome === 'failed') say('Could not share the link on this device.', 'error');
+  }, [say]);
 
   /* ---------- gates ---------- */
 
@@ -257,11 +283,16 @@ export default function App() {
       {panelOpen ? (
         <SidePanel
           role={session.role!}
+          master={session.master}
           title={title}
           itemCount={board.items.length}
           pendingCount={pendingCount}
           editMode={editMode}
           onClose={() => setPanelOpen(false)}
+          onShare={() => {
+            setPanelOpen(false);
+            void share();
+          }}
           onSubmit={() => {
             setPanelOpen(false);
             setDialog('submit');
@@ -275,6 +306,15 @@ export default function App() {
           onInbox={() => {
             setPanelOpen(false);
             setDialog('inbox');
+          }}
+          onBoards={() => {
+            setPanelOpen(false);
+            setDialog('boards');
+          }}
+          onKeys={() => {
+            setPanelOpen(false);
+            setKeysFor({ id: board.id, title: board.title });
+            setDialog('keys');
           }}
           onToggleEdit={() => {
             setEditMode((on) => !on);
@@ -293,6 +333,7 @@ export default function App() {
 
       {dialog === 'submit' ? (
         <SubmitDialog
+          boardId={board.id}
           onClose={() => setDialog(null)}
           onDone={(message) => {
             setDialog(null);
@@ -304,6 +345,7 @@ export default function App() {
 
       {dialog === 'add' ? (
         <AddItemDialog
+          boardId={board.id}
           initialSrc={addSrc}
           onPlace={placeDraft}
           onClose={() => {
@@ -313,8 +355,36 @@ export default function App() {
         />
       ) : null}
 
+      {dialog === 'boards' ? (
+        <BoardsDialog
+          currentId={board.id}
+          onOpen={(id) => {
+            setActiveBoardId(id);
+            setSelectedId(null);
+            setDialog(null);
+          }}
+          onManageKeys={(summary) => {
+            setKeysFor({ id: summary.id, title: summary.title });
+            setDialog('keys');
+          }}
+          onClose={() => setDialog(null)}
+        />
+      ) : null}
+
+      {dialog === 'keys' && keysFor ? (
+        <KeysDialog
+          boardId={keysFor.id}
+          boardTitle={keysFor.title}
+          onClose={() => {
+            setKeysFor(null);
+            setDialog(null);
+          }}
+        />
+      ) : null}
+
       {dialog === 'inbox' ? (
         <InboxDialog
+          boardId={board.id}
           onClose={() => setDialog(null)}
           onChanged={refreshPending}
           onPlaceMedia={(src) => {

@@ -308,3 +308,130 @@
   font-size: 14px;
   text-align: center;
 }
+
+/* ---------- board and key management rows ---------- */
+
+.row-card {
+  margin-bottom: 12px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: var(--panel-raised);
+}
+
+.row-card.current {
+  border-color: rgba(217, 164, 65, 0.5);
+}
+
+.row-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.row-sub {
+  margin-top: 3px;
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.2);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag.warn {
+  background: rgba(192, 57, 43, 0.24);
+  color: #ffab9d;
+}
+
+.row-card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.row-card .actions .btn {
+  padding: 8px 13px;
+  font-size: 13px;
+}
+
+.danger-zone {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(192, 57, 43, 0.4);
+  border-radius: 10px;
+  background: rgba(192, 57, 43, 0.12);
+}
+
+.danger-zone p {
+  margin: 0;
+  color: #f2ded9;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* The password itself, tap-to-copy. */
+.secret {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border: 1px dashed rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  text-align: left;
+}
+
+.secret:hover {
+  border-color: var(--accent);
+}
+
+.secret code {
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.secret span {
+  flex-shrink: 0;
+  color: var(--panel-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-rule {
+  margin: 24px 0 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.field .note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
