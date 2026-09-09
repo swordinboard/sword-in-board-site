@@ -92,6 +92,13 @@ export interface AccessKey {
 
 export const KEY_MIN_LENGTH = 8;
 
+/**
+ * How hard a chosen password must be to guess, in bits. A generated passphrase
+ * is about 42; this floor still admits an ordinary three-word phrase while
+ * turning away the passwords a guesser tries first.
+ */
+export const KEY_MIN_BITS = 32;
+
 export const BOARD_DEFAULTS = {
   width: 4200,
   height: 3000,

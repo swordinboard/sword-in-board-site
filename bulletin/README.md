@@ -56,7 +56,7 @@ bulletin/
     keys.ts                make and revoke access keys (master only)
     media.ts               gated image read; upload; delete
     submissions.ts         create, list, triage, delete
-    _lib/                  auth, blob stores, email notification
+    _lib/                  auth, blob stores, email, guessing defences, wordlist
 ```
 
 ### Boards, keys, and the password gate
@@ -81,7 +81,43 @@ HMAC-signed cookie (`HttpOnly`, `Secure`, `SameSite=Lax`, six months) carrying t
 key it opened. Every later request re-checks that the key still exists — that is what makes
 revocation instant — and pins the request to that key's board. Media is filed against a board
 too, so a key for one board cannot read another board's images even with the exact blob id.
-Login is rate-limited to 10 attempts per IP per 15 minutes.
+
+### Guessing
+
+Passwords are the only thing between the internet and a board, and there are many of them at
+once — which cuts both ways. With *n* valid passwords live, a guesser only has to hit any one
+of them, so the search shortens by a factor of *n*. Entropy has to cover that.
+
+A generated passphrase is three words from an 865-word list plus a four-digit number, about
+**42 bits** — `thistle-copper-lantern-4827`. Sized so that even 2,000 live keys and a
+thousand-machine botnet stay in the decades. A chosen password is measured before it is
+accepted and must clear 32 bits; the check reads the password as a guesser would, scoring
+common passwords, keyboard runs, and anything built from the board's own name near zero
+rather than trusting length and character classes. It is a floor that turns away bad choices,
+not a promise about good ones — the generated option is the reliable one.
+
+Two limits sit behind that:
+
+- **Per IP**, 10 attempts per 15 minutes. Bounds what one source can guess, and what it can
+  cost in blob reads.
+- **Site-wide**, 60 wrong answers per 10 minutes, after which guesses are refused. This is
+  the one that matters against a distributed attack, where a per-IP limit does nothing.
+
+The rule that keeps this invisible: **the ceiling is only ever checked after the password has
+been resolved, and only on a wrong answer.** A correct password is never refused, no matter
+how hard the site is being attacked — so somebody walking up to look at a friend's board
+types the right thing and is let in, mid-attack or not. A success also clears that visitor's
+own failure count, so mistyping a few times costs nothing. There is deliberately no
+artificial delay: sleeping inside a billed function would let an attacker inflate the hosting
+bill instead.
+
+When the ceiling trips, you get one email (at most one an hour) via the same Resend setup the
+submissions use.
+
+**If you ever want a challenge** — Cloudflare Turnstile or similar, invisible to real people
+and appearing only when things look wrong — the seam is already there. The 429 response
+carries `challenge: true`, and `challengeSatisfied()` in `netlify/functions/_lib/guard.ts`
+documents the four steps. Nothing else has to move.
 
 **Access keys are stored reversibly, on purpose.** They are encrypted at rest with
 AES-256-GCM and shown back to you in the keys dialog, so you can read a password out to
@@ -192,3 +228,10 @@ directory, with the environment variables set.
 - Up to 50 boards, and 40 keys per board.
 - A password is not a person. Two people handed the same key are indistinguishable, and
   labels are your own record of who has what, not something the app can verify.
+- The per-IP counter is not atomic — Netlify Blobs has no compare-and-set — so simultaneous
+  requests can slip an extra attempt through. The site-wide ceiling is the real bound.
+- Someone sharing an IP with an attacker (office, some mobile networks) can be throttled by
+  the per-IP limit even though they are innocent. They wait it out; their password still
+  works once the window passes.
+- The likeliest way a board leaks is not guessing at all — it is a password forwarded in a
+  group chat. Per-person keys and instant revocation are the answer to that, not entropy.

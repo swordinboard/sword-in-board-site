@@ -230,12 +230,24 @@ export async function listSubmissions(boardId?: string): Promise<Submission[]> {
 
 /* -------------------------------------------------------------- throttle */
 
+const throttleKey = (fingerprint: string) =>
+  createHash('sha256').update(fingerprint).digest('hex').slice(0, 32);
+
+/** Forgets a caller's failed attempts, once they prove they belong here. */
+export async function clearAttempts(fingerprint: string): Promise<void> {
+  await throttleStore().delete(throttleKey(fingerprint));
+}
+
 /**
  * Counts attempts against a coarse fingerprint of the caller within a fixed
  * window. Returns false once the window's allowance is spent.
+ *
+ * Blobs offer no atomic increment, so two simultaneous requests can each read
+ * the same count and let one extra attempt through. At these limits that is
+ * noise, and the site-wide ceiling in guard.ts is the real bound.
  */
 export async function allowAttempt(fingerprint: string, limit: number, windowMs: number) {
-  const key = createHash('sha256').update(fingerprint).digest('hex').slice(0, 32);
+  const key = throttleKey(fingerprint);
   const store = throttleStore();
   const now = Date.now();
   const record = (await store.get(key, { type: 'json' })) as

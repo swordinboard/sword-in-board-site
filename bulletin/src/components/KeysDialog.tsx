@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { AccessKey, Role } from '../../shared/types';
 import { KEY_MIN_LENGTH } from '../../shared/types';
+import { strengthOf } from '../lib/strength';
 import * as api from '../lib/api';
 import { copyText } from '../lib/share';
 
@@ -67,6 +68,10 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
       setError((e as Error).message);
     }
   };
+
+  // Warn about a weak custom password before the form is sent; the server
+  // makes the actual decision.
+  const strength = password.trim() ? strengthOf(password, [boardTitle]) : null;
 
   const take = async (value: string, id: string) => {
     if (await copyText(value)) {
@@ -187,14 +192,25 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Leave blank for one that is easy to say out loud"
           />
+          {strength ? (
+            <p className={`strength ${strength.ok ? 'ok' : 'weak'}`}>
+              {strength.label} &middot; about {strength.bits} bits
+            </p>
+          ) : null}
           <p className="note">
             At least {KEY_MIN_LENGTH} characters, and it cannot already open another board. A
-            generated one looks like <code>cedar-lantern-harbour-42</code>.
+            generated one looks like <code>thistle-copper-lantern-4827</code> and is about 42
+            bits &mdash; three unrelated words is the easy way to match it.
           </p>
         </div>
 
         <div className="btn-row">
-          <button className="btn" type="button" onClick={add} disabled={busy}>
+          <button
+            className="btn"
+            type="button"
+            onClick={add}
+            disabled={busy || (strength !== null && !strength.ok)}
+          >
             {busy ? 'Cutting the key...' : 'Make a key'}
           </button>
           <button className="btn ghost" type="button" onClick={onClose}>

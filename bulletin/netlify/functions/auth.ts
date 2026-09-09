@@ -11,15 +11,14 @@ import {
 } from './_lib/auth';
 import {
   allowAttempt,
+  clearAttempts,
   createKey,
   ensureBoard,
   keyForPassword,
   loadBoard,
   touchKey,
 } from './_lib/store';
-
-const ATTEMPT_LIMIT = 10;
-const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+import { IP_LIMIT, IP_WINDOW_MS, noteFailure } from './_lib/guard';
 
 async function describe(session: Awaited<ReturnType<typeof sessionFor>>) {
   if (!session) return { authenticated: false, role: null, master: false, boardId: null };
@@ -72,7 +71,8 @@ export default async (req: Request): Promise<Response> => {
   if (!master) return misconfigured();
 
   const ip = req.headers.get('x-nf-client-connection-ip') ?? 'unknown';
-  if (!(await allowAttempt(`login:${ip}`, ATTEMPT_LIMIT, ATTEMPT_WINDOW_MS))) {
+  // First line: bounds what any single source can guess, and what it can cost.
+  if (!(await allowAttempt(`login:${ip}`, IP_LIMIT, IP_WINDOW_MS))) {
     return json({ error: 'Too many attempts. Try again in a little while.' }, { status: 429 });
   }
 
@@ -88,6 +88,7 @@ export default async (req: Request): Promise<Response> => {
   // The master password is checked first: it opens everything, and must keep
   // working even before any access key has been made.
   if (safeEqual(password, master)) {
+    await clearAttempts(`login:${ip}`);
     await ensureBoard();
     const token = await issueToken({ r: 'editor', m: true, b: null, k: null });
     return json(
@@ -99,13 +100,30 @@ export default async (req: Request): Promise<Response> => {
   // Otherwise the password itself says which board to open.
   await seedLegacyPassword();
   const key = await keyForPassword(password);
-  if (!key) return json({ error: 'That password does not open any board.' }, { status: 401 });
+
+  if (!key) {
+    // Only wrong answers meet the site-wide ceiling, and only after the
+    // password has been resolved. A correct password is never refused, however
+    // hard the site is being guessed at.
+    const guard = await noteFailure(new URL(req.url).origin);
+    if (guard.tripped) {
+      return json(
+        {
+          error: 'Too many wrong passwords across this site just now. Try again shortly.',
+          challenge: true,
+        },
+        { status: 429 },
+      );
+    }
+    return json({ error: 'That password does not open any board.' }, { status: 401 });
+  }
 
   const board = await loadBoard(key.boardId);
   if (!board) {
     return json({ error: 'The board this password opened is no longer here.' }, { status: 410 });
   }
 
+  await clearAttempts(`login:${ip}`);
   await touchKey(key);
   const token = await issueToken({ r: key.role, m: false, b: key.boardId, k: key.id });
   return json(

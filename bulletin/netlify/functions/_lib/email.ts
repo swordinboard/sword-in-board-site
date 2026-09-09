@@ -70,3 +70,50 @@ export async function notifySubmission(input: NotificationInput): Promise<void> 
     console.error('[submission] notification threw', error);
   }
 }
+
+export interface AttackNotice {
+  failures: number;
+  windowMinutes: number;
+  origin: string;
+}
+
+/**
+ * Sent once an hour at most, when failed logins across the whole site cross the
+ * ceiling. Correct passwords keep working throughout, so this is information
+ * rather than an emergency.
+ */
+export async function notifyAttack(notice: AttackNotice): Promise<void> {
+  const to = process.env.NOTIFY_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  const summary = `${notice.failures} failed logins in ${notice.windowMinutes} minutes at ${notice.origin}`;
+  if (!to || !apiKey) {
+    console.warn(`[guard] ${summary} (no NOTIFY_EMAIL/RESEND_API_KEY, not emailed)`);
+    return;
+  }
+
+  const html = [
+    `<h2>Unusual login activity</h2>`,
+    `<p><strong>${notice.failures}</strong> failed logins in the last`,
+    `${notice.windowMinutes} minutes at ${escapeHtml(notice.origin)}.</p>`,
+    `<p>Guesses are being refused for now. Anyone with a correct password can still`,
+    `get in, so nobody is locked out.</p>`,
+    `<p>Nothing needs doing unless this keeps up. If it does, revoking and reissuing`,
+    `the keys for the board in question is the direct fix.</p>`,
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.NOTIFY_FROM || 'onboarding@resend.dev',
+        to: [to],
+        subject: 'Unusual login activity on your board',
+        html,
+      }),
+    });
+    if (!res.ok) console.error(`[guard] alert failed: ${res.status} ${await res.text()}`);
+  } catch (error) {
+    console.error('[guard] alert threw', error);
+  }
+}

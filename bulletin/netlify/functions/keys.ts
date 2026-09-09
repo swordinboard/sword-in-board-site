@@ -1,8 +1,8 @@
 import type { Config, Context } from '@netlify/functions';
 import { forbidden, json, masterPassword, notFound, safeEqual, sessionFor, unauthorized } from './_lib/auth';
 import { createKey, listKeys, loadBoard, revokeKey } from './_lib/store';
-import { generatePassphrase } from './_lib/secrets';
-import { KEY_MIN_LENGTH, type Role } from '../../shared/types';
+import { estimateBits, generatePassphrase } from './_lib/secrets';
+import { KEY_MIN_BITS, KEY_MIN_LENGTH, type Role } from '../../shared/types';
 
 const MAX_KEYS_PER_BOARD = 40;
 
@@ -32,7 +32,8 @@ export default async (req: Request, context: Context): Promise<Response> => {
     }
 
     const boardId = typeof body.boardId === 'string' ? body.boardId : '';
-    if (!boardId || !(await loadBoard(boardId))) return notFound();
+    const board = await loadBoard(boardId);
+    if (!boardId || !board) return notFound();
 
     const existing = await listKeys(boardId);
     if (existing.length >= MAX_KEYS_PER_BOARD) {
@@ -54,8 +55,29 @@ export default async (req: Request, context: Context): Promise<Response> => {
       );
     }
     // The master password must stay the one thing that opens every board.
+    // Checked before strength, so reusing it gets the accurate reason rather
+    // than a confusing complaint about guessability.
     if (safeEqual(password, masterPassword())) {
       return json({ error: 'That is the master password. Choose another.' }, { status: 409 });
+    }
+    // Length alone would wave through "abc12345". Weigh how guessable it is,
+    // and refuse anything built from this board's own name. The key's label is
+    // deliberately not forbidden: it is private to the master editor, so it
+    // gives a guesser nothing, and barring it would reject a sound password
+    // merely for containing the holder's name.
+    if (supplied) {
+      const bits = estimateBits(password, [board.title]);
+      if (bits < KEY_MIN_BITS) {
+        return json(
+          {
+            error:
+              'That password would be guessed too easily. Try three unrelated words, ' +
+              'or leave the field blank for a generated one.',
+            bits,
+          },
+          { status: 400 },
+        );
+      }
     }
 
     try {
