@@ -40,7 +40,7 @@ export async function notifySubmission(input: NotificationInput): Promise<void> 
   const from = process.env.NOTIFY_FROM || 'onboarding@resend.dev';
   const contact = input.contact ? escapeHtml(input.contact) : 'not provided';
   const html = [
-    `<h2>New bulletin submission</h2>`,
+    `<h2>New board submission</h2>`,
     `<p><strong>From:</strong> ${escapeHtml(input.submitter)}<br>`,
     `<strong>Contact:</strong> ${contact}<br>`,
     `<strong>Attachments:</strong> ${input.mediaCount}</p>`,

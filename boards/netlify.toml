@@ -1,8 +1,8 @@
-# Netlify config for the Borough Bulletin.
-# Attach this to its own Netlify site with base directory = "bulletin".
+# Netlify config for Borough Boards.
+# Attach this to its own Netlify site with base directory = "boards".
 
 [build]
-  base = "bulletin"
+  base = "boards"
   publish = "dist"
   command = "npm run build"
 

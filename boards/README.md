@@ -25,7 +25,7 @@ remove later.
 To lift this into its own repository later, keeping history:
 
 ```
-git subtree split -P bulletin -b bulletin-only
+git subtree split -P boards -b boards-only
 ```
 
 ## The mark
@@ -43,7 +43,7 @@ pair reads as one blob.
 ## How it fits together
 
 ```
-bulletin/
+boards/
   index.html               app shell
   shared/types.ts          types shared by the browser and the functions
   src/
@@ -218,9 +218,9 @@ The Hugo site at the repository root and this app are two separate Netlify sites
 same repository.
 
 1. **Create a second Netlify site** from `swordinboard/sword-in-board-site`.
-2. Set **base directory** to `bulletin`. The build command (`npm run build`), publish
-   directory (`dist`), and functions directory are read from `bulletin/netlify.toml`.
-3. **Domain** → add `theboroughbulletin.swordinboard.com` as a custom domain on this new
+2. Set **base directory** to `boards`. The build command (`npm run build`), publish
+   directory (`dist`), and functions directory are read from `boards/netlify.toml`.
+3. **Domain** → add `boards.swordinboard.com` as a custom domain on this new
    site, then add the DNS record it asks for wherever `swordinboard.com` is managed.
 4. **Blobs** need no setup. `getStore` is wired automatically for functions on the site.
 5. Set the environment variables below, then deploy.
@@ -270,7 +270,7 @@ fastener, pin colour, size, tilt, caption, layering, and removal. Every change a
 ## Local development
 
 ```
-cd bulletin
+cd boards
 npm install
 npm run dev        # UI only; API calls 404 without the Netlify dev server
 npm run build
