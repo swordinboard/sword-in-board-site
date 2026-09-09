@@ -147,8 +147,12 @@ export const KEY_MIN_BITS = 32;
 export const BOARD_DEFAULTS = {
   width: 4200,
   height: 3000,
-  title: 'Bulletin Board',
+  /** Only ever seen by a board made without a name; authors name their own. */
+  title: 'Untitled Board',
 } as const;
+
+/** What the app itself is called. Override per instance with SITE_NAME. */
+export const SITE_DEFAULT_NAME = 'Borough Boards';
 
 export const PIN_COLORS = [
   '#c0392b',

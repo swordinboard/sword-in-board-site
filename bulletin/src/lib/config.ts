@@ -1,4 +1,4 @@
-import { BOARD_DEFAULTS } from '../../shared/types';
+import { SITE_DEFAULT_NAME } from '../../shared/types';
 
 /**
  * What the app itself is called: the browser tab, the login screen, the name
@@ -13,4 +13,4 @@ import { BOARD_DEFAULTS } from '../../shared/types';
 export const SITE_NAME: string =
   import.meta.env.VITE_SITE_NAME?.trim() ||
   import.meta.env.VITE_BOARD_TITLE?.trim() ||
-  BOARD_DEFAULTS.title;
+  SITE_DEFAULT_NAME;

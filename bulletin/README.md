@@ -1,6 +1,6 @@
-# Bulletin Board
+# Borough Boards
 
-A private, pannable corkboard. Items hang as paper, instant photos, torn clippings, framed
+A private, pannable corkboard. Anyone can put one up; a password opens it. Items hang as paper, instant photos, torn clippings, framed
 pieces, or sticky notes, held up by pushpins, tape, or nails. Viewers pan and zoom around a
 fixed-size board, so nothing ever reflows to stay readable. Editors crop, frame, and drag
 things into place directly on the live board.
@@ -27,6 +27,18 @@ To lift this into its own repository later, keeping history:
 ```
 git subtree split -P bulletin -b bulletin-only
 ```
+
+## The mark
+
+`public/` carries three files. `logo.svg` is the full mark for light backgrounds,
+`logo-light.svg` the same drawing retoned for dark ones (the app uses this),
+and `favicon.svg` the small mark, with `icon-180.png` for a phone home screen.
+
+The small mark carries one B rather than two on purpose: a browser tab is 16px,
+which leaves eight pixels a letter for a two-letter monogram, and nothing
+survives that. For the same reason the two B's face the same way instead of
+mirroring — at any real stroke weight, facing bowls meet in the middle and the
+pair reads as one blob.
 
 ## How it fits together
 

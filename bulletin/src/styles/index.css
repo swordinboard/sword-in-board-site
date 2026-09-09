@@ -683,3 +683,18 @@ button {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 11px;
 }
+
+.gate-logo {
+  display: block;
+  width: 104px;
+  height: auto;
+  margin: 0 auto 14px;
+}
+
+@media (max-height: 680px) {
+  /* On a short phone the form matters more than the mark. */
+  .gate-logo {
+    width: 72px;
+    margin-bottom: 8px;
+  }
+}

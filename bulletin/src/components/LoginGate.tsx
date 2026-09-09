@@ -231,6 +231,7 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
   return (
     <div className="gate">
       <form className="gate-card" onSubmit={enter}>
+        <img className="gate-logo" src="/logo-light.svg" alt="" width={104} height={91} />
         <h1>{title}</h1>
         <p>This board is private. Enter the password to have a look.</p>
         <div className="field">
