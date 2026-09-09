@@ -6,7 +6,7 @@ import { RESERVED_TITLES, SITE_DEFAULT_NAME } from '../../../shared/types';
  * A title is only a label — nothing routes by it and two boards may share one —
  * so this is not about ownership of a name. It is about the one impersonation
  * that could actually mislead somebody: a board that appears to speak for
- * Borough Boards rather than for a person.
+ * Pinhold rather than for a person.
  *
  * The master editor is exempt, since the site's own boards are precisely the
  * ones that should carry the site's name.

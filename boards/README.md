@@ -1,4 +1,4 @@
-# Borough Boards
+# Pinhold
 
 A private, pannable corkboard. Anyone can put one up; a password opens it. Items hang as paper, instant photos, torn clippings, framed
 pieces, or sticky notes, held up by pushpins, tape, or nails. Viewers pan and zoom around a
@@ -34,11 +34,22 @@ git subtree split -P boards -b boards-only
 `logo-light.svg` the same drawing retoned for dark ones (the app uses this),
 and `favicon.svg` the small mark, with `icon-180.png` for a phone home screen.
 
-The small mark carries one B rather than two on purpose: a browser tab is 16px,
-which leaves eight pixels a letter for a two-letter monogram, and nothing
-survives that. For the same reason the two B's face the same way instead of
-mirroring — at any real stroke weight, facing bowls meet in the middle and the
-pair reads as one blob.
+The drawing is a notice pinned to a crenellated wall — the pin and the hold,
+which is the whole name in one picture. There are no letterforms in it, and
+that is the point. The mark it replaced drew two B's, which meant it went wrong
+the moment the product stopped being called Borough Boards; nothing here
+encodes an initial, so the next rename costs the artwork nothing.
+
+The small mark drops the notice, the courses and the pin's stem, keeping only
+the wall and the pin: at 16px anything finer closes up into dirt. Its wall also
+floats with ground on every side instead of bleeding off the tile, which the
+first attempt did — run to the edges it stopped reading as a wall at all and
+became a pale block with a dot on it.
+
+`icon-180.png` is generated from `favicon.svg`, not drawn separately. No
+rasteriser is installed here, so `scratchpad/mark-shot.mjs` renders it through
+Chromium and writes the PNG out at 180px, alongside a contact sheet of every
+mark at every size it is actually used.
 
 ## How it fits together
 

@@ -1,4 +1,4 @@
-# Netlify config for Borough Boards.
+# Netlify config for Pinhold.
 # Attach this to its own Netlify site with base directory = "boards".
 
 [build]

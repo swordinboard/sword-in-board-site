@@ -127,7 +127,7 @@ export const RESERVED_PASSWORDS: readonly string[] = [
   'welcome', 'demo', 'example', 'sample', 'help', 'support', 'about', 'info',
   'official', 'admin', 'administrator', 'moderator', 'staff', 'team', 'system',
   'start', 'hello', 'home', 'index', 'main', 'test', 'preview', 'tour',
-  'borough', 'boroughboards', 'borough-boards', 'boards', 'board',
+  'boards', 'board', 'pinhold',
 ];
 
 /** Who may put up a new board. */
@@ -186,7 +186,7 @@ export const BOARD_DEFAULTS = {
 } as const;
 
 /** What the app itself is called. Override per instance with SITE_NAME. */
-export const SITE_DEFAULT_NAME = 'Borough Boards';
+export const SITE_DEFAULT_NAME = 'Pinhold';
 
 /**
  * Titles nobody but the master editor may use, matched exactly once stripped

@@ -86,15 +86,36 @@ def main() -> None:
 
     # Reserved passwords. Only the name-derived entries move; the generic ones
     # (board, boards, admin, welcome...) are reserved on their own merits.
+    #
+    # The list is rebuilt rather than patched in place. A one-word name makes
+    # first, flat and kebab the same string, and three separate replacements
+    # would write it in three times.
     types_path = ROOT / "shared" / "types.ts"
     types = types_path.read_text()
-    for find, repl in [
-        (f"'{old_first}'", f"'{new_first}'"),
-        (f"'{old_flat}'", f"'{new_flat}'"),
-        (f"'{old_kebab}'", f"'{new_kebab}'"),
-    ]:
-        if find in types:
-            types = types.replace(find, repl)
+    block = re.search(
+        r"(export const RESERVED_PASSWORDS: readonly string\[\] = \[\n)(.*?)(\n\];)",
+        types,
+        re.S,
+    )
+    if not block:
+        sys.exit("Could not find RESERVED_PASSWORDS in shared/types.ts.")
+
+    retired = {old_first, old_flat, old_kebab}
+    words = [w for w in re.findall(r"'([^']+)'", block.group(2)) if w not in retired]
+    for word in (new_first, new_flat, new_kebab):
+        if word not in words:
+            words.append(word)
+
+    lines, line = [], "  "
+    for word in words:
+        entry = f"'{word}', "
+        if len(line) + len(entry) > 80:
+            lines.append(line.rstrip())
+            line = "  "
+        line += entry
+    lines.append(line.rstrip())  # trailing comma matches the file's style
+
+    types = types[: block.start(2)] + "\n".join(lines) + types[block.end(2) :]
     types_path.write_text(types)
     changed.append("shared/types.ts (RESERVED_PASSWORDS)")
 
