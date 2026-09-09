@@ -17,7 +17,7 @@ export default async (): Promise<Response> => {
     needsInvite: mode === 'invite',
     ttlDays: boardTtlDays(),
     recoveryAvailable: Boolean(process.env.NOTIFY_EMAIL && process.env.RESEND_API_KEY),
-    title: process.env.BOARD_TITLE || BOARD_DEFAULTS.title,
+    title: process.env.SITE_NAME || process.env.BOARD_TITLE || BOARD_DEFAULTS.title,
   };
   return json(info);
 };

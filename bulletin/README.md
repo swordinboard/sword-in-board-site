@@ -222,8 +222,9 @@ same repository.
 | `BOARD_PASSWORD` | no | Only for upgrades from the first release: it becomes a viewer key on the first board, then the variable can be deleted. |
 | `SIGNUP_MODE` | no | `closed`, `invite`, or `open`. Defaults to `invite`. |
 | `BOARD_TTL_DAYS` | no | Days untouched before a board is cleared. Defaults to 180. |
-| `BOARD_TITLE` | no | Board name stored in board state. |
-| `VITE_BOARD_TITLE` | no | Board name in the browser tab and login screen. Build-time. |
+| `BOARD_TITLE` | no | Fallback title for a board made without one. Boards put up through the app are named by their author, so this is rarely used. |
+| `SITE_NAME` | no | What the app is called, as the server reports it. |
+| `VITE_SITE_NAME` | no | What the app is called, in the browser tab and on the login screen. Baked in at build time, so changing it needs a redeploy. |
 | `NOTIFY_EMAIL` | no | Where submission notifications are sent. |
 | `RESEND_API_KEY` | no | Resend API key. Without it, submissions queue but do not email. |
 | `NOTIFY_FROM` | no | Verified sender address. Defaults to Resend's shared onboarding sender. |
@@ -281,6 +282,9 @@ directory, with the environment variables set.
   the right trade for a private board and the thing that scales worst: at real adoption it is
   what would push this off a free tier.
 - Deleting a board is immediate and total. There is no undo and no bin.
+- The daily sweep clears at most 25 boards per run, and reads the media store's
+  metadata once per run rather than once per board, because a scheduled function has a
+  hard time limit. A larger backlog drains over successive days.
 - A password is not a person. Two people handed the same key are indistinguishable, and
   labels are your own record of who has what, not something the app can verify.
 - The per-IP counter is not atomic — Netlify Blobs has no compare-and-set — so simultaneous

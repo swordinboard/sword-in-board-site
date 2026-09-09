@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
-import { BOARD_TITLE } from './lib/config';
+import { SITE_NAME } from './lib/config';
 import * as api from './lib/api';
 import Board, { type BoardHandle } from './components/Board';
 import LoginGate from './components/LoginGate';
@@ -191,14 +191,14 @@ export default function App() {
   }, [selectedId, patchItem, commit]);
 
   const share = useCallback(async () => {
-    const outcome = await shareBoard(boardRef.current?.title ?? BOARD_TITLE);
+    const outcome = await shareBoard(boardRef.current?.title ?? SITE_NAME);
     if (outcome === 'copied') say('Link copied. The password still has to come from you.');
     else if (outcome === 'failed') say('Could not share the link on this device.', 'error');
   }, [say]);
 
   /* ---------- gates ---------- */
 
-  const title = board?.title ?? BOARD_TITLE;
+  const title = board?.title ?? SITE_NAME;
 
   if (session === null) {
     return <div className="gate" />;
@@ -207,7 +207,7 @@ export default function App() {
   if (!session.authenticated) {
     return (
       <LoginGate
-        title={site?.title || BOARD_TITLE}
+        title={site?.title || SITE_NAME}
         site={site}
         onEntered={(next) => {
           setSession(next);
@@ -233,7 +233,7 @@ export default function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <h1>{BOARD_TITLE}</h1>
+          <h1>{SITE_NAME}</h1>
           <p>Putting the board up...</p>
         </div>
       </div>

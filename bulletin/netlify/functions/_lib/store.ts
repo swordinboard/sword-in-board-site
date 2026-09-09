@@ -40,6 +40,7 @@ export function emptyBoard(id: string, title?: string): BoardState {
     lastSeenAt: now,
     width: BOARD_DEFAULTS.width,
     height: BOARD_DEFAULTS.height,
+    // Only a fallback: every board made through the app is named by its author.
     title: title || process.env.BOARD_TITLE || BOARD_DEFAULTS.title,
     items: [],
     updatedAt: new Date().toISOString(),
@@ -101,22 +102,43 @@ export async function ensureBoard(): Promise<BoardState> {
  * reachable this way.
  */
 export async function mediaForBoard(boardId: string): Promise<string[]> {
+  return (await mediaByBoard([boardId])).get(boardId) ?? [];
+}
+
+/**
+ * One pass over the media store, grouped by board.
+ *
+ * Doing this per board would mean re-reading every blob's metadata once per
+ * board, which is what turns clearing a handful of boards into thousands of
+ * reads and puts a scheduled run over its time limit.
+ */
+export async function mediaByBoard(boardIds: string[]): Promise<Map<string, string[]>> {
+  const wanted = new Set(boardIds);
+  const grouped = new Map<string, string[]>();
+  if (wanted.size === 0) return grouped;
+
   const store = mediaStore();
   const { blobs } = await store.list();
   const owners = await Promise.all(
     blobs.map(async (blob) => ({
       key: blob.key,
-      boardId: (await store.getMetadata(blob.key))?.metadata?.boardId,
+      boardId: (await store.getMetadata(blob.key))?.metadata?.boardId as string | undefined,
     })),
   );
-  return owners.filter((entry) => entry.boardId === boardId).map((entry) => entry.key);
+  for (const entry of owners) {
+    if (!entry.boardId || !wanted.has(entry.boardId)) continue;
+    const list = grouped.get(entry.boardId);
+    if (list) list.push(entry.key);
+    else grouped.set(entry.boardId, [entry.key]);
+  }
+  return grouped;
 }
 
-export async function deleteBoard(id: string): Promise<void> {
+export async function deleteBoard(id: string, knownMedia?: string[]): Promise<void> {
   const [subs, keys, media] = await Promise.all([
     listSubmissions(id),
     listKeys(id),
-    mediaForBoard(id),
+    knownMedia ? Promise.resolve(knownMedia) : mediaForBoard(id),
   ]);
 
   await Promise.all([
