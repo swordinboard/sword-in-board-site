@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BoardSummary } from '../../shared/types';
 import * as api from '../lib/api';
+import Scrim from './Scrim';
 
 interface Props {
   currentId: string | null;
@@ -64,15 +65,13 @@ export default function BoardsDialog({ currentId, onOpen, onManageKeys, onClose 
   };
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Boards">
+    <Scrim label="Boards" onClose={onClose}>
         <h2>Boards</h2>
         <p className="lede">
           Each board has its own passwords. Someone holding a key for one board cannot see that
           any of the others exist.
         </p>
 
-        {error ? <p className="error-text">{error}</p> : null}
 
         {boards === null ? (
           <p className="empty-state">Loading...</p>
@@ -153,6 +152,7 @@ export default function BoardsDialog({ currentId, onOpen, onManageKeys, onClose 
           />
         </div>
 
+        {error ? <p className="error-text">{error}</p> : null}
         <div className="btn-row">
           <button className="btn" type="button" onClick={add} disabled={busy || !title.trim()}>
             {busy ? 'Putting it up...' : 'Put up a new board'}
@@ -161,7 +161,6 @@ export default function BoardsDialog({ currentId, onOpen, onManageKeys, onClose 
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

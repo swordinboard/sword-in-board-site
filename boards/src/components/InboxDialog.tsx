@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Submission, SubmissionStatus } from '../../shared/types';
 import { deleteSubmission, getSubmissions, mediaUrl, setSubmissionStatus } from '../lib/api';
+import Scrim from './Scrim';
 
 interface Props {
   boardId: string;
@@ -55,8 +56,7 @@ export default function InboxDialog({ boardId, onClose, onPlaceMedia, onChanged 
   );
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Submissions">
+    <Scrim label="Submissions" onClose={onClose}>
         <h2>Submissions</h2>
         <p className="lede">
           Everything sent in, waiting on you. Click any image to crop and pin it up.
@@ -143,7 +143,6 @@ export default function InboxDialog({ boardId, onClose, onPlaceMedia, onChanged 
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

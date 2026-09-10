@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Invite, SiteInfo } from '../../shared/types';
 import * as api from '../lib/api';
 import { copyText } from '../lib/share';
+import Scrim from './Scrim';
 
 interface Props {
   site: SiteInfo | null;
@@ -53,8 +54,7 @@ export default function InvitesDialog({ site, onClose }: Props) {
   const mode = site?.signupMode ?? 'invite';
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Invite codes">
+    <Scrim label="Invite codes" onClose={onClose}>
         <h2>Invite codes</h2>
         <p className="lede">
           A code lets somebody put up a board of their own. It is spent when they do, and opens
@@ -83,7 +83,6 @@ export default function InvitesDialog({ site, onClose }: Props) {
           </span>
         </div>
 
-        {error ? <p className="error-text">{error}</p> : null}
 
         {invites === null ? (
           <p className="empty-state">Loading...</p>
@@ -165,6 +164,7 @@ export default function InvitesDialog({ site, onClose }: Props) {
           </div>
         </div>
 
+        {error ? <p className="error-text">{error}</p> : null}
         <div className="btn-row">
           <button className="btn" type="button" onClick={add} disabled={busy}>
             {busy ? 'Making it...' : 'Make a code'}
@@ -173,7 +173,6 @@ export default function InvitesDialog({ site, onClose }: Props) {
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

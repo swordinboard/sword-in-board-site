@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { REPORT_REASONS, type ReportReason } from '../../shared/types';
 import * as api from '../lib/api';
+import Scrim from './Scrim';
 
 interface Props {
   boardTitle: string;
@@ -28,8 +29,7 @@ export default function ReportDialog({ boardTitle, onClose, onDone }: Props) {
   };
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Report this board">
+    <Scrim label="Report this board" onClose={onClose}>
         <h2>Report this board</h2>
         <p className="lede">
           This is for things that may be <strong>against the law</strong> &mdash; not for a board
@@ -78,7 +78,6 @@ export default function ReportDialog({ boardTitle, onClose, onDone }: Props) {
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

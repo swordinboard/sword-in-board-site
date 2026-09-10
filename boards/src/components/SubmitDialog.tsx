@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { createSubmission, mediaUrl, uploadMedia } from '../lib/api';
 import { loadImage, readFileAsDataUrl } from '../lib/image';
+import Scrim from './Scrim';
 
 interface Props {
   /** The board being looked at; the submission is filed against it. */
@@ -94,8 +95,7 @@ export default function SubmitDialog({ boardId, onClose, onDone }: Props) {
   };
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Make a submission">
+    <Scrim label="Make a submission" onClose={onClose}>
         <h2>Make a submission</h2>
         <p className="lede">
           Send media and a note about what you are going for. Nothing goes up automatically &mdash;
@@ -188,7 +188,6 @@ export default function SubmitDialog({ boardId, onClose, onDone }: Props) {
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

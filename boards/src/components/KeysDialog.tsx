@@ -4,6 +4,7 @@ import { KEY_MIN_LENGTH } from '../../shared/types';
 import { strengthOf } from '../lib/strength';
 import * as api from '../lib/api';
 import { copyText } from '../lib/share';
+import Scrim from './Scrim';
 
 interface Props {
   boardId: string;
@@ -87,8 +88,7 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
   };
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Access keys">
+    <Scrim label="Access keys" onClose={onClose}>
         <h2>Keys for {boardTitle}</h2>
         <p className="lede">
           Each password opens this board and no other. Hand one to each person, then revoke just
@@ -96,7 +96,6 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
           menu, and tell them the password some other way.
         </p>
 
-        {error ? <p className="error-text">{error}</p> : null}
 
         {keys === null ? (
           <p className="empty-state">Loading...</p>
@@ -236,6 +235,7 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
           </p>
         </div>
 
+        {error ? <p className="error-text">{error}</p> : null}
         <div className="btn-row">
           <button
             className="btn"
@@ -249,7 +249,6 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

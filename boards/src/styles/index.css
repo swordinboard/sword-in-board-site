@@ -411,17 +411,43 @@ button {
   padding: 20px;
   background: rgba(0, 0, 0, 0.66);
   animation: fade 160ms ease;
+  /* A phone browser keeps its URL bar over the bottom of the layout viewport,
+     so 100vh is taller than the part anyone can actually see or tap. dvh is
+     the visible part, and shrinks as the bar appears. */
+  height: 100vh;
+  height: 100dvh;
 }
 
 .modal {
   width: min(760px, 100%);
   max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
-  padding: 24px;
+  /* No bottom padding: the action row below supplies it, so that the row can
+     sit flush against the bottom of the scrolling area. */
+  padding: 24px 24px 0;
   border-radius: 14px;
   background: var(--panel);
   color: var(--panel-text);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * The action row stays put while the rest scrolls under it.
+ *
+ * Without this the primary button sits at the end of a long dialog, which on a
+ * phone puts it under the browser's chrome. A tap there either does nothing or
+ * lands on the scrim and dismisses the dialog - and a dismissed dialog looks
+ * exactly like a button that did not work.
+ */
+.modal .btn-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 18px -24px 0;
+  padding: 14px 24px calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--panel);
 }
 
 .modal h2 {

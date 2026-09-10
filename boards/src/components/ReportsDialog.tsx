@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { REPORT_REASONS, type Report, type ReportStatus } from '../../shared/types';
 import * as api from '../lib/api';
+import Scrim from './Scrim';
 
 interface Props {
   onOpenBoard: (boardId: string) => void;
@@ -47,8 +48,7 @@ export default function ReportsDialog({ onOpenBoard, onClose, onChanged }: Props
   const visible = (reports ?? []).filter((r) => showClosed || r.status === 'open');
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Reports">
+    <Scrim label="Reports" onClose={onClose}>
         <h2>Reports</h2>
         <p className="lede">
           Boards someone has flagged as possibly illegal. Open one to see it &mdash; your master
@@ -120,7 +120,6 @@ export default function ReportsDialog({ onOpenBoard, onClose, onChanged }: Props
             Close
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }

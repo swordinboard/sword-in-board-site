@@ -5,6 +5,7 @@ import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
 import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, randomTilt, sizeFor } from '../lib/frames';
 import Cropper from './Cropper';
+import Scrim from './Scrim';
 
 export interface ItemDraft {
   mediaId?: string;
@@ -124,8 +125,7 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
   };
 
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-label="Pin something up">
+    <Scrim label="Pin something up" onClose={onClose}>
         <h2>Pin something up</h2>
         <p className="lede">
           Crop it down to what matters, choose how it hangs, then drop it on the board.
@@ -285,7 +285,6 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+    </Scrim>
   );
 }
