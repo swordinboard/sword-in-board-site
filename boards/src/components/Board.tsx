@@ -29,8 +29,12 @@ export interface BoardHandle {
   /** Board coordinates at the centre of what the viewer is currently looking at. */
   centerPoint(): { x: number; y: number };
   zoomBy(factor: number): void;
+  /** Zoom to an absolute level, holding the centre of the view still. */
+  zoomTo(z: number): void;
   fit(): void;
   zoom(): number;
+  /** The range a slider should span. */
+  range(): { min: number; max: number };
 }
 
 interface Props {
@@ -134,8 +138,15 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
         const rect = stage.getBoundingClientRect();
         zoomAt(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
       },
+      zoomTo(z: number) {
+        const stage = stageRef.current;
+        if (!stage) return;
+        const rect = stage.getBoundingClientRect();
+        zoomAt(clampZoom(z) / viewRef.current.z, rect.left + rect.width / 2, rect.top + rect.height / 2);
+      },
       fit,
       zoom: () => viewRef.current.z,
+      range: () => ({ min: MIN_ZOOM, max: MAX_ZOOM }),
     }),
     [board.width, board.height, toBoard, zoomAt, fit],
   );

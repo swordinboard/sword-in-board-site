@@ -25,6 +25,7 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
   const [made, setMade] = useState<NewBoardResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [noEmail, setNoEmail] = useState(false);
 
   // Recover
   const [recoverEmail, setRecoverEmail] = useState('');
@@ -159,7 +160,9 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
           ) : null}
 
           <div className="field">
-            <label htmlFor="recovery-email">Email, only if you want it (optional)</label>
+            <label htmlFor="recovery-email">
+              Email {site?.recoveryAvailable ? '(strongly advised)' : '(optional)'}
+            </label>
             <input
               id="recovery-email"
               type="email"
@@ -168,10 +171,31 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
               placeholder="you@example.com"
             />
             <p className="note">
-              Never a login and never shown to anyone. Its only use is sending your passphrase
-              back if you lose it. Leave it blank and there is no way to recover the board.
+              {site?.recoveryAvailable
+                ? 'Never a login and never shown to anyone. Its only use is sending your passphrase back if you lose it. One address can hold as many boards as you like — asking for it later sends every one of them back.'
+                : 'Recovery email is not working on this site at the moment, so an address saved now cannot be used to get back in. Write the passphrase down.'}
             </p>
           </div>
+
+          {/*
+            Going without is allowed, but not by default and not by accident:
+            the passphrase is shown once and there is genuinely nothing behind
+            it. Somebody who skips this on the way past has lost the board the
+            moment they close the tab.
+          */}
+          {!email.trim() && site?.recoveryAvailable ? (
+            <label className="confirm compact">
+              <input
+                type="checkbox"
+                checked={noEmail}
+                onChange={(e) => setNoEmail(e.target.checked)}
+              />
+              <span>
+                No email. I understand the passphrase is shown once and there is no way back
+                without it.
+              </span>
+            </label>
+          ) : null}
 
           <p className="fine">
             Boards are cleared after {site ? Math.round(site.ttlDays / 30) : 6} months with
@@ -181,7 +205,15 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
 
           {error ? <p className="error-text">{error}</p> : null}
 
-          <button className="btn" type="submit" disabled={busy || !boardName.trim()}>
+          <button
+            className="btn"
+            type="submit"
+            disabled={
+              busy ||
+              !boardName.trim() ||
+              (!email.trim() && Boolean(site?.recoveryAvailable) && !noEmail)
+            }
+          >
             {busy ? 'Putting it up...' : 'Put it up'}
           </button>
           <button className="btn ghost wide-btn" type="button" onClick={() => setPanel('enter')}>

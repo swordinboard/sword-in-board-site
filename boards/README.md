@@ -127,7 +127,7 @@ would be far too slow, and what lands on screen is identical.
 
 ### Boards, keys, and the password gate
 
-There is one **master password**, `EDITOR_PASSWORD`, held in the environment. It opens every
+There is one **developer password**, `EDITOR_PASSWORD`, held in the environment. It opens every
 board and is the only way to manage boards and keys. Everything else is an **access key**: a
 password made inside the app that opens exactly one board, at one role.
 
@@ -166,7 +166,7 @@ key on one board, guessing a weak one opens that board and gives no help at all 
 other, so the risk is the owner's alone and so is the choice. There is even a button to fill
 in the board's title.
 
-Three things stay absolute, tick or no tick: the master password can never be reused as a
+Three things stay absolute, tick or no tick: the developer password can never be reused as a
 key, a password cannot collide with one that already opens another board, and six characters
 is the minimum — that last one guards against collision rather than guessing, since very
 short passwords start matching what strangers happen to type.
@@ -214,7 +214,7 @@ worth doing.
 `SIGNUP_MODE` decides, and it is a Netlify setting rather than code, so it changes without a
 redeploy:
 
-- `closed` — only you, using the master password.
+- `closed` — only you, using the developer password.
 - `invite` — anyone holding a code you generated. **This is the default**, including when the
   variable is unset or misspelt, because the setting that can surprise nobody is the
   restrictive one.
@@ -223,13 +223,13 @@ redeploy:
 Putting up a board hands back one passphrase, shown once. It is that board's editor key, so
 its holder owns the board: they can pin things up and cut their own viewing keys for it, and
 nothing else. They cannot see other boards exist, list them, or make invite codes. Those stay
-with the master password.
+with the developer password.
 
 Creation is capped at 3 boards per address per day and 60 site-wide per hour.
 
 **Before opening it up**, two things are worth being deliberate about. Any open image upload
 eventually attracts material you would not want hosted under your domain and your Netlify
-account. And the master password already opens every board — that is your only way to look at
+account. And the developer password already opens every board — that is your only way to look at
 what has been posted, and the reason the create screen tells people plainly that whoever runs
 the site can see their board. Leave `SIGNUP_MODE` on `invite` unless you are prepared to
 police it.
@@ -243,10 +243,10 @@ achieves nothing.
 Passwords are the opposite: they are the one globally unique thing here, since each must
 resolve to exactly one board. `RESERVED_PASSWORDS` in `shared/types.ts` therefore holds back
 the obvious ones — welcome, demo, help, the site's own name — for the site's own boards. Only
-the master editor may use them. Without that, a stranger claiming "welcome" would mean that
+the developer may use them. Without that, a stranger claiming "welcome" would mean that
 telling somebody "the demo password is welcome" walked them onto that stranger's board.
 
-The durable mark is `official`, a flag on the board that **only the master editor can set**.
+The durable mark is `official`, a flag on the board that **only the developer can set**.
 That is the whole point of it: it is the one thing a person putting up a board cannot award
 themselves, by the API or by smuggling the field into a board save. It shows as a badge
 beside the board's name, so whoever opens a board can tell whether it is run by the site or
@@ -272,7 +272,7 @@ working. Reserving the new one only stops it being claimed from now on.
 ### Names that would speak for the site
 
 A title cannot be squatted, but it can mislead. `titleObjection` in
-`netlify/functions/_lib/naming.ts` refuses two kinds of name from anyone but the master
+`netlify/functions/_lib/naming.ts` refuses two kinds of name from anyone but the developer
 editor: the site's own name, and the handful of words in `RESERVED_TITLES` — official, admin,
 moderator, support, security, billing and their like — which read as a notice from whoever
 runs the place rather than from a person.
@@ -303,7 +303,7 @@ anything else illegal, which has to say what it is. The dialog says plainly that
 for a board somebody merely dislikes. The site does not arbitrate taste; it declines to host
 crime, and that is the whole of the policy.
 
-Reports go to a queue only the master editor can read, work or delete — a board's own owner
+Reports go to a queue only the developer can read, work or delete — a board's own owner
 cannot see reports against it or clear them, and is never told who filed one. Each report
 carries the board's title as it stood, the reason, whatever detail was given, and the key that
 sent it. Deleting a reported board settles any open report against it, so the badge does not
@@ -313,12 +313,41 @@ Notification goes out by the same Resend path as submissions and is deliberately
 limited: a report going unseen is the failure worth avoiding. Filing is limited to ten an hour
 per address.
 
+### Two kinds of password, and why the names matter
+
+`DEV_PASSWORD` is the **developer** password: one per deployment, held by
+whoever runs the site, and the only thing that sees more than one board. Every
+other way in is an **access key** — a password that resolves to exactly one
+board, in either the `viewer` or `editor` role. An editor key edits that board
+and nothing else.
+
+Both used to be called "editor", which was genuinely confusing, since one of
+them is site-wide and the other is the narrower of the two per-board roles.
+
+Only a developer session can list boards, switch between them, mark one
+official, or read reports: `boards.ts` and the rest simply refuse anyone else.
+A key holder is pinned to their board server-side and cannot even learn that
+the others exist — the `board` query parameter is ignored for them. So yes:
+without the developer password, moving between boards means signing out and
+entering the other board's password.
+
 ### Forgetting the passphrase
 
-There are no accounts, so there is nothing to reset. The create screen offers an optional
-email; it is never a login, never shown to anyone, and used for exactly one thing — sending
-that passphrase back. Skip it and a lost passphrase means a lost board, which the screen says
-out loud before it lets anyone past.
+There are no accounts, so there is nothing to reset. The create screen offers an email; it is
+never a login, never shown to anyone, and used for exactly one thing — sending passphrases
+back. Skipping it needs an explicit tick acknowledging there is no way back, because the
+passphrase is shown once and a board whose passphrase is lost is simply gone.
+
+**One address holds as many boards as its owner made.** Nobody is going to invent a new
+address per board, so asking for recovery sends back every board registered to that address,
+each with its title beside its passphrase. That index is the only thing in the system that
+links boards together; otherwise each is reached by its own password alone.
+
+Recovery needs `NOTIFY_FROM` set to a sender on a domain verified in Resend. On the shared
+`onboarding@resend.dev` sender, Resend delivers only to your own account address and rejects
+everyone else, so recovery would fail silently for every real user. When that is the case
+`recoveryAvailable` comes back false, the gate stops offering recovery, and the developer's
+menu says why.
 
 `/api/recover` answers identically whether or not it recognises an address, so it cannot be
 used to find out who has a board here, and passphrases only ever leave by email.
@@ -369,7 +398,7 @@ same repository.
 
 | Variable | Required | What it does |
 | --- | --- | --- |
-| `EDITOR_PASSWORD` | yes | The master password. Opens every board and manages keys. Keep it to yourself. |
+| `DEV_PASSWORD` | yes | The developer password. Opens every board and manages keys. Keep it to yourself. `EDITOR_PASSWORD` is the name it was first given and still works. |
 | `AUTH_SECRET` | strongly advised | Signs cookies and protects stored keys. Any long random string. See above for what leaving it unset costs. |
 | `BOARD_PASSWORD` | no | Only for upgrades from the first release: it becomes a viewer key on the first board, then the variable can be deleted. |
 | `SIGNUP_MODE` | no | `closed`, `invite`, or `open`. Defaults to `invite`. |
@@ -379,7 +408,7 @@ same repository.
 | `VITE_SITE_NAME` | no | What the app is called, in the browser tab and on the login screen. Baked in at build time, so changing it needs a redeploy. |
 | `NOTIFY_EMAIL` | no | Where submission notifications are sent. |
 | `RESEND_API_KEY` | no | Resend API key. Without it, submissions queue but do not email. |
-| `NOTIFY_FROM` | no | Verified sender address. Defaults to Resend's shared onboarding sender. |
+| `NOTIFY_FROM` | for recovery | A sender on a domain you have verified in Resend. Without it mail falls back to the shared `onboarding@resend.dev`, which **only delivers to your own Resend account address** — so passphrase recovery cannot reach anybody else. |
 
 `VITE_BOARD_TITLE` is still read as a fallback for `VITE_SITE_NAME`, left over from the
 first release. Either is a label, not a secret, and both are baked into the bundle at build
@@ -430,7 +459,7 @@ directory, with the environment variables set.
 - Submissions are limited to 12 per IP per hour, and 8 images each.
 - Board layout is a single JSON document, so two editors saving at the same time means last
   write wins. Fine for one editor; something to revisit if that changes.
-- Up to 50 boards from the master editor, 40 keys per board, and 100 invite codes.
+- Up to 50 boards from the developer, 40 keys per board, and 100 invite codes.
 - Images are served through a function rather than off a CDN, because they are gated. That is
   the right trade for a private board and the thing that scales worst: at real adoption it is
   what would push this off a free tier.

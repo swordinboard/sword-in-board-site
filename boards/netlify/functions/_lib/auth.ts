@@ -13,12 +13,17 @@ export interface Session {
   master: boolean;
   /** The board this session may touch. Null for the master, who sees all. */
   boardId: string | null;
-  /** The access key that opened this session, if it was not the master. */
+  /** The access key that opened this session, if it was not the developer. */
   keyId: string | null;
 }
 
-/** The master editor password. Without it the site has no way in at all. */
-export const masterPassword = () => process.env.EDITOR_PASSWORD?.trim() ?? '';
+/**
+ * The developer password: the one that opens every board, as opposed to the
+ * editor keys that each open one. EDITOR_PASSWORD is the name it was first
+ * given and is still honoured, so an existing deployment keeps working.
+ */
+export const masterPassword = () =>
+  (process.env.DEV_PASSWORD || process.env.EDITOR_PASSWORD)?.trim() ?? '';
 
 /** Compares two secrets without leaking their contents through timing. */
 export function safeEqual(a: string, b: string): boolean {
@@ -124,6 +129,6 @@ export const forbidden = () => json({ error: 'forbidden' }, { status: 403 });
 export const notFound = () => json({ error: 'not found' }, { status: 404 });
 export const misconfigured = () =>
   json(
-    { error: 'This board is not configured yet: EDITOR_PASSWORD is unset.' },
+    { error: 'This site is not configured yet: DEV_PASSWORD is unset.' },
     { status: 503 },
   );

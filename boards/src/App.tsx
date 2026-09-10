@@ -25,6 +25,19 @@ interface Toast {
 
 const SAVE_DELAY_MS = 600;
 
+/*
+ * Zoom runs from 8% to 300%, so a slider that moved through it linearly would
+ * spend two thirds of its travel above 100% and squeeze everything below into
+ * a sliver. Stepping by a constant ratio instead gives each end of the range
+ * the same amount of thumb.
+ */
+const ZOOM_MIN = 0.08;
+const ZOOM_MAX = 3;
+const zoomToSlider = (z: number) =>
+  Math.round((Math.log(z / ZOOM_MIN) / Math.log(ZOOM_MAX / ZOOM_MIN)) * 1000);
+const sliderToZoom = (value: number) =>
+  ZOOM_MIN * (ZOOM_MAX / ZOOM_MIN) ** (value / 1000);
+
 export default function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [site, setSite] = useState<SiteInfo | null>(null);
@@ -297,13 +310,15 @@ export default function App() {
         {canEdit ? <div className="mode-flag">Editing</div> : null}
 
         <div className="zoom-bar">
-          <button type="button" onClick={() => boardHandle.current?.zoomBy(1 / 1.25)} aria-label="Zoom out">
-            &minus;
-          </button>
+          <input
+            type="range"
+            min={0}
+            max={1000}
+            value={zoomToSlider(zoom)}
+            aria-label="Zoom"
+            onChange={(e) => boardHandle.current?.zoomTo(sliderToZoom(Number(e.target.value)))}
+          />
           <span className="level">{Math.round(zoom * 100)}%</span>
-          <button type="button" onClick={() => boardHandle.current?.zoomBy(1.25)} aria-label="Zoom in">
-            +
-          </button>
           <button type="button" onClick={() => boardHandle.current?.fit()} aria-label="Fit board">
             &#9635;
           </button>
@@ -325,6 +340,7 @@ export default function App() {
         <SidePanel
           role={session.role!}
           master={session.master}
+          mail={site?.mail}
           title={title}
           expiresAt={board.expiresAt}
           official={board.official}

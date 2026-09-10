@@ -71,15 +71,15 @@ export interface SessionInfo {
   authenticated: boolean;
   role: Role | null;
   /**
-   * True when the session came from the master editor password in the
+   * True when the session came from the developer password in the
    * environment, which opens every board rather than one.
    */
   master: boolean;
-  /** The board this session's key opens. Null for the master editor. */
+  /** The board this session's key opens. Null for the developer. */
   boardId: string | null;
 }
 
-/** What the master editor sees when listing boards. */
+/** What the developer sees when listing boards. */
 export interface BoardSummary {
   id: string;
   title: string;
@@ -145,13 +145,34 @@ export interface SiteInfo {
   /** True when a forgotten passphrase can be emailed back. */
   recoveryAvailable: boolean;
   title: string;
+  /** Present only for a developer session: why mail does or does not work. */
+  mail?: MailStatus;
+}
+
+/**
+ * Whether outgoing mail is actually usable, as opposed to merely configured.
+ * Every send in this app fails silently by design - a recovery reply that
+ * changed when the address was unknown would leak who has a board here - so
+ * without this the operator has no way to find out it is broken.
+ */
+export interface MailStatus {
+  /** An API key is present. */
+  hasKey: boolean;
+  /** A sender on a verified domain is set. */
+  hasSender: boolean;
+  /**
+   * True when mail can only reach the operator's own inbox: the shared
+   * resend.dev sender refuses every other recipient, so recovery for anyone
+   * but the operator cannot work until a domain is verified.
+   */
+  ownInboxOnly: boolean;
 }
 
 /** A code that lets someone put up a board while signups are invite-only. */
 export interface Invite {
   id: string;
   label: string;
-  /** Returned only to the master editor. */
+  /** Returned only to the developer. */
   code?: string;
   maxUses: number;
   uses: number;
@@ -189,7 +210,7 @@ export const BOARD_DEFAULTS = {
 export const SITE_DEFAULT_NAME = 'Pinhold';
 
 /**
- * Titles nobody but the master editor may use, matched exactly once stripped
+ * Titles nobody but the developer may use, matched exactly once stripped
  * of punctuation and case. A board called "Official" is claiming to speak for
  * the site; "Official Fan Club" plainly is not, so only the bare word is held.
  */

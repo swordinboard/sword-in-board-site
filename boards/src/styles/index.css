@@ -762,3 +762,81 @@ button {
   background: rgba(217, 164, 65, 0.24);
   color: var(--accent);
 }
+
+
+/* ---------- zoom slider ---------- */
+
+.zoom-bar input[type='range'] {
+  width: 116px;
+  height: 24px;
+  margin: 0 2px;
+  padding: 0;
+  background: none;
+  accent-color: var(--accent, #d8a44a);
+  cursor: pointer;
+}
+
+/* A thumb big enough to catch, which the default is not on a phone. */
+.zoom-bar input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent, #d8a44a);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.zoom-bar input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.zoom-bar input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent, #d8a44a);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.zoom-bar input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.zoom-bar .level {
+  min-width: 44px;
+  text-align: center;
+}
+
+
+/* A developer-only notice about something broken in the deployment itself. */
+.panel-warning {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 170, 120, 0.35);
+  border-radius: 9px;
+  background: rgba(150, 70, 30, 0.22);
+  color: #ffcbaa;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.devtag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(120, 180, 255, 0.18);
+  color: #9ecbff;
+  font-family: var(--sans, inherit);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

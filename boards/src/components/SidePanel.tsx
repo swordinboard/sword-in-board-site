@@ -1,8 +1,10 @@
-import type { Role } from '../../shared/types';
+import type { MailStatus, Role } from '../../shared/types';
 
 interface Props {
   role: Role;
   master: boolean;
+  /** Only ever supplied to a developer session. */
+  mail?: MailStatus;
   title: string;
   itemCount: number;
   pendingCount: number;
@@ -51,6 +53,7 @@ function NavItem({ glyph, label, hint, count, onClick }: NavProps) {
 export default function SidePanel({
   role,
   master,
+  mail,
   title,
   itemCount,
   pendingCount,
@@ -78,10 +81,16 @@ export default function SidePanel({
       <nav className="panel" aria-label="Board menu">
         <header>
           <h1>
-            {title}
+            {/* The name on its own, so badges beside it do not run into it. */}
+            <span className="panel-title">{title}</span>
             {official ? (
               <span className="official" title="A board run by this site">
                 official
+              </span>
+            ) : null}
+            {master ? (
+              <span className="devtag" title="Signed in with the developer password">
+                dev
               </span>
             ) : null}
           </h1>
@@ -148,7 +157,14 @@ export default function SidePanel({
 
           {master ? (
             <>
-              <div className="section-label">All boards</div>
+              <div className="section-label">Developer</div>
+              {mail && (!mail.hasKey || !mail.hasSender) ? (
+                <p className="panel-warning">
+                  {!mail.hasKey
+                    ? 'No mail is going out at all: RESEND_API_KEY is unset. Submissions, reports and passphrase recovery are all silent.'
+                    : 'Mail can only reach your own inbox. The shared resend.dev sender refuses every other address, so nobody else can recover a passphrase. Verify a domain in Resend and set NOTIFY_FROM.'}
+                </p>
+              ) : null}
               <NavItem
                 glyph="&#9707;"
                 label="Switch or add a board"
