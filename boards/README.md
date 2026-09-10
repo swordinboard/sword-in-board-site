@@ -71,6 +71,9 @@ boards/
       BoardsDialog.tsx     switch, add, rename, delete boards
       KeysDialog.tsx       make, read back, and revoke passwords
       InvitesDialog.tsx    invite codes and the current signup mode
+      ItemFace.tsx         fastener and contents, shared by board and preview
+      FramePreview.tsx     the item as it will hang, drawn while choosing
+      Scrim.tsx            dialog backdrop and its dismiss rule
       ReportDialog.tsx     flag a board as possibly illegal
       ReportsDialog.tsx    the reports queue (master only)
     lib/                   api client, image helpers, frame geometry, config
@@ -90,6 +93,37 @@ boards/
     submissions.ts         create, list, triage, delete
     _lib/                  auth, blob stores, email, guessing defences, title guard, wordlist
 ```
+
+### Picking something up, and opening its settings
+
+These are two different actions, deliberately. A single tap picks an item: it
+gets a ring and a handle, and can be dragged. The settings panel opens only on
+a double tap, or on the handle. Opening it on every tap put a panel under the
+thumb that had just selected something, so on a phone an item could not be
+moved without changing it by accident.
+
+The ring and the handle are drawn in screen coordinates rather than inside the
+board, which matters more than it sounds. Inside the board they scale with the
+zoom: at 8% the ring is an invisible hairline, and a handle big enough to tap
+grows to cover the whole item, so a tap meant for the item opens its settings
+instead. Out in screen space both are a fixed size at any zoom, and the handle
+sits wholly outside the item's corner, flipping to whichever side has room.
+
+The board's name sits above the frame on the same principle, counter-scaled so
+it reads at a constant size however far out the board is zoomed.
+
+### The preview when pinning something up
+
+`FramePreview` draws the item with the board's own markup - the same `Fastener`
+and `Contents` from `ItemFace` that the board uses - on a patch of the same
+cork. Frame, fastener, pin colour and caption all show as they will actually
+hang. A preview that redrew the frames in its own markup would be a second
+implementation, and a second implementation drifts until it is no longer a
+preview.
+
+The crop is shown by offsetting the source image inside a clipped box rather
+than by re-encoding it: producing a real cropped file on every handle drag
+would be far too slow, and what lands on screen is identical.
 
 ### Boards, keys, and the password gate
 

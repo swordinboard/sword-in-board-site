@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { BoardItem } from '../../shared/types';
-import { mediaUrl } from '../lib/api';
+import { Contents, Fastener } from './ItemFace';
 
 interface Props {
   item: BoardItem;
@@ -8,57 +8,6 @@ interface Props {
   selected: boolean;
   dragging: boolean;
   onPointerDown: (event: React.PointerEvent, item: BoardItem) => void;
-}
-
-function Fastener({ item }: { item: BoardItem }) {
-  switch (item.hanger) {
-    case 'pin':
-      return (
-        <span
-          className="fastener pin"
-          style={{ ['--pin' as string]: item.pinColor ?? '#c0392b' }}
-          aria-hidden
-        />
-      );
-    case 'nail':
-      return <span className="fastener nail" aria-hidden />;
-    case 'tape':
-      return (
-        <>
-          <span className="fastener tape left" aria-hidden />
-          <span className="fastener tape right" aria-hidden />
-        </>
-      );
-    case 'none':
-    default:
-      return null;
-  }
-}
-
-function Contents({ item }: { item: BoardItem }) {
-  const image = item.mediaId ? (
-    <img src={mediaUrl(item.mediaId)} alt={item.caption ?? ''} draggable={false} loading="lazy" />
-  ) : null;
-
-  // The framed style layers a mat and glass over the media, so it nests
-  // differently from the flat styles.
-  if (item.frame === 'framed') {
-    return (
-      <>
-        <div className="mat">{image}</div>
-        {item.caption ? <div className="caption">{item.caption}</div> : null}
-      </>
-    );
-  }
-
-  return (
-    <div className="stack">
-      {item.caption && item.frame === 'note' ? <div className="caption">{item.caption}</div> : null}
-      {image ? <div className="media">{image}</div> : null}
-      {item.body ? <div className="body-text">{item.body}</div> : null}
-      {item.caption && item.frame !== 'note' ? <div className="caption">{item.caption}</div> : null}
-    </div>
-  );
 }
 
 function BoardItemView({ item, editable, selected, dragging, onPointerDown }: Props) {

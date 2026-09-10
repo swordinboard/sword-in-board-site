@@ -29,6 +29,7 @@ export default function Cropper({ image, ratio, onChange, maxHeight = 400 }: Pro
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [hostWidth, setHostWidth] = useState(0);
+  const [viewportH, setViewportH] = useState(0);
   const [rect, setRect] = useState<CropRect>(() =>
     initialRect(image.naturalWidth, image.naturalHeight, ratio),
   );
@@ -39,11 +40,18 @@ export default function Cropper({ image, ratio, onChange, maxHeight = 400 }: Pro
   useLayoutEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const measure = () => setHostWidth(host.clientWidth);
+    const measure = () => {
+      setHostWidth(host.clientWidth);
+      setViewportH(window.innerHeight);
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(host);
-    return () => observer.disconnect();
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
   }, []);
 
   // A new image or a new ratio resets the selection.
@@ -53,8 +61,12 @@ export default function Cropper({ image, ratio, onChange, maxHeight = 400 }: Pro
     onChange(next);
   }, [image, ratio, onChange]);
 
+  // On a phone a 400px crop is most of the screen, and everything below it -
+  // the frames, the preview, the button - ends up behind a scroll nobody
+  // realises is there. Give it a share of the viewport instead.
+  const roomForCrop = viewportH ? Math.min(maxHeight, viewportH * 0.42) : maxHeight;
   const scale = hostWidth
-    ? Math.min(hostWidth / image.naturalWidth, maxHeight / image.naturalHeight)
+    ? Math.min(hostWidth / image.naturalWidth, roomForCrop / image.naturalHeight)
     : 0;
   const displayW = image.naturalWidth * scale;
   const displayH = image.naturalHeight * scale;

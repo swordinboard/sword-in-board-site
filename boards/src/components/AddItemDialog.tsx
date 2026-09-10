@@ -5,6 +5,7 @@ import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
 import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, randomTilt, sizeFor } from '../lib/frames';
 import Cropper from './Cropper';
+import FramePreview from './FramePreview';
 import Scrim from './Scrim';
 
 export interface ItemDraft {
@@ -200,18 +201,44 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
                 <button className="btn ghost" type="button" onClick={() => setImage(null)}>
                   Choose a different image
                 </button>
+
+                <div className="field" style={{ marginTop: 18 }}>
+                  <label>How it will hang</label>
+                  <FramePreview
+                    image={image}
+                    rect={rect}
+                    frame={frame}
+                    hanger={hanger}
+                    pinColor={pinColor}
+                    caption={caption}
+                  />
+                </div>
               </>
             )}
           </>
         ) : (
-          <div className="field">
-            <label>What it says</label>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write the notice..."
-            />
-          </div>
+          <>
+            <div className="field">
+              <label>What it says</label>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Write the notice..."
+              />
+            </div>
+            <div className="field">
+              <label>How it will hang</label>
+              <FramePreview
+                image={null}
+                rect={null}
+                frame={frame}
+                hanger={hanger}
+                pinColor={pinColor}
+                caption={caption}
+                body={body}
+              />
+            </div>
+          </>
         )}
 
         <div className="field" style={{ marginTop: 18 }}>

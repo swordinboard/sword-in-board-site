@@ -34,6 +34,10 @@ export default function App() {
   const [addSrc, setAddSrc] = useState<string | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Picking an item and opening its settings are separate on purpose. On a
+  // phone the settings panel comes up under the thumb, so opening it on every
+  // tap made an item impossible to drag without changing it by accident.
+  const [inspectingId, setInspectingId] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [openReports, setOpenReports] = useState(0);
   /**
@@ -191,6 +195,7 @@ export default function App() {
     const next = { ...current, items: current.items.filter((item) => item.id !== selectedId) };
     setBoard(next);
     setSelectedId(null);
+    setInspectingId(null);
     persist(next, 'now');
     say('Taken down.');
   }, [selectedId, persist, say]);
@@ -253,7 +258,7 @@ export default function App() {
     );
   }
 
-  const selected = board.items.find((item) => item.id === selectedId) ?? null;
+  const inspecting = board.items.find((item) => item.id === inspectingId) ?? null;
   const canEdit = session.role === 'editor' && editMode;
 
   return (
@@ -263,7 +268,14 @@ export default function App() {
         board={board}
         editable={canEdit}
         selectedId={canEdit ? selectedId : null}
-        onSelect={setSelectedId}
+        onSelect={(id) => {
+          setSelectedId(id);
+          if (id !== inspectingId) setInspectingId(null);
+        }}
+        onOpenSettings={(id) => {
+          setSelectedId(id);
+          setInspectingId(id);
+        }}
         onMoveItem={moveItem}
         onCommit={commit}
         onZoomChange={setZoom}
@@ -298,14 +310,14 @@ export default function App() {
         </div>
       </div>
 
-      {canEdit && selected ? (
+      {canEdit && inspecting ? (
         <ItemInspector
-          item={selected}
-          onChange={(patch) => patchItem(selected.id, patch)}
+          item={inspecting}
+          onChange={(patch) => patchItem(inspecting.id, patch)}
           onCommit={commit}
           onDelete={removeSelected}
           onBringToFront={bringToFront}
-          onClose={() => setSelectedId(null)}
+          onClose={() => setInspectingId(null)}
         />
       ) : null}
 
@@ -363,6 +375,7 @@ export default function App() {
           onToggleEdit={() => {
             setEditMode((on) => !on);
             setSelectedId(null);
+            setInspectingId(null);
           }}
           onFit={() => {
             setPanelOpen(false);
@@ -416,6 +429,7 @@ export default function App() {
           onOpenBoard={(id) => {
             setActiveBoardId(id);
             setSelectedId(null);
+            setInspectingId(null);
             setDialog(null);
           }}
           onChanged={refreshReports}
@@ -433,6 +447,7 @@ export default function App() {
           onOpen={(id) => {
             setActiveBoardId(id);
             setSelectedId(null);
+            setInspectingId(null);
             setDialog(null);
           }}
           onManageKeys={(summary) => {

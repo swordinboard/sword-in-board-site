@@ -11,6 +11,10 @@ import type { BoardItem, BoardState } from '../../shared/types';
 import BoardItemView from './BoardItemView';
 
 const MIN_ZOOM = 0.08;
+/** Gap allowed between the two taps of a double tap. */
+const DOUBLE_TAP_MS = 400;
+/** Diameter of the settings handle, matching board.css. */
+const HANDLE_SIZE = 34;
 const MAX_ZOOM = 3;
 /** Wood frame thickness from board.css, needed when fitting the board to view. */
 const FRAME_PAD = 30;
@@ -34,6 +38,8 @@ interface Props {
   editable: boolean;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  /** Asked for explicitly - a double tap, or the handle on the selected item. */
+  onOpenSettings: (id: string) => void;
   onMoveItem: (id: string, x: number, y: number) => void;
   onCommit: () => void;
   onZoomChange?: (zoom: number) => void;
@@ -42,7 +48,7 @@ interface Props {
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 const Board = forwardRef<BoardHandle, Props>(function Board(
-  { board, editable, selectedId, onSelect, onMoveItem, onCommit, onZoomChange },
+  { board, editable, selectedId, onSelect, onOpenSettings, onMoveItem, onCommit, onZoomChange },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -59,7 +65,9 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   const pinchStart = useRef<{ distance: number; z: number; mid: { x: number; y: number } } | null>(
     null,
   );
-  const dragStart = useRef<{ id: string; dx: number; dy: number } | null>(null);
+  const dragStart = useRef<{ id: string; dx: number; dy: number; moved: boolean } | null>(null);
+  /** Last tap on an item, for spotting the second half of a double tap. */
+  const lastTap = useRef<{ id: string; at: number } | null>(null);
 
   const fit = useCallback(() => {
     const stage = stageRef.current;
@@ -194,11 +202,11 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
 
     if (dragStart.current) {
       const point = toBoard(event.clientX, event.clientY);
-      onMoveItem(
-        dragStart.current.id,
-        Math.round(point.x - dragStart.current.dx),
-        Math.round(point.y - dragStart.current.dy),
-      );
+      const x = Math.round(point.x - dragStart.current.dx);
+      const y = Math.round(point.y - dragStart.current.dy);
+      const item = board.items.find((candidate) => candidate.id === dragStart.current!.id);
+      if (item && (item.x !== x || item.y !== y)) dragStart.current.moved = true;
+      onMoveItem(dragStart.current.id, x, y);
       return;
     }
 
@@ -218,8 +226,23 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       panStart.current = null;
       setPanning(false);
       if (dragStart.current) {
+        const { id, moved } = dragStart.current;
         dragStart.current = null;
         setDraggingId(null);
+        // Only a tap that stayed put counts towards a double tap; a drag that
+        // happens to end where it started is still a drag.
+        if (!moved) {
+          const previous = lastTap.current;
+          const now = Date.now();
+          if (previous && previous.id === id && now - previous.at < DOUBLE_TAP_MS) {
+            lastTap.current = null;
+            onOpenSettings(id);
+          } else {
+            lastTap.current = { id, at: now };
+          }
+        } else {
+          lastTap.current = null;
+        }
         onCommit();
       }
     }
@@ -230,7 +253,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     event.stopPropagation();
     onSelect(item.id);
     const point = toBoard(event.clientX, event.clientY);
-    dragStart.current = { id: item.id, dx: point.x - item.x, dy: point.y - item.y };
+    dragStart.current = { id: item.id, dx: point.x - item.x, dy: point.y - item.y, moved: false };
     setDraggingId(item.id);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     stageRef.current?.setPointerCapture(event.pointerId);
@@ -263,6 +286,43 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
 
   const ordered = [...board.items].sort((a, b) => a.z - b.z);
 
+  /**
+   * The selected item's box in screen coordinates, used for both the ring
+   * around it and the position of its settings handle.
+   *
+   * Both are drawn out here rather than inside the board, because inside it
+   * they scale with the zoom: at 8% the ring is a hairline and a handle big
+   * enough to tap covers the item it belongs to.
+   */
+  const selectedItem = editable ? board.items.find((i) => i.id === selectedId) : undefined;
+  const marks = (() => {
+    const stage = stageRef.current;
+    if (!selectedItem || !stage) return null;
+    const left = view.x + (FRAME_PAD + selectedItem.x) * view.z;
+    const top = view.y + (FRAME_PAD + selectedItem.y) * view.z;
+    const width = selectedItem.w * view.z;
+    const height = selectedItem.h * view.z;
+
+    const gap = HANDLE_SIZE / 2 + 3;
+    const edge = HANDLE_SIZE / 2 + 4;
+    // Wholly outside the top-right corner, flipping to whichever side has room
+    // rather than being pushed back over the item it belongs to.
+    let hx = left + width + gap;
+    let hy = top - gap;
+    if (hx > stage.clientWidth - edge) hx = left - gap;
+    if (hy < edge) hy = top + height + gap;
+
+    return {
+      id: selectedItem.id,
+      ring: { left, top, width, height, rotation: selectedItem.rotation },
+      handle: {
+        x: Math.min(Math.max(hx, edge), stage.clientWidth - edge),
+        y: Math.min(Math.max(hy, edge), stage.clientHeight - edge),
+      },
+    };
+  })();
+  const handle = marks && !draggingId ? { id: marks.id, ...marks.handle } : null;
+
   return (
     <div
       ref={stageRef}
@@ -276,6 +336,18 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
         className={`board-wrap${panning || draggingId ? ' moving' : ''}`}
         style={{ transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.z})` }}
       >
+        {/*
+          The board's name, sitting above the frame. It counter-scales against
+          the zoom so it reads at the same size whatever the board is doing -
+          zoomed right out, the board is a postage stamp and a title that
+          scaled with it would be nothing at all.
+        */}
+        <div
+          className="board-name"
+          style={{ transform: `translateX(-50%) scale(${1 / view.z})` }}
+        >
+          {board.title}
+        </div>
         <div className="board">
           <div className="cork" style={{ width: board.width, height: board.height }}>
             {ordered.length === 0 ? (
@@ -301,6 +373,44 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
           </div>
         </div>
       </div>
+
+      {marks ? (
+        <div
+          className="item-ring"
+          style={{
+            left: marks.ring.left,
+            top: marks.ring.top,
+            width: marks.ring.width,
+            height: marks.ring.height,
+            transform: `rotate(${marks.ring.rotation}deg)`,
+          }}
+          aria-hidden
+        />
+      ) : null}
+
+      {/*
+        The way in to the selected item's settings.
+        It lives out here, in screen coordinates, rather than inside the board.
+        Drawn inside the zoomed layer it had to counter-scale to stay tappable,
+        and at 8% zoom that made a 34px button cover 400px of board - swallowing
+        the very item it belonged to, so tapping the item opened its settings.
+        Out here it is simply always 34px, just outside the item's corner.
+      */}
+      {handle ? (
+        <button
+          type="button"
+          className="item-settings"
+          style={{ left: handle.x, top: handle.y }}
+          aria-label="Settings for this item"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenSettings(handle.id);
+          }}
+        >
+          <span aria-hidden>&hellip;</span>
+        </button>
+      ) : null}
     </div>
   );
 });

@@ -494,3 +494,39 @@
   font-size: 12px;
   line-height: 1.6;
 }
+
+
+/* ---------- preview of the item as it will hang ---------- */
+
+.preview-well {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 26px 0;
+  border-radius: 10px;
+  /* The cork, so the preview is judged against what it will sit on. */
+  background:
+    var(--tex-cork),
+    var(--tex-mottle),
+    linear-gradient(160deg, #c89a5e, #b3823f 55%, #9d6f34);
+  overflow: hidden;
+}
+
+.preview-stage {
+  position: relative;
+  flex: none;
+}
+
+/* The crop shown by offsetting the source inside a clipped box. */
+.crop-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.crop-view img {
+  position: absolute;
+  max-width: none;
+  object-fit: fill;
+}
