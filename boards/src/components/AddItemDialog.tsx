@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FrameStyle, HangerStyle } from '../../shared/types';
-import { PIN_COLORS } from '../../shared/types';
+import { GALLERY_FRAMES, PIN_COLORS } from '../../shared/types';
 import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
 import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, randomTilt, sizeFor } from '../lib/frames';
@@ -10,8 +10,8 @@ import Scrim from './Scrim';
 
 export interface ItemDraft {
   mediaId?: string;
+  mediaIds?: string[];
   aspect?: number;
-  caption?: string;
   body?: string;
   frame: FrameStyle;
   hanger: HangerStyle;
@@ -46,11 +46,13 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
   const [frame, setFrame] = useState<FrameStyle>('polaroid');
   const [hanger, setHanger] = useState<HangerStyle>('pin');
   const [pinColor, setPinColor] = useState<string>(PIN_COLORS[0]);
-  const [caption, setCaption] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
+  /** For a folder or magazine: the pictures filed in it, in order. */
+  const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
+  const [name, setName] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,11 +60,16 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
     loadImage(initialSrc).then(setImage).catch((e: Error) => setError(e.message));
   }, [initialSrc]);
 
+  // A folder and a magazine hold a set of pictures rather than one, so they
+  // take a different half of this dialog: many files, no cropping.
+  const isGallery = GALLERY_FRAMES.includes(frame);
+
   // The hanger follows the frame until the editor overrides it.
   const chooseFrame = (next: FrameStyle) => {
     setFrame(next);
     setHanger(FRAME_SPECS[next].defaultHanger);
-    if (next === 'note') setMode('text');
+    // Both of these are for writing on rather than for a picture.
+    if (next === 'note' || next === 'lined') setMode('text');
   };
 
   const takeFile = useCallback(async (file: File | undefined) => {
@@ -76,18 +83,61 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
     }
   }, []);
 
+  const takeFiles = (list: FileList | null) => {
+    if (!list?.length) return;
+    setError(null);
+    setFiles((current) => [
+      ...current,
+      ...[...list].map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
+  };
+
   const submit = async () => {
     setError(null);
     setBusy(true);
     try {
+      if (isGallery) {
+        if (files.length === 0) {
+          setError('Put at least one picture in it.');
+          setBusy(false);
+          return;
+        }
+        // Each picture goes in whole. Cropping sixty of them one at a time is
+        // not a thing anybody would sit through, and a gallery is about what
+        // is in it rather than how each shot is framed.
+        const ids: string[] = [];
+        for (const entry of files) {
+          const image = await loadImage(await readFileAsDataUrl(entry.file));
+          const blob = await cropToBlob(image, {
+            x: 0,
+            y: 0,
+            w: image.naturalWidth,
+            h: image.naturalHeight,
+          });
+          const { id } = await uploadMedia(blob, boardId);
+          ids.push(id);
+        }
+        const size = sizeFor(frame, 1);
+        await onPlace({
+          mediaIds: ids,
+          body: name.trim() || undefined,
+          frame,
+          hanger,
+          pinColor: hanger === 'pin' ? pinColor : undefined,
+          w: size.w,
+          h: size.h,
+          rotation: randomTilt(frame),
+        });
+        return;
+      }
+
       if (mode === 'text') {
-        if (!body.trim() && !caption.trim()) {
+        if (!body.trim()) {
           setError('Write something for the note to say.');
           setBusy(false);
           return;
         }
         await onPlace({
-          caption: caption.trim() || undefined,
           body: body.trim() || undefined,
           frame,
           hanger,
@@ -107,11 +157,10 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
       const blob = await cropToBlob(image, rect);
       const { id } = await uploadMedia(blob, boardId);
       const aspect = rect.w / rect.h;
-      const size = sizeFor(frame, aspect, Boolean(caption.trim()));
+      const size = sizeFor(frame, aspect);
       await onPlace({
         mediaId: id,
         aspect,
-        caption: caption.trim() || undefined,
         frame,
         hanger,
         pinColor: hanger === 'pin' ? pinColor : undefined,
@@ -132,7 +181,7 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
           Crop it down to what matters, choose how it hangs, then drop it on the board.
         </p>
 
-        <div className="field">
+        <div className="field" hidden={isGallery}>
           <label>What is it</label>
           <div className="chooser">
             <button
@@ -152,7 +201,57 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
           </div>
         </div>
 
-        {mode === 'image' ? (
+        {isGallery ? (
+          <>
+            <div className="field">
+              <label>Name on it</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={frame === 'folder' ? 'What is filed in here' : 'The cover line'}
+              />
+            </div>
+
+            <div className="field">
+              <label>Pictures {files.length ? `(${files.length})` : ''}</label>
+              <label className="dropzone">
+                <span>
+                  Choose pictures, or drop them here
+                  <br />
+                  <small>The first one is the {frame === 'folder' ? 'top sheet' : 'cover'}</small>
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => takeFiles(e.target.files)}
+                />
+              </label>
+            </div>
+
+            {files.length ? (
+              <div className="gallery-strip">
+                {files.map((entry, index) => (
+                  <div className="strip-cell" key={entry.preview}>
+                    <img src={entry.preview} alt="" />
+                    {index === 0 ? <span className="strip-first">first</span> : null}
+                    <button
+                      type="button"
+                      aria-label="Take this one out"
+                      onClick={() => {
+                        URL.revokeObjectURL(entry.preview);
+                        setFiles((current) => current.filter((c) => c !== entry));
+                      }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </>
+        ) : mode === 'image' ? (
           <>
             {!image ? (
               <label
@@ -201,44 +300,18 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
                 <button className="btn ghost" type="button" onClick={() => setImage(null)}>
                   Choose a different image
                 </button>
-
-                <div className="field" style={{ marginTop: 18 }}>
-                  <label>How it will hang</label>
-                  <FramePreview
-                    image={image}
-                    rect={rect}
-                    frame={frame}
-                    hanger={hanger}
-                    pinColor={pinColor}
-                    caption={caption}
-                  />
-                </div>
               </>
             )}
           </>
         ) : (
-          <>
-            <div className="field">
-              <label>What it says</label>
-              <textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Write the notice..."
-              />
-            </div>
-            <div className="field">
-              <label>How it will hang</label>
-              <FramePreview
-                image={null}
-                rect={null}
-                frame={frame}
-                hanger={hanger}
-                pinColor={pinColor}
-                caption={caption}
-                body={body}
-              />
-            </div>
-          </>
+          <div className="field">
+            <label>What it says</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Write the notice..."
+            />
+          </div>
         )}
 
         <div className="field" style={{ marginTop: 18 }}>
@@ -293,12 +366,16 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
         ) : null}
 
         <div className="field">
-          <label>Caption {mode === 'text' ? '(heading)' : '(optional)'}</label>
-          <input
-            type="text"
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            placeholder={mode === 'text' ? 'Notice' : 'A few words underneath'}
+          <label>How it will hang</label>
+          <FramePreview
+            image={mode === 'image' && !isGallery ? image : null}
+            rect={mode === 'image' && !isGallery ? rect : null}
+            frame={frame}
+            hanger={hanger}
+            pinColor={pinColor}
+            body={isGallery ? name : mode === 'text' ? body : undefined}
+            galleryCount={isGallery ? files.length : undefined}
+            galleryCover={isGallery ? files[0]?.preview : undefined}
           />
         </div>
 

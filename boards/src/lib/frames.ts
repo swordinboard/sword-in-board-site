@@ -1,4 +1,4 @@
-import type { FrameStyle, HangerStyle } from '../../shared/types';
+import { FRAME_STYLES, type FrameStyle, type HangerStyle } from '../../shared/types';
 
 export interface FrameSpec {
   label: string;
@@ -7,8 +7,6 @@ export interface FrameSpec {
   padX: number;
   padTop: number;
   padBottom: number;
-  /** Extra height reserved when the item carries a caption. */
-  captionHeight: number;
   defaultHanger: HangerStyle;
   /** Some frames read better with a stronger tilt than others. */
   tiltRange: number;
@@ -21,7 +19,6 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padX: 10,
     padTop: 10,
     padBottom: 10,
-    captionHeight: 26,
     defaultHanger: 'pin',
     tiltRange: 3,
   },
@@ -31,7 +28,6 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padX: 12,
     padTop: 12,
     padBottom: 46,
-    captionHeight: 0,
     defaultHanger: 'pin',
     tiltRange: 5,
   },
@@ -41,7 +37,6 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padX: 9,
     padTop: 9,
     padBottom: 9,
-    captionHeight: 24,
     defaultHanger: 'tape',
     tiltRange: 4,
   },
@@ -51,7 +46,6 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padX: 19,
     padTop: 19,
     padBottom: 19,
-    captionHeight: 0,
     defaultHanger: 'nail',
     tiltRange: 1,
   },
@@ -61,13 +55,42 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padX: 14,
     padTop: 16,
     padBottom: 16,
-    captionHeight: 26,
     defaultHanger: 'pin',
     tiltRange: 6,
   },
+  lined: {
+    label: 'Notebook page',
+    blurb: 'Ruled paper, torn out along the top.',
+    padX: 16,
+    // Room at the top for the torn edge, which eats into the sheet.
+    padTop: 26,
+    padBottom: 16,
+    defaultHanger: 'tape',
+    tiltRange: 4,
+  },
+  folder: {
+    label: 'Folder',
+    blurb: 'A set of pictures, in a manila folder.',
+    padX: 12,
+    // The tab stands above the folder body.
+    padTop: 22,
+    padBottom: 14,
+    defaultHanger: 'pin',
+    tiltRange: 2,
+  },
+  magazine: {
+    label: 'Magazine',
+    blurb: 'A set of pictures, with the first as the cover.',
+    padX: 10,
+    padTop: 10,
+    padBottom: 34,
+    defaultHanger: 'none',
+    tiltRange: 2,
+  },
 };
 
-export const FRAME_ORDER: FrameStyle[] = ['paper', 'polaroid', 'clipping', 'framed', 'note'];
+/** Offered in this order; the canonical list, so a new frame appears here. */
+export const FRAME_ORDER: FrameStyle[] = FRAME_STYLES;
 
 export const HANGER_LABELS: Record<HangerStyle, string> = {
   pin: 'Pushpin',
@@ -83,16 +106,16 @@ export const HANGER_LABELS: Record<HangerStyle, string> = {
 export function sizeFor(
   frame: FrameStyle,
   aspect: number,
-  hasCaption: boolean,
   outerWidth = 280,
 ): { w: number; h: number } {
   const spec = FRAME_SPECS[frame];
   const innerWidth = Math.max(20, outerWidth - spec.padX * 2);
-  const innerHeight = innerWidth / (aspect > 0 ? aspect : 1);
-  const caption = hasCaption ? spec.captionHeight : 0;
+  // A folder shows its contents closed, so it keeps a steady shape whatever
+  // is filed in it rather than taking the aspect of the top sheet.
+  const innerHeight = frame === 'folder' ? innerWidth * 0.76 : innerWidth / (aspect > 0 ? aspect : 1);
   return {
     w: Math.round(outerWidth),
-    h: Math.round(innerHeight + spec.padTop + spec.padBottom + caption),
+    h: Math.round(innerHeight + spec.padTop + spec.padBottom),
   };
 }
 

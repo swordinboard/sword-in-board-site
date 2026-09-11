@@ -1,6 +1,39 @@
 /** Shapes shared between the browser app and the Netlify functions. */
 
-export type FrameStyle = 'paper' | 'polaroid' | 'clipping' | 'framed' | 'note';
+export type FrameStyle =
+  | 'paper'
+  | 'polaroid'
+  | 'clipping'
+  | 'framed'
+  | 'note'
+  | 'lined'
+  | 'folder'
+  | 'magazine';
+
+/**
+ * Every frame there is, as a value.
+ *
+ * The one list, shared by the browser and the function that validates a save.
+ * There used to be a second copy in board.ts, and when these frames were added
+ * it was not updated - so the server quietly rewrote every folder, magazine
+ * and notebook page to `paper` on the way to storage, and the item came back
+ * as something else entirely after a reload.
+ */
+export const FRAME_STYLES: FrameStyle[] = [
+  'paper',
+  'polaroid',
+  'clipping',
+  'framed',
+  'note',
+  'lined',
+  'folder',
+  'magazine',
+];
+
+export const HANGER_STYLES: HangerStyle[] = ['pin', 'tape', 'nail', 'none'];
+
+/** The frames that hold a set of pictures rather than one. */
+export const GALLERY_FRAMES: FrameStyle[] = ['folder', 'magazine'];
 export type HangerStyle = 'pin' | 'tape' | 'nail' | 'none';
 export type Role = 'viewer' | 'editor';
 
@@ -8,9 +41,13 @@ export interface BoardItem {
   id: string;
   /** Blob id of the cropped image, if this item has one. */
   mediaId?: string;
+  /**
+   * A gallery's pictures, in order, for the folder and magazine frames. The
+   * first is the one on show - the magazine's cover, the folder's top sheet.
+   */
+  mediaIds?: string[];
   /** Natural aspect of the stored image, used to size without a layout shift. */
   aspect?: number;
-  caption?: string;
   /** Text body, for note and paper items that carry writing instead of media. */
   body?: string;
   /** Position of the item's top-left corner in board coordinates. */

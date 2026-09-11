@@ -2,11 +2,18 @@ import type { Config } from '@netlify/functions';
 import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
 import { emptyBoard, expiryOf, loadBoard, saveBoard, touchBoard } from './_lib/store';
 import { titleObjection } from './_lib/naming';
-import type { BoardItem, BoardState, FrameStyle, HangerStyle } from '../../shared/types';
+import {
+  FRAME_STYLES,
+  HANGER_STYLES,
+  type BoardItem,
+  type BoardState,
+  type FrameStyle,
+  type HangerStyle,
+} from '../../shared/types';
 
-const FRAMES: FrameStyle[] = ['paper', 'polaroid', 'clipping', 'framed', 'note'];
-const HANGERS: HangerStyle[] = ['pin', 'tape', 'nail', 'none'];
 const MAX_ITEMS = 400;
+/** Pictures one folder or magazine may hold. */
+const MAX_GALLERY = 60;
 
 const num = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -23,15 +30,20 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
   const item = raw as Record<string, unknown>;
   const id = typeof item.id === 'string' && item.id ? item.id.slice(0, 64) : null;
   if (!id) return null;
-  const frame = FRAMES.includes(item.frame as FrameStyle) ? (item.frame as FrameStyle) : 'paper';
-  const hanger = HANGERS.includes(item.hanger as HangerStyle)
+  const frame = FRAME_STYLES.includes(item.frame as FrameStyle) ? (item.frame as FrameStyle) : 'paper';
+  const hanger = HANGER_STYLES.includes(item.hanger as HangerStyle)
     ? (item.hanger as HangerStyle)
     : 'pin';
   return {
     id,
     mediaId: typeof item.mediaId === 'string' ? item.mediaId.slice(0, 64) : undefined,
+    mediaIds: Array.isArray(item.mediaIds)
+      ? item.mediaIds
+          .filter((id): id is string => typeof id === 'string')
+          .slice(0, MAX_GALLERY)
+          .map((id) => id.slice(0, 64))
+      : undefined,
     aspect: typeof item.aspect === 'number' && item.aspect > 0 ? item.aspect : undefined,
-    caption: str(item.caption, 200),
     body: str(item.body, 2000),
     x: Math.round(num(item.x, 0)),
     y: Math.round(num(item.y, 0)),

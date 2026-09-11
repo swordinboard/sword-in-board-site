@@ -14,9 +14,10 @@ export interface FaceItem {
   frame: FrameStyle;
   hanger: HangerStyle;
   pinColor?: string;
-  caption?: string;
+  /** What a note says, or the name on a folder tab or magazine cover. */
   body?: string;
   mediaId?: string;
+  mediaIds?: string[];
 }
 
 export function Fastener({ item }: { item: FaceItem }) {
@@ -51,29 +52,52 @@ interface ContentsProps {
 }
 
 export function Contents({ item, media }: ContentsProps) {
+  const gallery = item.mediaIds ?? [];
+  const cover = gallery[0] ?? item.mediaId;
+
   const image =
     media ??
-    (item.mediaId ? (
-      <img src={mediaUrl(item.mediaId)} alt={item.caption ?? ''} draggable={false} loading="lazy" />
-    ) : null);
+    (cover ? <img src={mediaUrl(cover)} alt="" draggable={false} loading="lazy" /> : null);
 
-  // The framed style layers a mat and glass over the media, so it nests
-  // differently from the flat styles.
-  if (item.frame === 'framed') {
+  // A folder is shown closed: a tab with its name, the top sheet peeking out,
+  // and a count. Opening it is what shows the rest.
+  if (item.frame === 'folder') {
     return (
       <>
-        <div className="mat">{image}</div>
-        {item.caption ? <div className="caption">{item.caption}</div> : null}
+        <div className="folder-tab">{item.body || 'Folder'}</div>
+        <div className="folder-body">
+          <div className="folder-sheet">{image}</div>
+          <span className="folder-count">{countLabel(gallery.length)}</span>
+        </div>
       </>
     );
   }
 
+  // A magazine leads with its cover, which is simply the first picture in it.
+  if (item.frame === 'magazine') {
+    return (
+      <>
+        <div className="mag-cover">{image}</div>
+        {item.body ? <div className="mag-masthead">{item.body}</div> : null}
+        <div className="mag-spine" aria-hidden />
+        <span className="mag-count">{countLabel(gallery.length)}</span>
+      </>
+    );
+  }
+
+  // The framed style layers a mat and glass over the media, so it nests
+  // differently from the flat styles.
+  if (item.frame === 'framed') {
+    return <div className="mat">{image}</div>;
+  }
+
   return (
     <div className="stack">
-      {item.caption && item.frame === 'note' ? <div className="caption">{item.caption}</div> : null}
+      {item.frame === 'lined' ? <div className="tear" aria-hidden /> : null}
       {image ? <div className="media">{image}</div> : null}
       {item.body ? <div className="body-text">{item.body}</div> : null}
-      {item.caption && item.frame !== 'note' ? <div className="caption">{item.caption}</div> : null}
     </div>
   );
 }
+
+const countLabel = (n: number) => (n === 1 ? '1 picture' : `${n} pictures`);

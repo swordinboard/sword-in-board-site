@@ -94,6 +94,45 @@ boards/
     _lib/                  auth, blob stores, email, guessing defences, title guard, wordlist
 ```
 
+### Frames
+
+Eight, all drawn in CSS with no bitmap assets: paper, instant photo, torn
+clipping, framed print, sticky note, notebook page, folder, magazine.
+
+`FRAME_STYLES` in `shared/types.ts` is the one list of them, used by the
+browser *and* by the function that validates a save. There used to be a second
+copy inside `board.ts`, and when the last three were added it was not updated —
+so the server quietly rewrote every folder, magazine and notebook page to
+`paper` on the way to storage, and the item came back as something else after a
+reload. Nothing on screen was wrong; only the stored copy. `gallery-ui` now
+reads the board back from the API rather than trusting the render.
+
+The **notebook page** takes its rag out of the sheet with a `clip-path` rather
+than laying a strip over the top: an overlay only ever looks like a strip, and
+the points are irregular because an even zigzag reads as pinking shears.
+
+The **folder** and the **magazine** hold a set of pictures rather than one, in
+`mediaIds`. A folder shows its top sheet tucked behind the front panel with the
+name on its tab; a magazine uses the first picture as its cover. Both show how
+many are inside, and tapping either while viewing opens the lot full-screen.
+Each picture goes in whole — cropping sixty of them one at a time is not
+something anybody would sit through.
+
+There are no captions. They rarely sat well against the art, and the text a
+note or a page carries does the job; on a folder or a magazine the same field
+is the name on the tab or the cover.
+
+### The handwriting
+
+Patrick Hand, under the SIL Open Font License, served from `public/fonts`.
+
+It is shipped rather than named because the stack before it led with Bradley
+Hand and ended in generic `cursive`: both loop and swirl, and on a phone —
+where a note is read at whatever size the board happens to be zoomed to — they
+were hard going. This one is a print hand. It is self-hosted because the CSP in
+`netlify.toml` sets `font-src` to `'self' data:`, so a font CDN would be
+blocked; the licence travels with the files.
+
 ### Picking something up, and opening its settings
 
 These are two different actions, deliberately. A single tap picks an item: it

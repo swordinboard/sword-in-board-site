@@ -16,11 +16,6 @@
   box-shadow: 0 0 0 1px rgba(120, 105, 78, 0.22);
 }
 
-.frame-paper .caption {
-  padding-top: 8px;
-  font-size: 15px;
-}
-
 /* Text-only sheets read as a typed notice. */
 .frame-paper .body-text,
 .frame-clipping .body-text,
@@ -54,17 +49,6 @@
   filter: saturate(0.94) contrast(1.03);
 }
 
-.frame-polaroid .caption {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  left: 12px;
-  height: 30px;
-  display: grid;
-  place-content: center;
-  font-size: 17px;
-}
-
 /* ---------- torn newspaper clipping ---------- */
 
 .frame-clipping .surface {
@@ -81,15 +65,6 @@
 
 .frame-clipping img {
   filter: sepia(0.32) contrast(1.1) saturate(0.72) brightness(1.02);
-}
-
-.frame-clipping .caption {
-  padding-top: 7px;
-  font-family: var(--serif);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
 }
 
 .frame-clipping .body-text {
@@ -157,16 +132,6 @@
   pointer-events: none;
 }
 
-.frame-framed .caption {
-  position: absolute;
-  right: 0;
-  bottom: -24px;
-  left: 0;
-  font-size: 14px;
-  color: #f2e7d2;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-}
-
 /* ---------- sticky note ---------- */
 
 .frame-note .surface {
@@ -198,13 +163,6 @@
   white-space: pre-wrap;
 }
 
-.frame-note .caption {
-  padding-bottom: 6px;
-  font-size: 18px;
-  font-weight: 700;
-  text-align: left;
-}
-
 /* ---------- shared media block ---------- */
 
 .item .media {
@@ -219,4 +177,249 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+/* ---------- notebook page, torn out ---------- */
+
+.frame-lined .surface {
+  padding: 26px 16px 16px;
+  background:
+    /* Ruled lines. */
+    repeating-linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0,
+      rgba(0, 0, 0, 0) 25px,
+      rgba(86, 126, 172, 0.42) 25px,
+      rgba(86, 126, 172, 0.42) 26px
+    ),
+    var(--tex-paper),
+    linear-gradient(180deg, #fdfcf6, #f4f1e4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+}
+
+/* The margin rule, down the left the way a notebook has one. */
+.frame-lined .surface::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 34px;
+  width: 1px;
+  background: rgba(196, 96, 96, 0.5);
+}
+
+/*
+ * The torn top edge, cut into the sheet itself with a clip path rather than
+ * laid over it as a strip. An overlay only ever looks like a strip; taking
+ * the bite out of the paper is what reads as torn, and it scales with the
+ * item where a bitmap edge would not. The points are irregular on purpose -
+ * an even zigzag reads as pinking shears, not a tear.
+ */
+.frame-lined .surface {
+  clip-path: polygon(0.0% 0.00%, 3.8% 2.51%, 7.7% 0.00%, 11.5% 2.02%, 15.4% 0.00%, 19.2% 3.42%, 23.1% 0.00%, 26.9% 1.80%, 30.8% 0.00%, 34.6% 3.10%, 38.5% 0.00%, 42.3% 2.62%, 46.2% 0.00%, 50.0% 1.76%, 53.8% 0.00%, 57.7% 3.02%, 61.5% 0.00%, 65.4% 1.70%, 69.2% 0.00%, 73.1% 2.81%, 76.9% 0.00%, 80.8% 1.80%, 84.6% 0.00%, 88.5% 1.85%, 92.3% 0.00%, 96.2% 2.79%, 100.0% 0.00%, 100% 100%, 0 100%);
+}
+
+/* A shade along the rag, so the torn edge has a little thickness. */
+.frame-lined .tear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 7px;
+  background: linear-gradient(180deg, rgba(120, 96, 58, 0.34), rgba(120, 96, 58, 0));
+  clip-path: polygon(0.0% 0.00%, 3.8% 2.51%, 7.7% 0.00%, 11.5% 2.02%, 15.4% 0.00%, 19.2% 3.42%, 23.1% 0.00%, 26.9% 1.80%, 30.8% 0.00%, 34.6% 3.10%, 38.5% 0.00%, 42.3% 2.62%, 46.2% 0.00%, 50.0% 1.76%, 53.8% 0.00%, 57.7% 3.02%, 61.5% 0.00%, 65.4% 1.70%, 69.2% 0.00%, 73.1% 2.81%, 76.9% 0.00%, 80.8% 1.80%, 84.6% 0.00%, 88.5% 1.85%, 92.3% 0.00%, 96.2% 2.79%, 100.0% 0.00%, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+/* Spiral punch holes along the torn edge. */
+.frame-lined .surface::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 22px;
+  left: 22px;
+  height: 7px;
+  background: radial-gradient(circle at 4px 50%, rgba(60, 48, 30, 0.5) 0 3px, rgba(0, 0, 0, 0) 3.5px);
+  background-size: 30px 7px;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.frame-lined .body-text {
+  position: relative;
+  padding-left: 12px;
+  color: #253048;
+  font-family: var(--hand);
+  font-size: 19px;
+  /* Matched to the rule spacing above so the writing sits on the lines. */
+  line-height: 26px;
+  white-space: pre-wrap;
+}
+
+/* ---------- manila folder ---------- */
+
+.frame-folder .surface {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.frame-folder .folder-tab {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  max-width: 62%;
+  padding: 5px 18px 7px 14px;
+  border-radius: 7px 14px 0 0;
+  background: linear-gradient(180deg, #e3bd74, #d8ad60);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.45) inset;
+  color: #4a3410;
+  font-family: var(--hand);
+  font-size: 15px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Above the contents: the sheet peeking out used to cover its own tab. */
+  z-index: 2;
+}
+
+.frame-folder .folder-body {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  border-radius: 4px 8px 6px 6px;
+  background:
+    var(--tex-paper),
+    linear-gradient(170deg, #e6c081, #d7ab5f 60%, #c99a4c);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 10px 20px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* The top sheet, tucked behind the folder's front panel. */
+.frame-folder .folder-sheet {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  left: 16px;
+  height: calc(100% - 30px);
+  overflow: hidden;
+  border-radius: 2px;
+  background: #f6f2e6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transform: rotate(-1.2deg);
+}
+
+.frame-folder .folder-sheet img,
+.frame-folder .folder-sheet .crop-view {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The front panel, which the contents sit behind. */
+.frame-folder .folder-body::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 38%;
+  border-radius: 0 0 6px 6px;
+  background:
+    var(--tex-paper),
+    linear-gradient(180deg, #e9c78d, #d7ab5f 45%, #c1913f);
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 -6px 10px -8px rgba(0, 0, 0, 0.5);
+}
+
+.frame-folder .folder-count {
+  position: absolute;
+  z-index: 1;
+  right: 12px;
+  bottom: 8px;
+  left: 12px;
+  color: #4a3410;
+  font-family: var(--hand);
+  font-size: 14px;
+  text-align: right;
+}
+
+/* ---------- magazine ---------- */
+
+.frame-magazine .surface {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 2px 5px 5px 2px;
+  background: #201b14;
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.12) inset,
+    0 16px 28px -14px rgba(0, 0, 0, 0.8);
+}
+
+.frame-magazine .mag-cover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.frame-magazine .mag-cover img,
+.frame-magazine .mag-cover .crop-view {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The masthead, over a wash so it stays readable on any cover. */
+.frame-magazine .mag-masthead {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding: 10px 12px 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
+  color: #fff8ea;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+  word-break: break-word;
+}
+
+/* The bound edge. */
+.frame-magazine .mag-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 9px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.18) 55%,
+    rgba(255, 255, 255, 0.12)
+  );
+}
+
+.frame-magazine .mag-count {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 16px 12px 8px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
+  color: #f2e7d2;
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
 }

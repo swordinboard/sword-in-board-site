@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { BoardItem, BoardState } from '../../shared/types';
+import { GALLERY_FRAMES, type BoardItem, type BoardState } from '../../shared/types';
 import BoardItemView from './BoardItemView';
 
 const MIN_ZOOM = 0.08;
@@ -44,6 +44,8 @@ interface Props {
   onSelect: (id: string | null) => void;
   /** Asked for explicitly - a double tap, or the handle on the selected item. */
   onOpenSettings: (id: string) => void;
+  /** A folder or magazine tapped while not editing: show what is in it. */
+  onOpenGallery: (id: string) => void;
   onMoveItem: (id: string, x: number, y: number) => void;
   onCommit: () => void;
   onZoomChange?: (zoom: number) => void;
@@ -52,7 +54,17 @@ interface Props {
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 const Board = forwardRef<BoardHandle, Props>(function Board(
-  { board, editable, selectedId, onSelect, onOpenSettings, onMoveItem, onCommit, onZoomChange },
+  {
+    board,
+    editable,
+    selectedId,
+    onSelect,
+    onOpenSettings,
+    onOpenGallery,
+    onMoveItem,
+    onCommit,
+    onZoomChange,
+  },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -260,7 +272,15 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   };
 
   const onItemPointerDown = (event: React.PointerEvent, item: BoardItem) => {
-    if (!editable) return;
+    if (!editable) {
+      // Nothing on a board is interactive while viewing except a gallery,
+      // which exists to be opened. Everything else falls through to panning.
+      if (GALLERY_FRAMES.includes(item.frame)) {
+        event.stopPropagation();
+        onOpenGallery(item.id);
+      }
+      return;
+    }
     event.stopPropagation();
     onSelect(item.id);
     const point = toBoard(event.clientX, event.clientY);

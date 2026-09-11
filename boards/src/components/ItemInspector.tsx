@@ -1,4 +1,5 @@
 import type { BoardItem, FrameStyle, HangerStyle } from '../../shared/types';
+import { GALLERY_FRAMES } from '../../shared/types';
 import { PIN_COLORS } from '../../shared/types';
 import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, sizeFor } from '../lib/frames';
 
@@ -22,7 +23,7 @@ export default function ItemInspector({
   /** Width changes keep the media's proportions by re-deriving the height. */
   const resize = (width: number) => {
     if (item.aspect) {
-      onChange({ ...sizeFor(item.frame, item.aspect, Boolean(item.caption), width) });
+      onChange({ ...sizeFor(item.frame, item.aspect, width) });
     } else {
       onChange({ w: width, h: Math.round((item.h / item.w) * width) });
     }
@@ -30,7 +31,7 @@ export default function ItemInspector({
 
   const changeFrame = (frame: FrameStyle) => {
     const patch: Partial<BoardItem> = { frame, hanger: FRAME_SPECS[frame].defaultHanger };
-    if (item.aspect) Object.assign(patch, sizeFor(frame, item.aspect, Boolean(item.caption), item.w));
+    if (item.aspect) Object.assign(patch, sizeFor(frame, item.aspect, item.w));
     onChange(patch);
     onCommit();
   };
@@ -128,17 +129,17 @@ export default function ItemInspector({
           />
         </div>
 
-        <div className="field">
-          <label>Caption</label>
-          <input
-            type="text"
-            value={item.caption ?? ''}
-            onChange={(e) => onChange({ caption: e.target.value || undefined })}
-            onBlur={onCommit}
-          />
-        </div>
-
-        {item.body !== undefined || !item.mediaId ? (
+        {GALLERY_FRAMES.includes(item.frame) ? (
+          <div className="field">
+            <label>Name on it</label>
+            <input
+              type="text"
+              value={item.body ?? ''}
+              onChange={(e) => onChange({ body: e.target.value || undefined })}
+              onBlur={onCommit}
+            />
+          </div>
+        ) : item.body !== undefined || !item.mediaId ? (
           <div className="field">
             <label>Text</label>
             <textarea

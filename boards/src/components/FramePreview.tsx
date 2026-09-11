@@ -9,8 +9,10 @@ interface Props {
   frame: FrameStyle;
   hanger: HangerStyle;
   pinColor?: string;
-  caption?: string;
   body?: string;
+  /** For a folder or magazine: how many pictures, and the one on show. */
+  galleryCount?: number;
+  galleryCover?: string;
   /** Longest edge the preview may occupy on screen. */
   max?: number;
 }
@@ -29,17 +31,29 @@ export default function FramePreview({
   frame,
   hanger,
   pinColor,
-  caption,
   body,
+  galleryCount,
+  galleryCover,
   max = 190,
 }: Props) {
   const aspect = rect && rect.h > 0 ? rect.w / rect.h : 1;
-  const size = sizeFor(frame, aspect, Boolean(caption?.trim()));
+  const size = sizeFor(frame, aspect);
   const scale = Math.min(1, max / Math.max(size.w, size.h));
-  const item = { frame, hanger, pinColor, caption: caption?.trim() || undefined, body: body?.trim() || undefined };
+  const item = {
+    frame,
+    hanger,
+    pinColor,
+    body: body?.trim() || undefined,
+    // Stand-in ids purely so the face draws the right count; the cover itself
+    // comes through `media` as an object URL, since nothing is uploaded yet.
+    mediaIds: galleryCount === undefined ? undefined : Array.from({ length: galleryCount }, (_, i) => String(i)),
+  };
 
-  const media =
-    image && rect ? (
+  const media = galleryCover ? (
+    <div className="crop-view">
+      <img src={galleryCover} alt="" draggable={false} style={{ width: '100%', height: '100%', left: 0, top: 0, objectFit: 'cover' }} />
+    </div>
+  ) : image && rect ? (
       <div className="crop-view">
         <img
           src={image.src}

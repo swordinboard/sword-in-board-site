@@ -9,6 +9,7 @@ import SubmitDialog from './components/SubmitDialog';
 import AddItemDialog, { type ItemDraft } from './components/AddItemDialog';
 import InboxDialog from './components/InboxDialog';
 import ItemInspector from './components/ItemInspector';
+import GalleryDialog from './components/GalleryDialog';
 import BoardsDialog from './components/BoardsDialog';
 import KeysDialog from './components/KeysDialog';
 import InvitesDialog from './components/InvitesDialog';
@@ -51,6 +52,7 @@ export default function App() {
   // phone the settings panel comes up under the thumb, so opening it on every
   // tap made an item impossible to drag without changing it by accident.
   const [inspectingId, setInspectingId] = useState<string | null>(null);
+  const [galleryId, setGalleryId] = useState<string | null>(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [openReports, setOpenReports] = useState(0);
   /**
@@ -272,6 +274,7 @@ export default function App() {
   }
 
   const inspecting = board.items.find((item) => item.id === inspectingId) ?? null;
+  const gallery = board.items.find((item) => item.id === galleryId) ?? null;
   const canEdit = session.role === 'editor' && editMode;
 
   return (
@@ -289,6 +292,7 @@ export default function App() {
           setSelectedId(id);
           setInspectingId(id);
         }}
+        onOpenGallery={setGalleryId}
         onMoveItem={moveItem}
         onCommit={commit}
         onZoomChange={setZoom}
@@ -324,6 +328,8 @@ export default function App() {
           </button>
         </div>
       </div>
+
+      {gallery ? <GalleryDialog item={gallery} onClose={() => setGalleryId(null)} /> : null}
 
       {canEdit && inspecting ? (
         <ItemInspector
