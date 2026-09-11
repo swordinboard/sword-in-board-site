@@ -959,17 +959,80 @@ button {
   padding: 12px;
 }
 
+.gallery-main .leaves {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .gallery-main img {
   max-width: 100%;
   max-height: 100%;
+  min-width: 0;
   border-radius: 3px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
   object-fit: contain;
 }
 
-/* Paging arrows, kept off the picture's middle so a thumb never covers it. */
+/*
+ * A magazine opens as facing pages, so the two share the width and sit
+ * shoulder to shoulder with the fold between them.
+ */
+.gallery-main.spread .leaves {
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+}
+
+.gallery-main.spread img {
+  flex: 1 1 50%;
+  max-width: 50%;
+  box-shadow: none;
+  object-fit: contain;
+}
+
+.gallery-main.spread img:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.gallery-main.spread img:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+/* The fold, drawn between the facing pages. */
+.gallery-main.spread .leaves::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gallery-main.spread .leaves {
+  position: relative;
+}
+
+/*
+ * Paging arrows, kept off the picture's middle so a thumb never covers it.
+ * Above the pages: in a spread the leaves fill the width and, being a later
+ * positioned sibling, painted straight over the previous-page arrow.
+ */
 .gallery-main .page {
   position: absolute;
+  z-index: 2;
   top: 50%;
   width: 46px;
   height: 46px;

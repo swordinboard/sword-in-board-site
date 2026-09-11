@@ -66,7 +66,13 @@ export function Contents({ item, media }: ContentsProps) {
       <>
         <div className="folder-tab">{item.body || 'Folder'}</div>
         <div className="folder-body">
-          <div className="folder-sheet">{image}</div>
+          {/* The top picture taped to the front of a closed folder, rather
+              than peeking out of a half-open one. */}
+          <div className="folder-sheet">
+            {image}
+            <span className="tape-strip left" aria-hidden />
+            <span className="tape-strip right" aria-hidden />
+          </div>
           <span className="folder-count">{countLabel(gallery.length)}</span>
         </div>
       </>
@@ -80,6 +86,8 @@ export function Contents({ item, media }: ContentsProps) {
         <div className="mag-cover">{image}</div>
         {item.body ? <div className="mag-masthead">{item.body}</div> : null}
         <div className="mag-spine" aria-hidden />
+        <div className="mag-wear" aria-hidden />
+        <div className="mag-dogear" aria-hidden />
         <span className="mag-count">{countLabel(gallery.length)}</span>
       </>
     );

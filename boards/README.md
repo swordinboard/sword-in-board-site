@@ -112,11 +112,20 @@ than laying a strip over the top: an overlay only ever looks like a strip, and
 the points are irregular because an even zigzag reads as pinking shears.
 
 The **folder** and the **magazine** hold a set of pictures rather than one, in
-`mediaIds`. A folder shows its top sheet tucked behind the front panel with the
-name on its tab; a magazine uses the first picture as its cover. Both show how
-many are inside, and tapping either while viewing opens the lot full-screen.
-Each picture goes in whole — cropping sixty of them one at a time is not
-something anybody would sit through.
+`mediaIds`. A folder is closed, with the top picture taped to its front and the
+name on its tab; a magazine uses the first picture as its cover and is knocked
+about a bit — rubbed pale at the outer corners, a crease down from the head,
+and a dog-eared corner. That wear is painted with plain low-alpha white rather
+than a blend mode, which took its strength from the cover underneath and all
+but vanished on a dark photograph.
+
+Both say how many are inside, and tapping either **while viewing** opens the
+lot full-screen; in edit mode a tap selects instead, so they can still be
+dragged. A folder shows one picture at a time. A magazine opens as facing
+pages, two at a time, turning by two so the pairs stay put rather than
+re-pairing every picture with the next one along; an odd last page is shown
+alone. Each picture goes in whole — cropping sixty of them one at a time is
+not something anybody would sit through.
 
 There are no captions. They rarely sat well against the art, and the text a
 note or a page carries does the job; on a folder or a magazine the same field
