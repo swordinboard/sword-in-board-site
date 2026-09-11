@@ -192,18 +192,6 @@
     0 4px 6px rgba(40, 22, 6, 0.5);
 }
 
-.fastener.pin::after {
-  content: '';
-  position: absolute;
-  top: 15px;
-  left: 50%;
-  width: 3px;
-  height: 7px;
-  margin-left: -1.5px;
-  border-radius: 0 0 2px 2px;
-  background: linear-gradient(180deg, #9a9a9a, #56504a);
-}
-
 /* Nail head for framed pieces. */
 .fastener.nail {
   top: -7px;

@@ -60,10 +60,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   },
   lined: {
     label: 'Notebook page',
-    blurb: 'Ruled paper, torn out along the top.',
-    padX: 16,
-    // Room at the top for the torn edge, which eats into the sheet.
-    padTop: 26,
+    blurb: 'Ruled paper, torn from the binding.',
+    // Room down the side for the torn edge and the margin rule.
+    padX: 24,
+    padTop: 16,
     padBottom: 16,
     defaultHanger: 'tape',
     tiltRange: 4,

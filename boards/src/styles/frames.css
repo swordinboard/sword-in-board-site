@@ -182,7 +182,7 @@
 /* ---------- notebook page, torn out ---------- */
 
 .frame-lined .surface {
-  padding: 26px 16px 16px;
+  padding: 16px 16px 16px 30px;
   background:
     /* Ruled lines. */
     repeating-linear-gradient(
@@ -195,59 +195,41 @@
     var(--tex-paper),
     linear-gradient(180deg, #fdfcf6, #f4f1e4);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+  /*
+   * The rag is cut out of the sheet rather than laid over it: an overlay only
+   * ever looks like a strip, and taking the bite out of the paper is what
+   * reads as torn. Down the left, where a page comes away from its binding.
+   * The points are irregular on purpose - an even zigzag reads as pinking
+   * shears rather than a tear.
+   */
+  clip-path: polygon(0.0px 0.0%, 6.0px 3.8%, 0.0px 7.7%, 6.5px 11.5%, 0.0px 15.4%, 5.3px 19.2%, 0.0px 23.1%, 5.3px 26.9%, 0.0px 30.8%, 4.8px 34.6%, 0.0px 38.5%, 7.5px 42.3%, 0.0px 46.2%, 4.3px 50.0%, 0.0px 53.8%, 3.7px 57.7%, 0.0px 61.5%, 4.2px 65.4%, 0.0px 69.2%, 4.2px 73.1%, 0.0px 76.9%, 4.5px 80.8%, 0.0px 84.6%, 4.2px 88.5%, 0.0px 92.3%, 3.5px 96.2%, 0.0px 100.0%, 100% 100%, 100% 0);
 }
 
-/* The margin rule, down the left the way a notebook has one. */
+/* The margin rule, just clear of the torn edge. */
 .frame-lined .surface::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 34px;
+  left: 22px;
   width: 1px;
   background: rgba(196, 96, 96, 0.5);
-}
-
-/*
- * The torn top edge, cut into the sheet itself with a clip path rather than
- * laid over it as a strip. An overlay only ever looks like a strip; taking
- * the bite out of the paper is what reads as torn, and it scales with the
- * item where a bitmap edge would not. The points are irregular on purpose -
- * an even zigzag reads as pinking shears, not a tear.
- */
-.frame-lined .surface {
-  clip-path: polygon(0.0% 0.00%, 3.8% 2.51%, 7.7% 0.00%, 11.5% 2.02%, 15.4% 0.00%, 19.2% 3.42%, 23.1% 0.00%, 26.9% 1.80%, 30.8% 0.00%, 34.6% 3.10%, 38.5% 0.00%, 42.3% 2.62%, 46.2% 0.00%, 50.0% 1.76%, 53.8% 0.00%, 57.7% 3.02%, 61.5% 0.00%, 65.4% 1.70%, 69.2% 0.00%, 73.1% 2.81%, 76.9% 0.00%, 80.8% 1.80%, 84.6% 0.00%, 88.5% 1.85%, 92.3% 0.00%, 96.2% 2.79%, 100.0% 0.00%, 100% 100%, 0 100%);
 }
 
 /* A shade along the rag, so the torn edge has a little thickness. */
 .frame-lined .tear {
   position: absolute;
   top: 0;
-  right: 0;
+  bottom: 0;
   left: 0;
-  height: 7px;
-  background: linear-gradient(180deg, rgba(120, 96, 58, 0.34), rgba(120, 96, 58, 0));
-  clip-path: polygon(0.0% 0.00%, 3.8% 2.51%, 7.7% 0.00%, 11.5% 2.02%, 15.4% 0.00%, 19.2% 3.42%, 23.1% 0.00%, 26.9% 1.80%, 30.8% 0.00%, 34.6% 3.10%, 38.5% 0.00%, 42.3% 2.62%, 46.2% 0.00%, 50.0% 1.76%, 53.8% 0.00%, 57.7% 3.02%, 61.5% 0.00%, 65.4% 1.70%, 69.2% 0.00%, 73.1% 2.81%, 76.9% 0.00%, 80.8% 1.80%, 84.6% 0.00%, 88.5% 1.85%, 92.3% 0.00%, 96.2% 2.79%, 100.0% 0.00%, 100% 100%, 0 100%);
-  pointer-events: none;
-}
-
-/* Spiral punch holes along the torn edge. */
-.frame-lined .surface::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  right: 22px;
-  left: 22px;
-  height: 7px;
-  background: radial-gradient(circle at 4px 50%, rgba(60, 48, 30, 0.5) 0 3px, rgba(0, 0, 0, 0) 3.5px);
-  background-size: 30px 7px;
-  opacity: 0.75;
+  width: 9px;
+  background: linear-gradient(90deg, rgba(120, 96, 58, 0.34), rgba(120, 96, 58, 0));
+  clip-path: polygon(0.0px 0.0%, 6.0px 3.8%, 0.0px 7.7%, 6.5px 11.5%, 0.0px 15.4%, 5.3px 19.2%, 0.0px 23.1%, 5.3px 26.9%, 0.0px 30.8%, 4.8px 34.6%, 0.0px 38.5%, 7.5px 42.3%, 0.0px 46.2%, 4.3px 50.0%, 0.0px 53.8%, 3.7px 57.7%, 0.0px 61.5%, 4.2px 65.4%, 0.0px 69.2%, 4.2px 73.1%, 0.0px 76.9%, 4.5px 80.8%, 0.0px 84.6%, 4.2px 88.5%, 0.0px 92.3%, 3.5px 96.2%, 0.0px 100.0%, 100% 100%, 100% 0);
   pointer-events: none;
 }
 
 .frame-lined .body-text {
   position: relative;
-  padding-left: 12px;
   color: #253048;
   font-family: var(--hand);
   font-size: 19px;
