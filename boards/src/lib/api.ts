@@ -140,6 +140,13 @@ export const renameBoard = (id: string, title: string) =>
     body: JSON.stringify({ title }),
   });
 
+export const setBoardHouse = (id: string, house: boolean) =>
+  request<BoardSummary>(`/api/boards/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ house }),
+  });
+
 export const setBoardOfficial = (id: string, official: boolean) =>
   request<BoardState>(`/api/boards/${id}`, {
     method: 'PATCH',

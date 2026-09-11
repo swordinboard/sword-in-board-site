@@ -90,8 +90,10 @@ export default async (req: Request): Promise<Response> => {
       id: boardId,
       createdAt: current.createdAt,
       // Never taken from the request: an editor saving their board must not be
-      // able to promote it by including the field.
+      // able to promote it, or file it among the site's own, by including the
+      // field.
       official: current.official,
+      house: current.house,
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
       title,

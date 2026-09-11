@@ -34,6 +34,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
         title: board.title,
         itemCount: board.items.length,
         official: board.official,
+        house: board.house,
         keyCount: await countKeys(board.id),
         updatedAt: board.updatedAt,
       })),
@@ -54,7 +55,10 @@ export default async (req: Request, context: Context): Promise<Response> => {
       return json({ error: 'bad request' }, { status: 400 });
     }
     if (!title) return json({ error: 'Give the board a name.' }, { status: 400 });
-    const board = await saveBoard(emptyBoard(newId(), title));
+    // Reaching this endpoint at all means the developer made it, so it is
+    // filed under their own boards. Public signups come through create.ts and
+    // never get the mark.
+    const board = await saveBoard({ ...emptyBoard(newId(), title), house: true });
     return json(board, { status: 201 });
   }
 
@@ -76,7 +80,10 @@ export default async (req: Request, context: Context): Promise<Response> => {
     // anything: it is the one mark a board's own owner cannot give itself.
     const official =
       typeof body.official === 'boolean' ? body.official : Boolean(board.official);
-    return json(await saveBoard({ ...board, title, official }));
+    // Which shelf it sits on in the developer's own list. Unlike `official`
+    // this claims nothing publicly, so it is free to move either way.
+    const house = typeof body.house === 'boolean' ? body.house : Boolean(board.house);
+    return json(await saveBoard({ ...board, title, official, house }));
   }
 
   if (req.method === 'DELETE') {

@@ -234,6 +234,25 @@ what has been posted, and the reason the create screen tells people plainly that
 the site can see their board. Leave `SIGNUP_MODE` on `invite` unless you are prepared to
 police it.
 
+### The developer's own boards, and everyone else's
+
+Past a handful of signups a flat list stops being navigable: the boards worth
+reaching quickly are the site's own, and they end up buried. So `house` marks
+which shelf a board sits on in the developer's list — Mine, People's, or All,
+with counts.
+
+It is deliberately **not** the same flag as `official`. `official` is a public
+claim, shown to whoever opens the board; `house` is private filing and nobody
+but the developer ever sees it. A personal board can be the developer's own
+without presenting itself as the site speaking, which is the common case.
+
+Boards put up through the developer's own list get it automatically; boards
+from the public signup never do, and neither flag can be smuggled in through
+an ordinary board save — `board.ts` takes both from the stored board rather
+than from the request. The list opens on whichever shelf holds the board
+currently being looked at, rather than always on Mine, since otherwise opening
+it while on somebody's board hides the very board in front of you.
+
 ### Telling the site's own boards apart
 
 Board titles are labels, not addresses. Nothing routes by them, they need not be unique, and

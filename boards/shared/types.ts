@@ -37,6 +37,13 @@ export interface BoardState {
    * putting up a board cannot claim for themselves.
    */
   official?: boolean;
+  /**
+   * One of the site's own boards, as opposed to one somebody signed up for.
+   * Purely an organising mark for the developer's own list and never shown to
+   * anyone else - separate from `official`, which is a public claim. A board
+   * can be the developer's without being presented as the site speaking.
+   */
+  house?: boolean;
   createdAt?: string;
   /**
    * Last time anyone looked at or changed this board. Viewing counts, so a
@@ -84,6 +91,13 @@ export interface BoardSummary {
   id: string;
   title: string;
   official?: boolean;
+  /**
+   * One of the site's own boards, as opposed to one somebody signed up for.
+   * Purely an organising mark for the developer's own list and never shown to
+   * anyone else - separate from `official`, which is a public claim. A board
+   * can be the developer's without being presented as the site speaking.
+   */
+  house?: boolean;
   itemCount: number;
   keyCount: number;
   updatedAt: string;
