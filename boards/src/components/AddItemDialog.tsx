@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
 import { GALLERY_FRAMES, PIN_COLORS } from '../../shared/types';
 import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
-import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, randomTilt, sizeFor } from '../lib/frames';
+import {
+  FRAME_ORDER,
+  FRAME_SPECS,
+  HANGER_LABELS,
+  TEXT_FRAMES,
+  randomTilt,
+  sizeFor,
+  textSizeFor,
+} from '../lib/frames';
+import { useToday } from '../lib/clock';
 import Cropper from './Cropper';
 import FramePreview from './FramePreview';
+import LinesEditor from './LinesEditor';
 import Scrim from './Scrim';
 
 export interface ItemDraft {
@@ -13,6 +23,7 @@ export interface ItemDraft {
   mediaIds?: string[];
   aspect?: number;
   body?: string;
+  lines?: BoardLine[];
   frame: FrameStyle;
   hanger: HangerStyle;
   pinColor?: string;
@@ -24,6 +35,8 @@ export interface ItemDraft {
 interface Props {
   /** The board this item is being pinned to; media is filed against it. */
   boardId: string;
+  /** The board's clock, so a whiteboard previews the day it really will show. */
+  timeZone?: string;
   /** Pre-loaded source, used when placing an image straight from a submission. */
   initialSrc?: string;
   onPlace: (draft: ItemDraft) => Promise<void> | void;
@@ -38,7 +51,7 @@ const RATIOS: { label: string; value: number | null }[] = [
   { label: '16:9', value: 16 / 9 },
 ];
 
-export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }: Props) {
+export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, onClose }: Props) {
   const [mode, setMode] = useState<'image' | 'text'>('image');
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [ratio, setRatio] = useState<number | null>(null);
@@ -53,7 +66,10 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
   /** For a folder or magazine: the pictures filed in it, in order. */
   const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
   const [name, setName] = useState('');
+  /** A whiteboard's live lines, set up before it ever goes on the wall. */
+  const [lines, setLines] = useState<BoardLine[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const today = useToday(timeZone);
 
   useEffect(() => {
     if (!initialSrc) return;
@@ -63,13 +79,14 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
   // A folder and a magazine hold a set of pictures rather than one, so they
   // take a different half of this dialog: many files, no cropping.
   const isGallery = GALLERY_FRAMES.includes(frame);
+  const isWhiteboard = frame === 'whiteboard';
 
   // The hanger follows the frame until the editor overrides it.
   const chooseFrame = (next: FrameStyle) => {
     setFrame(next);
     setHanger(FRAME_SPECS[next].defaultHanger);
-    // Both of these are for writing on rather than for a picture.
-    if (next === 'note' || next === 'lined') setMode('text');
+    // These are for writing on rather than for a picture.
+    if (TEXT_FRAMES.includes(next)) setMode('text');
   };
 
   const takeFile = useCallback(async (file: File | undefined) => {
@@ -132,18 +149,26 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
       }
 
       if (mode === 'text') {
-        if (!body.trim()) {
-          setError('Write something for the note to say.');
+        // A whiteboard keeping the date is worth pinning up with nothing
+        // written on it at all; everything else needs words to be anything.
+        if (!body.trim() && !lines.length) {
+          setError(
+            isWhiteboard
+              ? 'Write something on it, or give it a line to keep.'
+              : 'Write something for the note to say.',
+          );
           setBusy(false);
           return;
         }
+        const size = textSizeFor(frame);
         await onPlace({
           body: body.trim() || undefined,
+          lines: lines.length ? lines : undefined,
           frame,
           hanger,
           pinColor: hanger === 'pin' ? pinColor : undefined,
-          w: 260,
-          h: 240,
+          w: size.w,
+          h: size.h,
           rotation: randomTilt(frame),
         });
         return;
@@ -304,14 +329,27 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
             )}
           </>
         ) : (
-          <div className="field">
-            <label>What it says</label>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Write the notice..."
-            />
-          </div>
+          <>
+            <div className="field">
+              <label>{isWhiteboard ? 'Written on it' : 'What it says'}</label>
+              <textarea
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder={isWhiteboard ? 'The heading, if it wants one...' : 'Write the notice...'}
+              />
+            </div>
+
+            {isWhiteboard ? (
+              <div className="field">
+                <label>Lines it keeps</label>
+                <LinesEditor lines={lines} onChange={setLines} today={today} />
+                <p className="hint-text">
+                  These work themselves out every time the board is looked at, so nobody has to
+                  come back and change the number.
+                </p>
+              </div>
+            ) : null}
+          </>
         )}
 
         <div className="field" style={{ marginTop: 18 }}>
@@ -374,6 +412,8 @@ export default function AddItemDialog({ boardId, initialSrc, onPlace, onClose }:
             hanger={hanger}
             pinColor={pinColor}
             body={isGallery ? name : mode === 'text' ? body : undefined}
+            lines={isWhiteboard ? lines : undefined}
+            today={today}
             galleryCount={isGallery ? files.length : undefined}
             galleryCover={isGallery ? files[0]?.preview : undefined}
           />

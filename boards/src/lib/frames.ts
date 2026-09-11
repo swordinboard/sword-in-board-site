@@ -87,7 +87,35 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     defaultHanger: 'none',
     tiltRange: 2,
   },
+  whiteboard: {
+    label: 'Whiteboard',
+    blurb: 'Write on it, or let it keep the date and the count.',
+    padX: 16,
+    padTop: 14,
+    // Room for the tray along the bottom.
+    padBottom: 26,
+    defaultHanger: 'nail',
+    // A board screwed to the wall hangs straight.
+    tiltRange: 0.6,
+  },
 };
+
+/**
+ * Frames that hold writing rather than a picture.
+ *
+ * Choosing one of these in the add dialog switches it over to text, so the
+ * cropper never appears for something that will never hold a photograph.
+ */
+export const TEXT_FRAMES: FrameStyle[] = ['note', 'lined', 'whiteboard'];
+
+/**
+ * Starting size for a written item, which has no media to take its shape
+ * from. A whiteboard is landscape: it is wider than it is tall on every wall
+ * one has ever been screwed to.
+ */
+export function textSizeFor(frame: FrameStyle): { w: number; h: number } {
+  return frame === 'whiteboard' ? { w: 320, h: 210 } : { w: 260, h: 240 };
+}
 
 /** Offered in this order; the canonical list, so a new frame appears here. */
 export const FRAME_ORDER: FrameStyle[] = FRAME_STYLES;

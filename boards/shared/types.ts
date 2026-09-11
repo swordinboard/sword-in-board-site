@@ -8,7 +8,8 @@ export type FrameStyle =
   | 'note'
   | 'lined'
   | 'folder'
-  | 'magazine';
+  | 'magazine'
+  | 'whiteboard';
 
 /**
  * Every frame there is, as a value.
@@ -28,6 +29,7 @@ export const FRAME_STYLES: FrameStyle[] = [
   'lined',
   'folder',
   'magazine',
+  'whiteboard',
 ];
 
 export const HANGER_STYLES: HangerStyle[] = ['pin', 'tape', 'nail', 'none'];
@@ -35,6 +37,29 @@ export const HANGER_STYLES: HangerStyle[] = ['pin', 'tape', 'nail', 'none'];
 /** The frames that hold a set of pictures rather than one. */
 export const GALLERY_FRAMES: FrameStyle[] = ['folder', 'magazine'];
 export type HangerStyle = 'pin' | 'tape' | 'nail' | 'none';
+
+/**
+ * A line on a whiteboard that works itself out rather than being written.
+ *
+ * `date` is simply what day it is. `days` counts to or from one particular
+ * day - days since the party left town, days until the next session - and
+ * reads as a count either way round, so the one kind covers both.
+ */
+export type BoardLineKind = 'date' | 'days';
+
+export const LINE_KINDS: BoardLineKind[] = ['date', 'days'];
+
+export interface BoardLine {
+  id: string;
+  kind: BoardLineKind;
+  /** Written to the left of the value. A line can go without one. */
+  label?: string;
+  /** The day a `days` line counts from or to, as YYYY-MM-DD. */
+  date?: string;
+}
+
+/** Lines one whiteboard may carry. */
+export const MAX_LINES = 8;
 export type Role = 'viewer' | 'editor';
 
 export interface BoardItem {
@@ -50,6 +75,13 @@ export interface BoardItem {
   aspect?: number;
   /** Text body, for note and paper items that carry writing instead of media. */
   body?: string;
+  /**
+   * Lines a whiteboard works out for itself, drawn under whatever is written
+   * on it. Nothing here is ever written back to storage: the numbers are
+   * derived when the item is drawn, so they are right whenever anyone looks
+   * rather than only just after a save.
+   */
+  lines?: BoardLine[];
   /** Position of the item's top-left corner in board coordinates. */
   x: number;
   y: number;
@@ -82,6 +114,13 @@ export interface BoardState {
    */
   house?: boolean;
   createdAt?: string;
+  /**
+   * The clock every whiteboard on this board counts against, as an IANA zone
+   * name. One zone for the board rather than each reader's own device, so a
+   * table spread across three timezones all see the same day number. Unset
+   * falls back to whatever device is doing the reading.
+   */
+  timeZone?: string;
   /**
    * Last time anyone looked at or changed this board. Viewing counts, so a
    * board only ever expires if it is genuinely abandoned.

@@ -1,4 +1,4 @@
-import type { FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
 import type { CropRect } from '../lib/image';
 import { sizeFor } from '../lib/frames';
 import { Contents, Fastener } from './ItemFace';
@@ -10,6 +10,10 @@ interface Props {
   hanger: HangerStyle;
   pinColor?: string;
   body?: string;
+  /** For a whiteboard: the lines it keeps, drawn as they will read. */
+  lines?: BoardLine[];
+  /** Today in the board's zone, so the preview shows the real day. */
+  today?: string;
   /** For a folder or magazine: how many pictures, and the one on show. */
   galleryCount?: number;
   galleryCover?: string;
@@ -32,6 +36,8 @@ export default function FramePreview({
   hanger,
   pinColor,
   body,
+  lines,
+  today,
   galleryCount,
   galleryCover,
   max = 190,
@@ -44,6 +50,7 @@ export default function FramePreview({
     hanger,
     pinColor,
     body: body?.trim() || undefined,
+    lines,
     // Stand-in ids purely so the face draws the right count; the cover itself
     // comes through `media` as an object URL, since nothing is uploaded yet.
     mediaIds: galleryCount === undefined ? undefined : Array.from({ length: galleryCount }, (_, i) => String(i)),
@@ -90,7 +97,7 @@ export default function FramePreview({
         >
           <Fastener item={item} />
           <div className="surface">
-            <Contents item={item} media={media} />
+            <Contents item={item} media={media} today={today} />
           </div>
         </div>
       </div>

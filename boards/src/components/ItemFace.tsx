@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import type { FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
+import { lineValue, todayIn } from '../../shared/clock';
 import { mediaUrl } from '../lib/api';
 
 /**
@@ -18,6 +19,7 @@ export interface FaceItem {
   body?: string;
   mediaId?: string;
   mediaIds?: string[];
+  lines?: BoardLine[];
 }
 
 export function Fastener({ item }: { item: FaceItem }) {
@@ -49,15 +51,53 @@ interface ContentsProps {
   item: FaceItem;
   /** Stands in for the stored image, so a preview can show a live crop. */
   media?: ReactNode;
+  /**
+   * Today, in the board's zone. Passed in rather than read here so every
+   * whiteboard on a board turns over together, off one timer instead of one
+   * each, and so a test can put the board on any day it likes.
+   */
+  today?: string;
 }
 
-export function Contents({ item, media }: ContentsProps) {
+export function Contents({ item, media, today }: ContentsProps) {
   const gallery = item.mediaIds ?? [];
   const cover = gallery[0] ?? item.mediaId;
 
   const image =
     media ??
     (cover ? <img src={mediaUrl(cover)} alt="" draggable={false} loading="lazy" /> : null);
+
+  // A whiteboard carries whatever was written on it and, under that, lines it
+  // works out for itself. Either half can stand alone: a blank board is just
+  // somewhere to write, and a board with no writing is just the numbers.
+  if (item.frame === 'whiteboard') {
+    const day = today ?? todayIn();
+    const lines = item.lines ?? [];
+    // With labels in play the values line up down the right-hand side. With
+    // none at all there is nothing to line up against, so they stay left
+    // where the writing is.
+    const labelled = lines.some((line) => line.label);
+    return (
+      <>
+        <div className="wb-face">
+          {item.body ? <div className="wb-title">{item.body}</div> : null}
+          {lines.length ? (
+            <div className={`wb-lines${labelled ? ' labelled' : ''}`}>
+              {lines.map((line) => (
+                <div className="wb-line" key={line.id}>
+                  {line.label ? <span className="wb-label">{line.label}</span> : null}
+                  <span className="wb-value">{lineValue(line, day)}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <span className="wb-tray" aria-hidden />
+        <span className="wb-marker" aria-hidden />
+        <span className="wb-sheen" aria-hidden />
+      </>
+    );
+  }
 
   // A folder is shown closed: a tab with its name, the top sheet peeking out,
   // and a count. Opening it is what shows the rest.

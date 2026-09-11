@@ -8,6 +8,9 @@
   /* Stretched noise reads as wood grain. */
   --tex-wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='140'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.5' numOctaves='4' stitchTiles='stitch' seed='3'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/%3E%3C/filter%3E%3Crect width='400' height='140' filter='url(%23w)'/%3E%3C/svg%3E");
   /* Tooth for paper stock. */
+  /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
+     it streaks sideways, the way a hand wipes. */
+  --tex-wipe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='300'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.09' numOctaves='2' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42 0 0 0 0 0.46 0 0 0 0 0.52 0.5 0.4 0.3 0 -0.58'/%3E%3C/filter%3E%3Crect width='420' height='300' filter='url(%23v)'/%3E%3C/svg%3E");
   --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 
@@ -158,13 +161,6 @@
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
-}
-
-.item .caption {
-  display: block;
-  font-family: var(--hand);
-  color: #2f2a22;
-  text-align: center;
 }
 
 /* ---------- fasteners ---------- */

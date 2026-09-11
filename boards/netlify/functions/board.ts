@@ -5,11 +5,16 @@ import { titleObjection } from './_lib/naming';
 import {
   FRAME_STYLES,
   HANGER_STYLES,
+  LINE_KINDS,
+  MAX_LINES,
   type BoardItem,
+  type BoardLine,
+  type BoardLineKind,
   type BoardState,
   type FrameStyle,
   type HangerStyle,
 } from '../../shared/types';
+import { isCalendarDate, isTimeZone } from '../../shared/clock';
 
 const MAX_ITEMS = 400;
 /** Pictures one folder or magazine may hold. */
@@ -20,6 +25,28 @@ const num = (value: unknown, fallback: number): number =>
 
 const str = (value: unknown, max: number): string | undefined =>
   typeof value === 'string' && value.trim() ? value.slice(0, max) : undefined;
+
+/**
+ * A whiteboard's live lines, rebuilt the same way its item is.
+ *
+ * Only the inputs are stored - the kind, the label, the day being counted to.
+ * The number itself is never taken from the request, because it is never
+ * stored: it is worked out afresh every time the board is drawn.
+ */
+function sanitizeLine(raw: unknown, index: number): BoardLine | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const line = raw as Record<string, unknown>;
+  const kind = LINE_KINDS.includes(line.kind as BoardLineKind)
+    ? (line.kind as BoardLineKind)
+    : null;
+  if (!kind) return null;
+  return {
+    id: typeof line.id === 'string' && line.id ? line.id.slice(0, 64) : `line-${index}`,
+    kind,
+    label: str(line.label, 60),
+    date: isCalendarDate(line.date) ? line.date : undefined,
+  };
+}
 
 /**
  * Rebuilds each item from the request rather than trusting it wholesale, so a
@@ -45,6 +72,12 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
       : undefined,
     aspect: typeof item.aspect === 'number' && item.aspect > 0 ? item.aspect : undefined,
     body: str(item.body, 2000),
+    lines: Array.isArray(item.lines)
+      ? item.lines
+          .slice(0, MAX_LINES)
+          .map((line, at) => sanitizeLine(line, at))
+          .filter((line): line is BoardLine => line !== null)
+      : undefined,
     x: Math.round(num(item.x, 0)),
     y: Math.round(num(item.y, 0)),
     w: Math.max(40, Math.round(num(item.w, 240))),
@@ -109,6 +142,9 @@ export default async (req: Request): Promise<Response> => {
       width: Math.max(1200, Math.round(num(body.width, current.width))),
       height: Math.max(800, Math.round(num(body.height, current.height))),
       title,
+      // A zone this runtime does not recognise is dropped rather than stored,
+      // so a whiteboard can never be left counting against nothing.
+      timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
       items,
       updatedAt: current.updatedAt,
     };

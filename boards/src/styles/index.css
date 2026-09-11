@@ -364,6 +364,7 @@ button {
 .field input[type='text'],
 .field input[type='password'],
 .field input[type='email'],
+.field input[type='date'],
 .field textarea,
 .field select {
   width: 100%;
@@ -1086,4 +1087,72 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* ---------- the lines a whiteboard keeps ---------- */
+
+.lines-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.line-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.line-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.line-kind {
+  flex: 1;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* What the line will actually say once it is on the wall. */
+.line-reads {
+  color: var(--accent);
+  font-family: var(--hand);
+  font-size: 16px;
+}
+
+.line-head button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--panel-muted);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.line-row input[type='text'],
+.line-row input[type='date'] {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--panel-text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.hint-text {
+  margin: 8px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.45;
 }

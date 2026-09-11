@@ -215,6 +215,18 @@ export default function App() {
     say('Taken down.');
   }, [selectedId, persist, say]);
 
+  /** The clock every whiteboard on this board counts against. */
+  const setTimeZone = useCallback(
+    (zone: string) => {
+      const current = boardRef.current;
+      if (!current) return;
+      const next = { ...current, timeZone: zone };
+      setBoard(next);
+      persist(next, 'now');
+    },
+    [persist],
+  );
+
   const bringToFront = useCallback(() => {
     const current = boardRef.current;
     if (!current || !selectedId) return;
@@ -334,6 +346,8 @@ export default function App() {
       {canEdit && inspecting ? (
         <ItemInspector
           item={inspecting}
+          timeZone={board?.timeZone}
+          onTimeZone={setTimeZone}
           onChange={(patch) => patchItem(inspecting.id, patch)}
           onCommit={commit}
           onDelete={removeSelected}
@@ -425,6 +439,7 @@ export default function App() {
       {dialog === 'add' ? (
         <AddItemDialog
           boardId={board.id}
+          timeZone={board.timeZone}
           initialSrc={addSrc}
           onPlace={placeDraft}
           onClose={() => {

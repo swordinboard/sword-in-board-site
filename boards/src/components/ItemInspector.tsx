@@ -1,10 +1,16 @@
-import type { BoardItem, FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardItem, BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
 import { GALLERY_FRAMES } from '../../shared/types';
 import { PIN_COLORS } from '../../shared/types';
+import { deviceZone } from '../../shared/clock';
 import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, sizeFor } from '../lib/frames';
+import { useToday, zoneOptions } from '../lib/clock';
+import LinesEditor from './LinesEditor';
 
 interface Props {
   item: BoardItem;
+  /** The clock the whole board counts against, not this item's alone. */
+  timeZone?: string;
+  onTimeZone: (zone: string) => void;
   onChange: (patch: Partial<BoardItem>) => void;
   onCommit: () => void;
   onDelete: () => void;
@@ -14,12 +20,16 @@ interface Props {
 
 export default function ItemInspector({
   item,
+  timeZone,
+  onTimeZone,
   onChange,
   onCommit,
   onDelete,
   onBringToFront,
   onClose,
 }: Props) {
+  const today = useToday(timeZone);
+
   /** Width changes keep the media's proportions by re-deriving the height. */
   const resize = (width: number) => {
     if (item.aspect) {
@@ -141,13 +151,45 @@ export default function ItemInspector({
           </div>
         ) : item.body !== undefined || !item.mediaId ? (
           <div className="field">
-            <label>Text</label>
+            <label>{item.frame === 'whiteboard' ? 'Written on it' : 'Text'}</label>
             <textarea
               value={item.body ?? ''}
               onChange={(e) => onChange({ body: e.target.value || undefined })}
               onBlur={onCommit}
             />
           </div>
+        ) : null}
+
+        {item.frame === 'whiteboard' ? (
+          <>
+            <div className="field">
+              <label>Lines it keeps</label>
+              <LinesEditor
+                lines={item.lines ?? []}
+                onChange={(lines: BoardLine[]) => onChange({ lines })}
+                onCommit={onCommit}
+                today={today}
+              />
+            </div>
+
+            <div className="field">
+              <label>Board clock</label>
+              <select
+                value={timeZone || deviceZone()}
+                onChange={(e) => onTimeZone(e.target.value)}
+              >
+                {zoneOptions(timeZone).map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+              <p className="hint-text">
+                Every whiteboard on this board counts against this clock, so a table spread
+                across three timezones still reads the same day.
+              </p>
+            </div>
+          </>
         ) : null}
 
         <div className="btn-row">

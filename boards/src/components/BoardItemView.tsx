@@ -7,10 +7,12 @@ interface Props {
   editable: boolean;
   selected: boolean;
   dragging: boolean;
+  /** Today in the board's zone; only a whiteboard uses it. */
+  today: string;
   onPointerDown: (event: React.PointerEvent, item: BoardItem) => void;
 }
 
-function BoardItemView({ item, editable, selected, dragging, onPointerDown }: Props) {
+function BoardItemView({ item, editable, selected, dragging, today, onPointerDown }: Props) {
   return (
     <div
       className={[
@@ -34,7 +36,7 @@ function BoardItemView({ item, editable, selected, dragging, onPointerDown }: Pr
     >
       <Fastener item={item} />
       <div className="surface">
-        <Contents item={item} />
+        <Contents item={item} today={today} />
       </div>
     </div>
   );

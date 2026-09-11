@@ -519,3 +519,123 @@
   background: linear-gradient(45deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0) 55%);
   clip-path: polygon(0 0, 100% 0, 0 100%);
 }
+
+/* ---------- whiteboard ---------- */
+
+.frame-whiteboard .surface {
+  padding: 14px 16px 26px;
+  border-radius: 4px;
+  background:
+    /* Old marker never quite comes off. */
+    var(--tex-wipe),
+    linear-gradient(158deg, #ffffff, #f2f6fa 55%, #e7edf3);
+  /* The aluminium frame is drawn inside the item's own box, so a board never
+     measures larger on the cork than the size it was given. */
+  box-shadow:
+    inset 0 0 0 1px rgba(96, 108, 120, 0.55),
+    inset 0 0 0 6px #d7dce2,
+    inset 0 0 0 7px rgba(96, 108, 120, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -16px 26px -20px rgba(35, 55, 78, 0.4);
+}
+
+/* The gloss, laid over everything including the writing. */
+.wb-sheen {
+  position: absolute;
+  inset: 7px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.46) 40%,
+    rgba(255, 255, 255, 0) 52%
+  );
+}
+
+/* Pen tray along the bottom, and a marker left in it. */
+.wb-tray {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  left: 7px;
+  height: 9px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(180deg, #eef1f4, #b3bac2 58%, #cfd5db);
+  box-shadow:
+    0 -2px 5px -3px rgba(28, 44, 62, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.wb-marker {
+  position: absolute;
+  right: 30px;
+  bottom: 12px;
+  width: 44px;
+  height: 7px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2b3440 0 11px, #1d4e89 11px 100%);
+  box-shadow: 0 1px 2px rgba(20, 34, 50, 0.45);
+}
+
+.frame-whiteboard .wb-face {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  flex-direction: column;
+  gap: 7px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.wb-title {
+  color: #1d4e89;
+  font-family: var(--hand);
+  font-size: 21px;
+  line-height: 1.15;
+  white-space: pre-wrap;
+  /* Marker bleeds very slightly into the gloss. */
+  text-shadow: 0 0 1px rgba(29, 78, 137, 0.3);
+}
+
+/* A rule under the heading, but only when something is listed beneath it. */
+.wb-title:not(:only-child) {
+  padding-bottom: 5px;
+  border-bottom: 2px solid rgba(29, 78, 137, 0.32);
+}
+
+.wb-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+}
+
+.wb-line {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--hand);
+}
+
+.wb-label {
+  flex: 1;
+  min-width: 0;
+  color: #3b4654;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+/* A line with no label of its own still lands under the other values. */
+.wb-lines.labelled .wb-value {
+  margin-left: auto;
+}
+
+.wb-value {
+  color: #9c2b20;
+  font-size: 18px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 0 1px rgba(156, 43, 32, 0.28);
+}

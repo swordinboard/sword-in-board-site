@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { GALLERY_FRAMES, type BoardItem, type BoardState } from '../../shared/types';
 import BoardItemView from './BoardItemView';
+import { useToday } from '../lib/clock';
 
 const MIN_ZOOM = 0.08;
 /** Gap allowed between the two taps of a double tap. */
@@ -71,6 +72,8 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   const [view, setView] = useState<View>({ x: 0, y: 0, z: 0.5 });
   const [panning, setPanning] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  // One clock for the whole board, so every whiteboard on it agrees.
+  const today = useToday(board.timeZone);
 
   // Interaction bookkeeping lives in refs so pointer moves never re-render
   // anything they do not have to.
@@ -398,6 +401,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
                 editable={editable}
                 selected={selectedId === item.id}
                 dragging={draggingId === item.id}
+                today={today}
                 onPointerDown={onItemPointerDown}
               />
             ))}
