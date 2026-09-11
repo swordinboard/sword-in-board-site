@@ -265,6 +265,23 @@
   overflow: visible;
 }
 
+/*
+ * A folder's body starts below the tab, so a fastener placed against the top
+ * of the item like every other frame's ends up pinned to the cork above it.
+ * Dropped far enough to bite into the folder itself.
+ */
+.frame-folder .fastener.pin {
+  top: 13px;
+}
+
+.frame-folder .fastener.nail {
+  top: 17px;
+}
+
+.frame-folder .fastener.tape {
+  top: 12px;
+}
+
 .frame-folder .folder-tab {
   position: absolute;
   top: 0;
@@ -301,13 +318,21 @@
     0 10px 20px -12px rgba(0, 0, 0, 0.7);
 }
 
-/* The top picture, taped to the front of a closed folder. */
+/*
+ * The top picture, taped to the front of a closed folder.
+ *
+ * Held well inside the folder on every side. It used to start high enough
+ * that the tape reached up past the folder's own top edge and across the tab,
+ * so the strips were stuck to the cork and the label ran underneath them.
+ * The tape rises 11px above the picture, so the picture has to sit at least
+ * that far below where the tab ends.
+ */
 .frame-folder .folder-sheet {
   position: absolute;
-  top: 14px;
-  right: 20px;
-  left: 20px;
-  height: calc(100% - 44px);
+  top: 26px;
+  right: 34px;
+  bottom: 30px;
+  left: 34px;
   border-radius: 2px;
   background: #f6f2e6;
   box-shadow:
@@ -320,6 +345,7 @@
 .frame-folder .tape-strip {
   position: absolute;
   top: -11px;
+  z-index: 1;
   width: 42px;
   height: 19px;
   background: linear-gradient(

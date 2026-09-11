@@ -113,7 +113,11 @@ the points are irregular because an even zigzag reads as pinking shears.
 
 The **folder** and the **magazine** hold a set of pictures rather than one, in
 `mediaIds`. A folder is closed, with the top picture taped to its front and the
-name on its tab; a magazine uses the first picture as its cover and is knocked
+name on its tab. The picture is held well inside the folder on every side:
+the tape rises above it, so anything higher put the strips on the cork and
+ran them across the label. A folder's fastener is also dropped down the
+item, since its body starts below the tab and a pin placed like every other
+frame's pinned the cork above it rather than the folder. a magazine uses the first picture as its cover and is knocked
 about a bit — rubbed pale at the outer corners, a crease down from the head,
 and a dog-eared corner. That wear is painted with plain low-alpha white rather
 than a blend mode, which took its strength from the cover underneath and all
