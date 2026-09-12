@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { GALLERY_FRAMES, type BoardItem, type BoardState } from '../../shared/types';
+import type { CSSProperties } from 'react';
 import BoardItemView from './BoardItemView';
 import { useToday } from '../lib/clock';
 
@@ -41,6 +42,8 @@ export interface BoardHandle {
 interface Props {
   board: BoardState;
   editable: boolean;
+  /** Draws a faint grid over the surface to line things up against. */
+  grid?: boolean;
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   /** Asked for explicitly - a double tap, or the handle on the selected item. */
@@ -58,6 +61,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   {
     board,
     editable,
+    grid,
     selectedId,
     onSelect,
     onOpenSettings,
@@ -361,6 +365,8 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     <div
       ref={stageRef}
       className={`stage${panning ? ' panning' : ''}`}
+      data-board-style={board.style ?? 'cork'}
+      style={board.wall ? ({ ['--wall-color' as string]: board.wall } as CSSProperties) : undefined}
       onPointerDown={onStagePointerDown}
       onPointerMove={onStagePointerMove}
       onPointerUp={endPointer}
@@ -383,7 +389,10 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
           {board.title}
         </div>
         <div className="board">
-          <div className="cork" style={{ width: board.width, height: board.height }}>
+          <div
+            className={`cork${grid ? ' gridded' : ''}`}
+            style={{ width: board.width, height: board.height }}
+          >
             {ordered.length === 0 ? (
               <div className="cork-empty">
                 Nothing on the board yet

@@ -3,6 +3,7 @@ import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from 
 import { emptyBoard, expiryOf, loadBoard, saveBoard, touchBoard } from './_lib/store';
 import { titleObjection } from './_lib/naming';
 import {
+  BOARD_STYLES,
   FRAME_STYLES,
   HANGER_STYLES,
   LINE_KINDS,
@@ -13,6 +14,7 @@ import {
   type BoardLine,
   type BoardLineKind,
   type BoardState,
+  type BoardStyle,
   type FrameStyle,
   type HangerStyle,
 } from '../../shared/types';
@@ -169,6 +171,12 @@ export default async (req: Request): Promise<Response> => {
       // A zone this runtime does not recognise is dropped rather than stored,
       // so a whiteboard can never be left counting against nothing.
       timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
+      style: BOARD_STYLES.includes(body.style as BoardStyle)
+        ? (body.style as BoardStyle)
+        : current.style,
+      // Only a plain hex colour: this ends up in a style attribute, and
+      // anything else there is somebody else's CSS running on the page.
+      wall: /^#[0-9a-f]{6}$/i.test(String(body.wall)) ? String(body.wall) : current.wall,
       items,
       updatedAt: current.updatedAt,
     };

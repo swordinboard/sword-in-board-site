@@ -152,6 +152,13 @@ export interface BoardState {
   lastSeenAt?: string;
   /** When this board will be cleared if nobody touches it. */
   expiresAt?: string;
+  /** How the board is dressed. Unset is the plain cork one. */
+  style?: BoardStyle;
+  /**
+   * The wall behind the board, as a hex colour, overriding whatever the
+   * style would have used.
+   */
+  wall?: string;
   /** Fixed board size in board coordinates. Items never reflow. */
   width: number;
   height: number;
@@ -159,6 +166,15 @@ export interface BoardState {
   items: BoardItem[];
   updatedAt: string;
 }
+
+/**
+ * How the board itself is dressed: its surface, the frame around it, and the
+ * wall it hangs on. Nothing about the items pinned to it - they keep the
+ * frames they were given, so a preset never overrules a choice already made.
+ */
+export type BoardStyle = 'cork' | 'medieval' | 'scifi' | 'western' | 'apocalypse';
+
+export const BOARD_STYLES: BoardStyle[] = ['cork', 'medieval', 'scifi', 'western', 'apocalypse'];
 
 export type SubmissionStatus = 'new' | 'reviewed' | 'placed' | 'archived';
 

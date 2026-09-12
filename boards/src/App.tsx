@@ -11,6 +11,8 @@ import AddItemDialog, { type ItemDraft } from './components/AddItemDialog';
 import InboxDialog from './components/InboxDialog';
 import ItemInspector from './components/ItemInspector';
 import GalleryDialog from './components/GalleryDialog';
+import EditorBar from './components/EditorBar';
+import StyleDialog from './components/StyleDialog';
 import BoardsDialog from './components/BoardsDialog';
 import KeysDialog from './components/KeysDialog';
 import InvitesDialog from './components/InvitesDialog';
@@ -18,7 +20,17 @@ import ReportDialog from './components/ReportDialog';
 import ReportsDialog from './components/ReportsDialog';
 import { shareBoard } from './lib/share';
 
-type Dialog = 'submit' | 'add' | 'inbox' | 'boards' | 'keys' | 'invites' | 'report' | 'reports' | null;
+type Dialog =
+  | 'submit'
+  | 'add'
+  | 'inbox'
+  | 'boards'
+  | 'keys'
+  | 'invites'
+  | 'report'
+  | 'reports'
+  | 'style'
+  | null;
 
 interface Toast {
   text: string;
@@ -55,6 +67,8 @@ export default function App() {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [addSrc, setAddSrc] = useState<string | undefined>(undefined);
   const [editMode, setEditMode] = useState(false);
+  /** The alignment grid. A view setting, so it is nobody else's business. */
+  const [grid, setGrid] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Picking an item and opening its settings are separate on purpose. On a
   // phone the settings panel comes up under the thumb, so opening it on every
@@ -274,17 +288,44 @@ export default function App() {
     return Math.max(0, MAX_BOARD_PICTURES - used);
   }, [board]);
 
-  /** The clock every whiteboard on this board counts against. */
-  const setTimeZone = useCallback(
-    (zone: string) => {
+  /**
+   * Anything about the board itself rather than what is pinned to it.
+   *
+   * These go straight out rather than through the debounce, and put
+   * themselves back if the server refuses - a rename can be refused by the
+   * name guard, and a board left showing a title the server never accepted
+   * would be a lie until the next reload. Only the fields this changed are
+   * put back, so a drag finishing at the same moment is not undone with it.
+   */
+  const patchBoard = useCallback(
+    (patch: Partial<BoardState>) => {
       const current = boardRef.current;
       if (!current) return;
-      const next = { ...current, timeZone: zone };
+      const next = { ...current, ...patch };
       setBoard(next);
-      persist(next, 'now');
+      void api
+        .saveBoard(next, next.id)
+        .then((saved) =>
+          setBoard((now) => (now ? { ...now, updatedAt: saved.updatedAt } : saved)),
+        )
+        .catch((e: Error) => {
+          const undo = Object.fromEntries(
+            Object.keys(patch).map((key) => [key, current[key as keyof BoardState]]),
+          ) as Partial<BoardState>;
+          setBoard((now) => (now ? { ...now, ...undo } : now));
+          say(e.message, 'error');
+        });
     },
-    [persist],
+    [say],
   );
+
+  const rename = useCallback(() => {
+    const current = boardRef.current;
+    if (!current) return;
+    const next = window.prompt('What is this board called?', current.title);
+    if (next === null || !next.trim() || next.trim() === current.title) return;
+    patchBoard({ title: next.trim() });
+  }, [patchBoard]);
 
   const bringToFront = useCallback(() => {
     const current = boardRef.current;
@@ -354,6 +395,7 @@ export default function App() {
         ref={boardHandle}
         board={board}
         editable={canEdit}
+        grid={canEdit && grid}
         selectedId={canEdit ? selectedId : null}
         onSelect={(id) => {
           setSelectedId(id);
@@ -400,7 +442,21 @@ export default function App() {
         </div>
       </div>
 
+      {canEdit ? (
+        <EditorBar
+          onAdd={() => setDialog('add')}
+          gridOn={grid}
+          onToggleGrid={() => setGrid((on) => !on)}
+          onRename={rename}
+          onStyle={() => setDialog('style')}
+        />
+      ) : null}
+
       {gallery ? <GalleryDialog item={gallery} onClose={() => setGalleryId(null)} /> : null}
+
+      {dialog === 'style' && board ? (
+        <StyleDialog board={board} onChange={patchBoard} onClose={() => setDialog(null)} />
+      ) : null}
 
       {canEdit && inspecting ? (
         <ItemInspector
@@ -408,7 +464,7 @@ export default function App() {
           boardId={board?.id ?? ''}
           roomForPictures={roomForPictures}
           timeZone={board?.timeZone}
-          onTimeZone={setTimeZone}
+          onTimeZone={(zone) => patchBoard({ timeZone: zone })}
           onChange={(patch) => patchItem(inspecting.id, patch)}
           onCommit={commit}
           onDelete={removeSelected}
@@ -581,7 +637,11 @@ export default function App() {
       ) : null}
 
       {toast ? (
-        <div className={`toast${toast.tone === 'error' ? ' error' : ''}`}>{toast.text}</div>
+        <div
+          className={`toast${toast.tone === 'error' ? ' error' : ''}${canEdit ? ' raised' : ''}`}
+        >
+          {toast.text}
+        </div>
       ) : null}
     </>
   );

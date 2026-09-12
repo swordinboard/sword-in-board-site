@@ -27,11 +27,21 @@
 /* Base tokens, resets, and the chrome that floats above the board. */
 
 :root {
-  --cork-base: #c69a63;
-  --cork-deep: #a97b46;
-  --wood-light: #8b5e34;
-  --wood-mid: #6b4423;
-  --wood-dark: #3f2713;
+  /*
+   * How the board itself is dressed. Every one of these is re-set by the
+   * board styles in board.css, so a preset is a list of colours and textures
+   * rather than a second copy of the board's layout.
+   */
+  --frame-light: #8b5e34;
+  --frame-mid: #6b4423;
+  --frame-dark: #3f2713;
+  --surface-base: #c69a63;
+  --surface-deep: #a97b46;
+  --surface-shadow: rgba(60, 33, 10, 0.55);
+  --surface-inner: rgba(60, 33, 10, 0.32);
+  --surface-ink: rgba(70, 42, 16, 0.6);
+  --wall-color: #17140f;
+  --wall-glow: radial-gradient(circle at 50% 40%, #2a241b 0%, #100e0a 100%);
 
   --paper: #f6f1e3;
   --paper-edge: #d9d0ba;
@@ -1184,4 +1194,79 @@ button {
   min-height: 0;
   padding: 12px;
   font-size: 13px;
+}
+
+/* ---------- the editing toolbar ---------- */
+
+/*
+ * Mirrors the zoom controls, at the other end of the screen and only while
+ * editing is on. These four were all buried in the menu, which meant putting
+ * a panel over the board to do anything to the board.
+ */
+.editor-bar {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: rgba(24, 20, 16, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.editor-bar button {
+  display: grid;
+  gap: 1px;
+  place-items: center;
+  min-width: 54px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--panel-text);
+  line-height: 1;
+}
+
+.editor-bar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.editor-bar button.on {
+  background: rgba(217, 164, 65, 0.18);
+  color: var(--accent);
+}
+
+.editor-bar .glyph {
+  font-size: 17px;
+}
+
+.editor-bar .tool-label {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* The toast lands where the bar is, so it steps up out of the way. */
+.toast.raised {
+  bottom: 92px;
+}
+
+/* The wall colour: a swatch grid beside the picker itself. */
+.wall-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.wall-row input[type='color'] {
+  width: 46px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
 }
