@@ -1,6 +1,14 @@
 import type { Config, Context } from '@netlify/functions';
 import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from './_lib/auth';
-import { allowAttempt, listReports, loadBoard, newId, reportStore } from './_lib/store';
+import {
+  allowAttempt,
+  deleteReport,
+  listReports,
+  loadBoard,
+  newId,
+  reportStore,
+  saveReport,
+} from './_lib/store';
 import { notifyReport } from './_lib/email';
 import {
   REPORT_REASONS,
@@ -64,7 +72,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       status: 'open',
       keyId: session.keyId,
     };
-    await reportStore().setJSON(report.id, report);
+    await saveReport(report);
 
     await notifyReport({
       boardTitle: board.title,
@@ -98,13 +106,13 @@ export default async (req: Request, context: Context): Promise<Response> => {
       ? (body.status as ReportStatus)
       : existing.status;
     const next: Report = { ...existing, status };
-    await reportStore().setJSON(id, next);
+    await saveReport(next);
     return json(next);
   }
 
   if (req.method === 'DELETE') {
     if (!id) return notFound();
-    await reportStore().delete(id);
+    await deleteReport(id);
     return json({ deleted: true });
   }
 

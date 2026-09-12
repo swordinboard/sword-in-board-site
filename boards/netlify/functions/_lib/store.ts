@@ -12,18 +12,70 @@ import {
 } from '../../../shared/types';
 import { decryptSecret, encryptSecret, lookupIndex } from './secrets';
 
+/**
+ * Every store, asking for strong consistency on reads.
+ *
+ * The default is eventual, and eventual means a document read straight after
+ * being written can still come back as it was. That is what made toggling a
+ * flag on a board look like it needed pressing twice: the write landed, the
+ * list was re-read, and the old value came back, so the button went back to
+ * saying what it had said before.
+ */
+const store = (name: string) => getStore({ name, consistency: 'strong' });
+
+/**
+ * What is in each collection, written down.
+ *
+ * `list()` is eventually consistent and, unlike a read, takes no consistency
+ * option at all - there is no version of it that waits. So a key created a
+ * moment ago is simply missing from the next listing, which is why a new one
+ * would not appear until the dialog was opened again.
+ *
+ * The way round it is to keep the membership of each collection in one
+ * document and read that document strongly. It is a union with `list()`
+ * rather than a replacement, which makes it self-correcting in both
+ * directions: an id the written list missed still turns up once `list()`
+ * catches up, and an id it still holds after a delete disappears anyway
+ * because the record behind it is gone.
+ */
+const listingStore = () => store('listing');
+
+type Listing = { ids?: string[] };
+
+async function noted(collection: string): Promise<string[]> {
+  const kept = (await listingStore().get(collection, { type: 'json' })) as Listing | null;
+  return Array.isArray(kept?.ids) ? kept.ids : [];
+}
+
+async function idsIn(from: ReturnType<typeof store>, collection: string): Promise<string[]> {
+  const [listed, kept] = await Promise.all([from.list(), noted(collection)]);
+  return [...new Set([...kept, ...listed.blobs.map((blob) => blob.key)])];
+}
+
+async function note(collection: string, id: string): Promise<void> {
+  const ids = await noted(collection);
+  if (ids.includes(id)) return;
+  await listingStore().setJSON(collection, { ids: [...ids, id] });
+}
+
+async function forget(collection: string, id: string): Promise<void> {
+  const ids = await noted(collection);
+  if (!ids.includes(id)) return;
+  await listingStore().setJSON(collection, { ids: ids.filter((other) => other !== id) });
+}
+
 /** One document per board, keyed by board id. */
-export const boardStore = () => getStore('board');
+export const boardStore = () => store('board');
 /** Binary media. Each blob records the board it belongs to in its metadata. */
-export const mediaStore = () => getStore('media');
+export const mediaStore = () => store('media');
 /** Incoming submissions awaiting review. */
-export const submissionStore = () => getStore('submissions');
+export const submissionStore = () => store('submissions');
 /** Short-lived login attempt counters. */
-export const throttleStore = () => getStore('throttle');
+export const throttleStore = () => store('throttle');
 /** Access keys, by their own random id. */
-export const keyStore = () => getStore('keys');
+export const keyStore = () => store('keys');
 /** Password index -> key id, so a login is one read rather than a scan. */
-export const keyIndexStore = () => getStore('key-index');
+export const keyIndexStore = () => store('key-index');
 
 /** The key the original single-board release wrote to. */
 const LEGACY_KEY = 'state';
@@ -63,15 +115,14 @@ export async function loadBoard(id: string): Promise<BoardState | null> {
 export async function saveBoard(state: BoardState): Promise<BoardState> {
   const next: BoardState = { ...state, version: 1, updatedAt: new Date().toISOString() };
   await boardStore().setJSON(next.id, next);
+  await note('board', next.id);
   return next;
 }
 
 export async function listBoards(): Promise<BoardState[]> {
-  const { blobs } = await boardStore().list();
+  const ids = await idsIn(boardStore(), 'board');
   const loaded = await Promise.all(
-    blobs
-      .filter((blob) => blob.key !== LEGACY_KEY)
-      .map(async (blob) => loadBoard(blob.key)),
+    ids.filter((id) => id !== LEGACY_KEY).map(async (id) => loadBoard(id)),
   );
   return loaded
     .filter((board): board is BoardState => board !== null)
@@ -145,10 +196,12 @@ export async function deleteBoard(id: string, knownMedia?: string[]): Promise<vo
   await Promise.all([
     ...media.map((mediaId) => mediaStore().delete(mediaId)),
     ...subs.map((sub) => submissionStore().delete(sub.id)),
+    ...subs.map((sub) => forget('submissions', sub.id)),
     ...keys.map((key) => revokeKey(key.id)),
     forgetRecovery(id),
     closeReportsFor(id),
     boardStore().delete(id),
+    forget('board', id),
   ]);
 }
 
@@ -186,6 +239,7 @@ export async function createKey(input: {
     index,
   };
   await keyStore().setJSON(stored.id, stored);
+  await note('keys', stored.id);
   await keyIndexStore().set(index, stored.id);
   return {
     id: stored.id,
@@ -214,8 +268,8 @@ export async function touchKey(key: StoredKey): Promise<void> {
 }
 
 export async function listKeys(boardId?: string): Promise<AccessKey[]> {
-  const { blobs } = await keyStore().list();
-  const loaded = await Promise.all(blobs.map((blob) => keyById(blob.key)));
+  const ids = await idsIn(keyStore(), 'keys');
+  const loaded = await Promise.all(ids.map((id) => keyById(id)));
   const keys = loaded.filter((key): key is StoredKey => key !== null);
   const scoped = boardId ? keys.filter((key) => key.boardId === boardId) : keys;
   return Promise.all(
@@ -236,7 +290,11 @@ export async function listKeys(boardId?: string): Promise<AccessKey[]> {
 export async function revokeKey(id: string): Promise<boolean> {
   const key = await keyById(id);
   if (!key) return false;
-  await Promise.all([keyIndexStore().delete(key.index), keyStore().delete(id)]);
+  await Promise.all([
+    keyIndexStore().delete(key.index),
+    keyStore().delete(id),
+    forget('keys', id),
+  ]);
   return true;
 }
 
@@ -247,10 +305,17 @@ export async function countKeys(boardId: string): Promise<number> {
 
 /* ----------------------------------------------------------- submissions */
 
+/** Files a submission, new or changed, and keeps it in the written listing. */
+export async function saveSubmission(submission: Submission): Promise<Submission> {
+  await submissionStore().setJSON(submission.id, submission);
+  await note('submissions', submission.id);
+  return submission;
+}
+
 export async function listSubmissions(boardId?: string): Promise<Submission[]> {
-  const { blobs } = await submissionStore().list();
+  const ids = await idsIn(submissionStore(), 'submissions');
   const loaded = await Promise.all(
-    blobs.map((b) => submissionStore().get(b.key, { type: 'json' }) as Promise<Submission | null>),
+    ids.map((id) => submissionStore().get(id, { type: 'json' }) as Promise<Submission | null>),
   );
   return loaded
     .filter((s): s is Submission => Boolean(s))
@@ -295,13 +360,13 @@ export async function allowAttempt(fingerprint: string, limit: number, windowMs:
 /* --------------------------------------------------------------- signups */
 
 /** Invite codes, by their own id. */
-export const inviteStore = () => getStore('invites');
+export const inviteStore = () => store('invites');
 /** Code index -> invite id. */
-export const inviteIndexStore = () => getStore('invite-index');
+export const inviteIndexStore = () => store('invite-index');
 /** Per-board secrets never sent to a browser, such as a recovery address. */
-export const boardSecretStore = () => getStore('board-secrets');
+export const boardSecretStore = () => store('board-secrets');
 /** Email index -> the boards that address can recover. */
-export const recoveryIndexStore = () => getStore('recovery-index');
+export const recoveryIndexStore = () => store('recovery-index');
 
 export function signupMode(): SignupMode {
   const raw = (process.env.SIGNUP_MODE ?? '').trim().toLowerCase();
@@ -364,6 +429,7 @@ export async function createInvite(input: {
     createdAt: new Date().toISOString(),
   };
   await inviteStore().setJSON(stored.id, stored);
+  await note('invites', stored.id);
   await inviteIndexStore().set(index, stored.id);
   return {
     id: stored.id,
@@ -399,7 +465,11 @@ export async function listInvites(): Promise<Invite[]> {
 export async function revokeInvite(id: string): Promise<boolean> {
   const invite = (await inviteStore().get(id, { type: 'json' })) as StoredInvite | null;
   if (!invite) return false;
-  await Promise.all([inviteIndexStore().delete(invite.index), inviteStore().delete(id)]);
+  await Promise.all([
+    inviteIndexStore().delete(invite.index),
+    inviteStore().delete(id),
+    forget('invites', id),
+  ]);
   return true;
 }
 
@@ -464,12 +534,24 @@ export async function expiredBoards(): Promise<BoardState[]> {
 /* --------------------------------------------------------------- reports */
 
 /** Reports of possibly illegal content, oldest first when listed. */
-export const reportStore = () => getStore('reports');
+export const reportStore = () => store('reports');
+
+/** Files a report, new or changed, and keeps it in the written listing. */
+export async function saveReport(report: Report): Promise<Report> {
+  await reportStore().setJSON(report.id, report);
+  await note('reports', report.id);
+  return report;
+}
+
+/** Takes a report off the list entirely. */
+export async function deleteReport(id: string): Promise<void> {
+  await Promise.all([reportStore().delete(id), forget('reports', id)]);
+}
 
 export async function listReports(): Promise<Report[]> {
-  const { blobs } = await reportStore().list();
+  const ids = await idsIn(reportStore(), 'reports');
   const loaded = await Promise.all(
-    blobs.map((b) => reportStore().get(b.key, { type: 'json' }) as Promise<Report | null>),
+    ids.map((id) => reportStore().get(id, { type: 'json' }) as Promise<Report | null>),
   );
   return loaded
     .filter((r): r is Report => Boolean(r))
@@ -490,7 +572,7 @@ export async function listReports(): Promise<Report[]> {
 export async function closeReportsFor(boardId: string): Promise<void> {
   const open = (await listReports()).filter((r) => r.boardId === boardId && r.status === 'open');
   await Promise.all(
-    open.map((r) => reportStore().setJSON(r.id, { ...r, status: 'actioned' })),
+    open.map((r) => saveReport({ ...r, status: 'actioned' })),
   );
 }
 

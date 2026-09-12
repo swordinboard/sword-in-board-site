@@ -424,8 +424,6 @@ export default function App() {
           {pendingCount > 0 ? <span className="badge">{pendingCount}</span> : null}
         </button>
 
-        {canEdit ? <div className="mode-flag">Editing</div> : null}
-
         <div className="zoom-bar">
           <input
             type="range"

@@ -34,6 +34,13 @@ function Tool({ glyph, label, on, onClick }: ToolProps) {
 export default function EditorBar({ onAdd, gridOn, onToggleGrid, onRename, onStyle }: Props) {
   return (
     <div className="editor-bar" role="toolbar" aria-label="Editing tools">
+      {/*
+        The editing flag, which used to float at the top of the screen on its
+        own and sat underneath the zoom controls on a phone. It belongs to the
+        bar: the bar is only ever there while editing is on, so the label and
+        the tools say the same thing in one place.
+      */}
+      <div className="mode-flag">Editing</div>
       <Tool glyph="+" label="Pin up" onClick={onAdd} />
       <Tool glyph="#" label="Grid" on={gridOn} onClick={onToggleGrid} />
       <Tool glyph="✎" label="Name" onClick={onRename} />

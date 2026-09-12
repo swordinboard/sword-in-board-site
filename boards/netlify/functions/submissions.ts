@@ -6,6 +6,7 @@ import {
   loadBoard,
   mediaStore,
   newId,
+  saveSubmission,
   submissionStore,
 } from './_lib/store';
 import { notifySubmission } from './_lib/email';
@@ -73,7 +74,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       mediaIds,
       status: 'new',
     };
-    await submissionStore().setJSON(submission.id, submission);
+    await saveSubmission(submission);
 
     const origin = new URL(req.url).origin;
     await notifySubmission({
@@ -102,7 +103,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
       ? (body.status as SubmissionStatus)
       : existing.status;
     const next: Submission = { ...existing, status };
-    await submissionStore().setJSON(id, next);
+    await saveSubmission(next);
     return json(next);
   }
 
