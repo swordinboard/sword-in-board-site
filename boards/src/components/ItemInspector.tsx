@@ -2,7 +2,15 @@ import type { BoardItem, BoardLine, FrameStyle, HangerStyle } from '../../shared
 import { GALLERY_FRAMES } from '../../shared/types';
 import { PIN_COLORS } from '../../shared/types';
 import { deviceZone } from '../../shared/clock';
-import { FRAME_ORDER, FRAME_SPECS, HANGER_LABELS, sizeFor, takesImage, takesText } from '../lib/frames';
+import {
+  FRAME_ORDER,
+  FRAME_SPECS,
+  HANGER_LABELS,
+  PX_PER_INCH,
+  sizeFor,
+  takesImage,
+  takesText,
+} from '../lib/frames';
 import { useToday, zoneOptions } from '../lib/clock';
 import GalleryEditor from './GalleryEditor';
 import LinesEditor from './LinesEditor';
@@ -131,11 +139,15 @@ export default function ItemInspector({
         ) : null}
 
         <div className="field">
-          <label>Size &mdash; {item.w}px</label>
+          <label>
+            Size &mdash; {(item.w / PX_PER_INCH).toFixed(1)}&Prime;
+          </label>
+          {/* A board is thirty-six inches across, so nothing should stop at
+              the eight inches the old limit allowed. */}
           <input
             type="range"
             min={100}
-            max={900}
+            max={2600}
             value={item.w}
             onChange={(e) => resize(Number(e.target.value))}
             onPointerUp={onCommit}

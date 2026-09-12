@@ -10,10 +10,29 @@ import { FRAME_STYLES, type FrameStyle, type HangerStyle } from '../../shared/ty
  */
 export type FrameHolds = 'image' | 'text' | 'either' | 'gallery';
 
+/**
+ * Board pixels to the inch.
+ *
+ * The board had no scale at all: every size was picked by eye, so a photo
+ * came out the size of a postage stamp next to a sheet of paper and nothing
+ * agreed with anything. A default board is 4200 by 3000, and a corkboard
+ * that shape is about 36 inches across, which fixes the rest.
+ */
+export const PX_PER_INCH = 117;
+
+/** A real-world measurement, in board pixels. */
+export const inches = (value: number) => Math.round(value * PX_PER_INCH);
+
 export interface FrameSpec {
   label: string;
   blurb: string;
   holds: FrameHolds;
+  /**
+   * How wide this is in the real world, which is what it is drawn at when it
+   * first goes up. An instant photo is three and a half inches across
+   * whatever else is on the board, and a whiteboard is not.
+   */
+  inchesWide: number;
   /** Chrome around the media, in board pixels, matching frames.css. */
   padX: number;
   padTop: number;
@@ -28,9 +47,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Paper',
     blurb: 'A plain sheet, pinned flat.',
     holds: 'text',
-    padX: 10,
-    padTop: 10,
-    padBottom: 10,
+    inchesWide: 8.5,
+    padX: 12,
+    padTop: 12,
+    padBottom: 12,
     defaultHanger: 'pin',
     tiltRange: 3,
   },
@@ -38,9 +58,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Instant photo',
     blurb: 'White border, heavy at the bottom.',
     holds: 'image',
-    padX: 12,
-    padTop: 12,
-    padBottom: 46,
+    inchesWide: 3.5,
+    padX: 23,
+    padTop: 23,
+    padBottom: 94,
     defaultHanger: 'pin',
     tiltRange: 5,
   },
@@ -48,9 +69,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Clipping',
     blurb: 'Torn newsprint, slightly yellowed.',
     holds: 'either',
-    padX: 9,
-    padTop: 9,
-    padBottom: 9,
+    inchesWide: 5,
+    padX: 10,
+    padTop: 10,
+    padBottom: 10,
     defaultHanger: 'tape',
     tiltRange: 4,
   },
@@ -58,9 +80,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Framed',
     blurb: 'Wood moulding, mat, and glass.',
     holds: 'image',
-    padX: 19,
-    padTop: 19,
-    padBottom: 19,
+    inchesWide: 7,
+    padX: 70,
+    padTop: 70,
+    padBottom: 70,
     defaultHanger: 'nail',
     tiltRange: 1,
   },
@@ -68,9 +91,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Sticky note',
     blurb: 'For writing rather than pictures.',
     holds: 'text',
-    padX: 14,
-    padTop: 16,
-    padBottom: 16,
+    inchesWide: 3,
+    padX: 18,
+    padTop: 20,
+    padBottom: 20,
     defaultHanger: 'pin',
     tiltRange: 6,
   },
@@ -78,10 +102,11 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Notebook page',
     blurb: 'Ruled paper, torn from the binding.',
     holds: 'text',
+    inchesWide: 8,
     // Room down the side for the torn edge and the margin rule.
-    padX: 24,
-    padTop: 16,
-    padBottom: 16,
+    padX: 30,
+    padTop: 20,
+    padBottom: 20,
     defaultHanger: 'tape',
     tiltRange: 4,
   },
@@ -89,10 +114,11 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Folder',
     blurb: 'A set of pictures, in a manila folder.',
     holds: 'gallery',
-    padX: 12,
+    inchesWide: 9.5,
+    padX: 47,
     // The tab stands above the folder body.
-    padTop: 22,
-    padBottom: 14,
+    padTop: 58,
+    padBottom: 41,
     defaultHanger: 'pin',
     tiltRange: 2,
   },
@@ -100,9 +126,10 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Magazine',
     blurb: 'A set of pictures, with the first as the cover.',
     holds: 'gallery',
-    padX: 10,
-    padTop: 10,
-    padBottom: 34,
+    inchesWide: 8.25,
+    padX: 18,
+    padTop: 18,
+    padBottom: 58,
     defaultHanger: 'none',
     tiltRange: 2,
   },
@@ -110,10 +137,11 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     label: 'Whiteboard',
     blurb: 'Write on it, or let it keep the date and the count.',
     holds: 'text',
-    padX: 16,
-    padTop: 14,
+    inchesWide: 16,
+    padX: 64,
+    padTop: 50,
     // Room for the tray along the bottom.
-    padBottom: 26,
+    padBottom: 95,
     defaultHanger: 'nail',
     // A board screwed to the wall hangs straight.
     tiltRange: 0.6,
@@ -130,11 +158,22 @@ export const takesText = (frame: FrameStyle) =>
 
 /**
  * Starting size for a written item, which has no media to take its shape
- * from. A whiteboard is landscape: it is wider than it is tall on every wall
- * one has ever been screwed to.
+ * from, so it is drawn at the size the thing itself is.
  */
+const TEXT_SHAPE: Partial<Record<FrameStyle, number>> = {
+  // A letter sheet, a notebook page, a square sticky note, and a whiteboard
+  // that is wider than it is tall the way every one on a wall is.
+  paper: 11 / 8.5,
+  lined: 10.5 / 8,
+  clipping: 7 / 5,
+  note: 1,
+  whiteboard: 10.7 / 16,
+};
+
 export function textSizeFor(frame: FrameStyle): { w: number; h: number } {
-  return frame === 'whiteboard' ? { w: 320, h: 210 } : { w: 260, h: 240 };
+  const spec = FRAME_SPECS[frame];
+  const w = inches(spec.inchesWide);
+  return { w, h: Math.round(w * (TEXT_SHAPE[frame] ?? 1)) };
 }
 
 /** Offered in this order; the canonical list, so a new frame appears here. */
@@ -154,9 +193,10 @@ export const HANGER_LABELS: Record<HangerStyle, string> = {
 export function sizeFor(
   frame: FrameStyle,
   aspect: number,
-  outerWidth = 280,
+  outerWidth?: number,
 ): { w: number; h: number } {
   const spec = FRAME_SPECS[frame];
+  outerWidth = outerWidth ?? inches(spec.inchesWide);
   const innerWidth = Math.max(20, outerWidth - spec.padX * 2);
   // A folder shows its contents closed, so it keeps a steady shape whatever
   // is filed in it rather than taking the aspect of the top sheet.

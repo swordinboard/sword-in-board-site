@@ -3,7 +3,7 @@
 /* ---------- plain sheet of paper ---------- */
 
 .frame-paper .surface {
-  padding: 10px;
+  padding: 12px;
   border-radius: 1px;
   background: var(--tex-paper), linear-gradient(170deg, #fbf7ec, var(--paper) 60%, #ece5d3);
   box-shadow:
@@ -24,10 +24,11 @@
 }
 
 .frame-paper .body-text {
-  padding: 4px 6px;
+  padding: 10px 14px;
   color: var(--ink);
   font-family: var(--serif);
-  font-size: 15px;
+  /* Twelve point, at a hundred and seventeen pixels to the inch. */
+  font-size: 19px;
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -35,7 +36,7 @@
 /* ---------- instant photo ---------- */
 
 .frame-polaroid .surface {
-  padding: 12px 12px 46px;
+  padding: 23px 23px 94px;
   background: linear-gradient(175deg, #ffffff, #f4f1e9 70%, #e6e1d4);
   box-shadow:
     0 0 0 1px rgba(120, 110, 90, 0.24),
@@ -52,7 +53,7 @@
 /* ---------- torn newspaper clipping ---------- */
 
 .frame-clipping .surface {
-  padding: 9px;
+  padding: 10px;
   background: var(--tex-paper), linear-gradient(160deg, #f3ecdb, var(--newsprint) 55%, #ded5be);
   /* An irregular outline; drop-shadow on .item traces it. */
   clip-path: polygon(
@@ -82,35 +83,35 @@
 /* ---------- small framed piece ---------- */
 
 .frame-framed .surface {
-  padding: 15px;
-  border-radius: 2px;
+  padding: 43.9px;
+  border-radius: 5.8px;
   background:
     var(--tex-wood),
     linear-gradient(150deg, #7d5230, #5a3a1f 48%, #33200f);
   box-shadow:
-    0 1px 0 rgba(255, 226, 190, 0.28) inset,
-    0 -2px 4px rgba(0, 0, 0, 0.5) inset,
-    0 0 0 1px rgba(0, 0, 0, 0.45);
+    0 2.9px 0 rgba(255, 226, 190, 0.28) inset,
+    0 -5.8px 11.7px rgba(0, 0, 0, 0.5) inset,
+    0 0 0 2.9px rgba(0, 0, 0, 0.45);
 }
 
 /* The mat board inside the moulding. */
 .frame-framed .surface::before {
   content: '';
   position: absolute;
-  inset: 9px;
-  border-radius: 1px;
+  inset: 26.3px;
+  border-radius: 2.9px;
   background: linear-gradient(160deg, #f2ece0, #ddd5c4);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2.9px 11.7px rgba(0, 0, 0, 0.35);
 }
 
 .frame-framed .mat {
   display: block;
   position: absolute;
-  inset: 19px;
+  inset: 55.6px;
   overflow: hidden;
   box-shadow:
-    0 0 0 1px rgba(70, 55, 35, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.4) inset;
+    0 0 0 2.9px rgba(70, 55, 35, 0.5),
+    0 5.8px 23.4px rgba(0, 0, 0, 0.4) inset;
 }
 
 .frame-framed .mat img {
@@ -122,7 +123,7 @@
 .frame-framed .surface::after {
   content: '';
   position: absolute;
-  inset: 9px;
+  inset: 26.3px;
   background: linear-gradient(
     118deg,
     rgba(255, 255, 255, 0.2) 0%,
@@ -135,7 +136,7 @@
 /* ---------- sticky note ---------- */
 
 .frame-note .surface {
-  padding: 16px 14px;
+  padding: 20px 18px;
   background:
     linear-gradient(190deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 34%),
     linear-gradient(160deg, var(--note), #efd447 70%, #dcbf34);
@@ -158,7 +159,7 @@
 .frame-note .body-text {
   color: #3d3306;
   font-family: var(--hand);
-  font-size: 18px;
+  font-size: 24px;
   line-height: 1.35;
   white-space: pre-wrap;
 }
@@ -182,15 +183,15 @@
 /* ---------- notebook page, torn out ---------- */
 
 .frame-lined .surface {
-  padding: 16px 16px 16px 30px;
+  padding: 20px 20px 20px 40px;
   background:
     /* Ruled lines. */
     repeating-linear-gradient(
       180deg,
       rgba(0, 0, 0, 0) 0,
-      rgba(0, 0, 0, 0) 25px,
-      rgba(86, 126, 172, 0.42) 25px,
-      rgba(86, 126, 172, 0.42) 26px
+      rgba(0, 0, 0, 0) 33px,
+      rgba(86, 126, 172, 0.42) 33px,
+      rgba(86, 126, 172, 0.42) 34px
     ),
     var(--tex-paper),
     linear-gradient(180deg, #fdfcf6, #f4f1e4);
@@ -211,7 +212,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 22px;
+  left: 30px;
   width: 1px;
   background: rgba(196, 96, 96, 0.5);
 }
@@ -232,9 +233,9 @@
   position: relative;
   color: #253048;
   font-family: var(--hand);
-  font-size: 19px;
+  font-size: 25px;
   /* Matched to the rule spacing above so the writing sits on the lines. */
-  line-height: 26px;
+  line-height: 34px;
   white-space: pre-wrap;
 }
 
@@ -253,29 +254,29 @@
  * Dropped far enough to bite into the folder itself.
  */
 .frame-folder .fastener.pin {
-  top: 13px;
+  top: 51.6px;
 }
 
 .frame-folder .fastener.nail {
-  top: 17px;
+  top: 67.5px;
 }
 
 .frame-folder .fastener.tape {
-  top: 12px;
+  top: 47.7px;
 }
 
 .frame-folder .folder-tab {
   position: absolute;
   top: 0;
-  left: 10px;
+  left: 39.7px;
   max-width: 62%;
-  padding: 5px 18px 7px 14px;
-  border-radius: 7px 14px 0 0;
+  padding: 19.9px 71.5px 27.8px 55.6px;
+  border-radius: 27.8px 55.6px 0 0;
   background: linear-gradient(180deg, #e3bd74, #d8ad60);
-  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.45) inset;
+  box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.45) inset;
   color: #4a3410;
   font-family: var(--hand);
-  font-size: 15px;
+  font-size: 59.6px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -286,18 +287,18 @@
 
 .frame-folder .folder-body {
   position: absolute;
-  top: 22px;
+  top: 87.4px;
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 12px;
-  border-radius: 4px 8px 6px 6px;
+  padding: 47.7px;
+  border-radius: 15.9px 31.8px 23.8px 23.8px;
   background:
     var(--tex-paper),
     linear-gradient(170deg, #e6c081, #d7ab5f 60%, #c99a4c);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 10px 20px -12px rgba(0, 0, 0, 0.7);
+    0 4px 0 rgba(255, 255, 255, 0.4) inset,
+    0 39.7px 79.4px -47.7px rgba(0, 0, 0, 0.7);
 }
 
 /*
@@ -306,45 +307,45 @@
  * Held well inside the folder on every side. It used to start high enough
  * that the tape reached up past the folder's own top edge and across the tab,
  * so the strips were stuck to the cork and the label ran underneath them.
- * The tape rises 11px above the picture, so the picture has to sit at least
+ * The tape rises 43.7px above the picture, so the picture has to sit at least
  * that far below where the tab ends.
  */
 .frame-folder .folder-sheet {
   position: absolute;
-  top: 26px;
-  right: 34px;
-  bottom: 30px;
-  left: 34px;
-  border-radius: 2px;
+  top: 103.3px;
+  right: 135px;
+  bottom: 119.1px;
+  left: 135px;
+  border-radius: 7.9px;
   background: #f6f2e6;
   box-shadow:
-    0 2px 7px rgba(0, 0, 0, 0.4),
-    0 0 0 4px #f8f4e8;
+    0 7.9px 27.8px rgba(0, 0, 0, 0.4),
+    0 0 0 15.9px #f8f4e8;
   transform: rotate(-1.4deg);
 }
 
 /* Two strips holding it on, one at each top corner. */
 .frame-folder .tape-strip {
   position: absolute;
-  top: -11px;
+  top: -43.7px;
   z-index: 1;
-  width: 42px;
-  height: 19px;
+  width: 166.8px;
+  height: 75.5px;
   background: linear-gradient(
     170deg,
     rgba(246, 240, 214, 0.82),
     rgba(226, 216, 182, 0.72)
   );
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 4px 7.9px rgba(0, 0, 0, 0.28);
 }
 
 .frame-folder .tape-strip.left {
-  left: -13px;
+  left: -51.6px;
   transform: rotate(-38deg);
 }
 
 .frame-folder .tape-strip.right {
-  right: -13px;
+  right: -51.6px;
   transform: rotate(38deg);
 }
 
@@ -352,7 +353,7 @@
 .frame-folder .folder-sheet .crop-view {
   width: 100%;
   height: 100%;
-  border-radius: 1px;
+  border-radius: 4px;
   object-fit: cover;
 }
 
@@ -363,8 +364,8 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 7px;
-  border-radius: 4px 0 0 4px;
+  width: 27.8px;
+  border-radius: 15.9px 0 0 15.9px;
   background: linear-gradient(
     90deg,
     rgba(120, 84, 30, 0.45),
@@ -376,12 +377,12 @@
 .frame-folder .folder-count {
   position: absolute;
   z-index: 1;
-  right: 12px;
-  bottom: 8px;
-  left: 12px;
+  right: 47.7px;
+  bottom: 31.8px;
+  left: 47.7px;
   color: #4a3410;
   font-family: var(--hand);
-  font-size: 14px;
+  font-size: 55.6px;
   text-align: right;
 }
 
@@ -392,11 +393,11 @@
   overflow: hidden;
   /* Corners softened unevenly: a magazine that has been handled does not keep
      the crisp right angles it left the press with. */
-  border-radius: 2px 9px 5px 3px;
+  border-radius: 6.9px 31px 17.2px 10.3px;
   background: #201b14;
   box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.12) inset,
-    0 16px 28px -14px rgba(0, 0, 0, 0.8);
+    0 6.9px 0 rgba(255, 255, 255, 0.12) inset,
+    0 55.1px 96.5px -48.2px rgba(0, 0, 0, 0.8);
 }
 
 .frame-magazine .mag-cover {
@@ -418,15 +419,15 @@
   top: 0;
   right: 0;
   left: 0;
-  padding: 10px 12px 16px;
+  padding: 34.5px 41.4px 55.1px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
   color: #fff8ea;
   font-family: var(--serif);
-  font-size: 21px;
+  font-size: 72.4px;
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.15;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.75);
+  text-shadow: 0 6.9px 20.7px rgba(0, 0, 0, 0.75);
   word-break: break-word;
 }
 
@@ -436,7 +437,7 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: 9px;
+  width: 31px;
   background: linear-gradient(
     90deg,
     rgba(0, 0, 0, 0.55),
@@ -450,11 +451,11 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 16px 12px 8px;
+  padding: 55.1px 41.4px 27.6px;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
   color: #f2e7d2;
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 41.4px;
   letter-spacing: 0.08em;
   text-align: right;
   text-transform: uppercase;
@@ -473,9 +474,9 @@
   inset: 0;
   background:
     /* Rubbed pale at the outer corners, where it is picked up. */
-    radial-gradient(22px 30px at 100% 0%, rgba(252, 248, 238, 0.85), rgba(0, 0, 0, 0) 70%),
-    radial-gradient(26px 26px at 100% 100%, rgba(252, 248, 238, 0.7), rgba(0, 0, 0, 0) 70%),
-    radial-gradient(18px 24px at 0% 100%, rgba(252, 248, 238, 0.45), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(75.8px 103.4px at 100% 0%, rgba(252, 248, 238, 0.85), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(89.6px 89.6px at 100% 100%, rgba(252, 248, 238, 0.7), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(62px 82.7px at 0% 100%, rgba(252, 248, 238, 0.45), rgba(0, 0, 0, 0) 70%),
     /* And along the outer edge and the head. */
     linear-gradient(90deg, rgba(0, 0, 0, 0) 96.5%, rgba(252, 248, 238, 0.6)),
     linear-gradient(180deg, rgba(252, 248, 238, 0.45), rgba(0, 0, 0, 0) 2.5%),
@@ -500,11 +501,11 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 30px;
-  height: 30px;
+  width: 103.4px;
+  height: 103.4px;
   background: linear-gradient(45deg, #f2eade 0%, #d8cbb2 60%, #b3a68c 100%);
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  box-shadow: -3px -3px 6px rgba(0, 0, 0, 0.5);
+  box-shadow: -10.3px -10.3px 20.7px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
@@ -514,17 +515,36 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 30px;
-  height: 30px;
+  width: 103.4px;
+  height: 103.4px;
   background: linear-gradient(45deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0) 55%);
   clip-path: polygon(0 0, 100% 0, 0 100%);
 }
 
 /* ---------- whiteboard ---------- */
 
+/*
+ * A whiteboard is drawn at the size of the pen used on it.
+ *
+ * Marker writing is three quarters of an inch to an inch tall, because that
+ * is what the nib gives you, and it is also why less fits on a whiteboard
+ * than people expect. Everything here is derived from that one measure
+ * instead of from numbers picked to look right at one size, which is what
+ * left a whiteboard scaled up to a foot across still carrying writing three
+ * sixteenths of an inch tall.
+ *
+ * The cap is what keeps a small board from clipping: below about fourteen
+ * inches there is no room for a full-sized pen, so it writes smaller rather
+ * than running off the edge.
+ */
+.item.frame-whiteboard {
+  container-type: size;
+  --wb-pen: min(100px, 7.2cqh);
+}
+
 .frame-whiteboard .surface {
-  padding: 14px 16px 26px;
-  border-radius: 4px;
+  padding: calc(var(--wb-pen) * 0.5) calc(var(--wb-pen) * 0.55) calc(var(--wb-pen) * 0.95);
+  border-radius: calc(var(--wb-pen) * 0.05);
   background:
     /* Old marker never quite comes off. */
     var(--tex-wipe),
@@ -532,17 +552,18 @@
   /* The aluminium frame is drawn inside the item's own box, so a board never
      measures larger on the cork than the size it was given. */
   box-shadow:
-    inset 0 0 0 1px rgba(96, 108, 120, 0.55),
-    inset 0 0 0 6px #d7dce2,
-    inset 0 0 0 7px rgba(96, 108, 120, 0.45),
-    inset 0 2px 0 rgba(255, 255, 255, 0.85),
-    inset 0 -16px 26px -20px rgba(35, 55, 78, 0.4);
+    inset 0 0 0 calc(var(--wb-pen) * 0.02) rgba(96, 108, 120, 0.55),
+    inset 0 0 0 calc(var(--wb-pen) * 0.4) #d7dce2,
+    inset 0 0 0 calc(var(--wb-pen) * 0.44) rgba(96, 108, 120, 0.45),
+    inset 0 calc(var(--wb-pen) * 0.03) 0 rgba(255, 255, 255, 0.85),
+    inset 0 calc(var(--wb-pen) * -0.2) calc(var(--wb-pen) * 0.3) calc(var(--wb-pen) * -0.22)
+      rgba(35, 55, 78, 0.4);
 }
 
 /* The gloss, laid over everything including the writing. */
 .wb-sheen {
   position: absolute;
-  inset: 7px;
+  inset: calc(var(--wb-pen) * 0.44);
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(
@@ -556,25 +577,31 @@
 /* Pen tray along the bottom, and a marker left in it. */
 .wb-tray {
   position: absolute;
-  right: 7px;
-  bottom: 7px;
-  left: 7px;
-  height: 9px;
-  border-radius: 0 0 2px 2px;
+  right: calc(var(--wb-pen) * 0.44);
+  bottom: calc(var(--wb-pen) * 0.44);
+  left: calc(var(--wb-pen) * 0.44);
+  height: calc(var(--wb-pen) * 0.42);
+  border-radius: 0 0 calc(var(--wb-pen) * 0.04) calc(var(--wb-pen) * 0.04);
   background: linear-gradient(180deg, #eef1f4, #b3bac2 58%, #cfd5db);
   box-shadow:
-    0 -2px 5px -3px rgba(28, 44, 62, 0.55),
+    0 calc(var(--wb-pen) * -0.03) calc(var(--wb-pen) * 0.07) calc(var(--wb-pen) * -0.04)
+      rgba(28, 44, 62, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
+/* Five and a half inches of marker, which on a small board is most of it. */
 .wb-marker {
   position: absolute;
-  right: 30px;
-  bottom: 12px;
-  width: 44px;
-  height: 7px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, #2b3440 0 11px, #1d4e89 11px 100%);
+  right: calc(var(--wb-pen) * 1.6);
+  bottom: calc(var(--wb-pen) * 0.5);
+  width: calc(var(--wb-pen) * 6.4);
+  height: calc(var(--wb-pen) * 0.3);
+  border-radius: calc(var(--wb-pen) * 0.15);
+  background: linear-gradient(
+    90deg,
+    #2b3440 0 calc(var(--wb-pen) * 1.6),
+    #1d4e89 calc(var(--wb-pen) * 1.6) 100%
+  );
   box-shadow: 0 1px 2px rgba(20, 34, 50, 0.45);
 }
 
@@ -583,7 +610,7 @@
   position: relative;
   z-index: 1;
   flex-direction: column;
-  gap: 7px;
+  gap: calc(var(--wb-pen) * 0.3);
   height: 100%;
   overflow: hidden;
 }
@@ -591,7 +618,7 @@
 .wb-title {
   color: #1d4e89;
   font-family: var(--hand);
-  font-size: 21px;
+  font-size: calc(var(--wb-pen) * 1.2);
   line-height: 1.15;
   white-space: pre-wrap;
   /* Marker bleeds very slightly into the gloss. */
@@ -602,27 +629,27 @@
 .wb-body {
   color: #2c3642;
   font-family: var(--hand);
-  font-size: 17px;
+  font-size: var(--wb-pen);
   line-height: 1.3;
   white-space: pre-wrap;
 }
 
 /* A rule under the heading, but only when something is listed beneath it. */
 .wb-title:not(:only-child) {
-  padding-bottom: 5px;
-  border-bottom: 2px solid rgba(29, 78, 137, 0.32);
+  padding-bottom: calc(var(--wb-pen) * 0.2);
+  border-bottom: calc(var(--wb-pen) * 0.045) solid rgba(29, 78, 137, 0.32);
 }
 
 .wb-lines {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: calc(var(--wb-pen) * 0.22);
   min-height: 0;
 }
 
 .wb-line {
   display: flex;
-  gap: 10px;
+  gap: calc(var(--wb-pen) * 0.4);
   align-items: baseline;
   justify-content: space-between;
   font-family: var(--hand);
@@ -630,9 +657,14 @@
 
 .wb-label {
   flex: 1;
+  /* Cut short rather than run into the number beside it, which is what a
+     long label on a narrow board would otherwise do. */
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: #3b4654;
-  font-size: 16px;
+  font-size: calc(var(--wb-pen) * 0.95);
   line-height: 1.2;
 }
 
@@ -643,7 +675,7 @@
 
 .wb-value {
   color: #9c2b20;
-  font-size: 18px;
+  font-size: calc(var(--wb-pen) * 1.05);
   line-height: 1.2;
   white-space: nowrap;
   text-shadow: 0 0 1px rgba(156, 43, 32, 0.28);
