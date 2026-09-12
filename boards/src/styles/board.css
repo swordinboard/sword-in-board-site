@@ -149,6 +149,11 @@
 /* ---------- items ---------- */
 
 .item {
+  /*
+   * Every item measures itself, so what is written on it can be sized against
+   * the thing it is written on rather than against nothing.
+   */
+  container-type: size;
   position: absolute;
   transform-origin: 50% 8%;
   /* drop-shadow follows clip-path, so torn edges cast a torn shadow. */

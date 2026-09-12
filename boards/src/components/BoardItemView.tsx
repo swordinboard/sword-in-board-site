@@ -32,6 +32,8 @@ function BoardItemView({ item, editable, selected, dragging, today, onPointerDow
         zIndex: dragging ? 9999 : item.z,
         transform: `rotate(${item.rotation}deg)`,
       }}
+      // So the inspector can measure what is written on this one.
+      data-item={item.id}
       onPointerDown={(event) => onPointerDown(event, item)}
     >
       <Fastener item={item} />

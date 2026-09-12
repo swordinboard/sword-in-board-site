@@ -45,6 +45,49 @@ export default function ItemInspector({
 }: Props) {
   const today = useToday(timeZone);
 
+  // A picture keeps the shape it was cropped to, so one slider settles it.
+  // Anything written has no shape of its own, and wanting a wide notice or a
+  // long narrow list is the ordinary case rather than the odd one.
+  const shaped = Boolean(item.aspect);
+
+  /** There is something on it whose height is worth fitting to. */
+  const written = Boolean(item.body || item.heading || item.lines?.length);
+
+  /**
+   * Sets the height to whatever is actually on the item.
+   *
+   * Text that runs past the bottom of its sheet is simply cut off, and until
+   * now the only way out was to widen the whole thing until it happened to
+   * fit. This measures the item as it is drawn and gives it the room it
+   * asked for - or takes back the room it never used.
+   */
+  const fitToText = () => {
+    const surface = document.querySelector<HTMLElement>(`[data-item="${item.id}"] .surface`);
+    const flow = surface?.querySelector<HTMLElement>('.stack, .wb-face');
+    if (!surface || !flow) return;
+
+    const pad = (el: HTMLElement) => {
+      const style = getComputedStyle(el);
+      return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    };
+    // Measured from the parts rather than from the container: a container
+    // stretched to the item is as tall as the item by definition, whatever
+    // it holds, so it can never report that its contents do not fit.
+    const gap = parseFloat(getComputedStyle(flow).rowGap) || 0;
+    const parts = [...flow.children].filter(
+      (el): el is HTMLElement =>
+        el instanceof HTMLElement && getComputedStyle(el).position !== 'absolute',
+    );
+    if (parts.length === 0) return;
+    const content =
+      parts.reduce((total, part) => total + part.scrollHeight, 0) + (parts.length - 1) * gap;
+
+    const next = Math.max(100, Math.round(content + pad(surface)));
+    if (next === item.h) return;
+    onChange({ h: next });
+    onCommit();
+  };
+
   /** Width changes keep the media's proportions by re-deriving the height. */
   const resize = (width: number) => {
     if (item.aspect) {
@@ -140,7 +183,7 @@ export default function ItemInspector({
 
         <div className="field">
           <label>
-            Size &mdash; {(item.w / PX_PER_INCH).toFixed(1)}&Prime;
+            {shaped ? 'Size' : 'Width'} &mdash; {(item.w / PX_PER_INCH).toFixed(1)}&Prime;
           </label>
           {/* A board is thirty-six inches across, so nothing should stop at
               the eight inches the old limit allowed. */}
@@ -153,6 +196,30 @@ export default function ItemInspector({
             onPointerUp={onCommit}
             onKeyUp={onCommit}
           />
+        </div>
+
+        <div className="field">
+          <label>Height &mdash; {(item.h / PX_PER_INCH).toFixed(1)}&Prime;</label>
+          <input
+            type="range"
+            min={100}
+            max={2600}
+            value={item.h}
+            onChange={(e) => onChange({ h: Number(e.target.value) })}
+            onPointerUp={onCommit}
+            onKeyUp={onCommit}
+          />
+          {written ? (
+            <button className="btn ghost" type="button" onClick={fitToText}>
+              Fit to what is on it
+            </button>
+          ) : null}
+          {shaped ? (
+            <p className="hint-text">
+              Setting the height on its own crops the picture rather than stretching it. The
+              width slider puts it back to the shape it was cropped to.
+            </p>
+          ) : null}
         </div>
 
         <div className="field">
