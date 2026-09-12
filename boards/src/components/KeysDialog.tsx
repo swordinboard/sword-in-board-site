@@ -132,8 +132,9 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
               {confirming === key.id ? (
                 <div className="danger-zone">
                   <p>
-                    Revoke <strong>{key.label}</strong>? Anyone using it is locked out
-                    immediately, even if they are looking at the board right now.
+                    Revoke <strong>{key.label}</strong>? It stops working at once, and a page
+                    somebody already has open drops back to the password screen within the
+                    minute. Anything they have already saved or screenshotted is theirs.
                   </p>
                   <div className="actions">
                     <button className="btn danger" onClick={() => revoke(key)}>

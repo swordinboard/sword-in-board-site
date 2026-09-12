@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
-import { GALLERY_FRAMES, PIN_COLORS } from '../../shared/types';
+import { GALLERY_FRAMES, MAX_GALLERY, PIN_COLORS } from '../../shared/types';
 import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
 import {
   FRAME_ORDER,
   FRAME_SPECS,
   HANGER_LABELS,
-  TEXT_FRAMES,
   randomTilt,
   sizeFor,
+  takesImage,
+  takesText,
   textSizeFor,
 } from '../lib/frames';
 import { useToday } from '../lib/clock';
@@ -23,6 +24,7 @@ export interface ItemDraft {
   mediaIds?: string[];
   aspect?: number;
   body?: string;
+  heading?: string;
   lines?: BoardLine[];
   frame: FrameStyle;
   hanger: HangerStyle;
@@ -60,6 +62,8 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
   const [hanger, setHanger] = useState<HangerStyle>('pin');
   const [pinColor, setPinColor] = useState<string>(PIN_COLORS[0]);
   const [body, setBody] = useState('');
+  /** The line across the top of a whiteboard. */
+  const [heading, setHeading] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
@@ -80,13 +84,18 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
   // take a different half of this dialog: many files, no cropping.
   const isGallery = GALLERY_FRAMES.includes(frame);
   const isWhiteboard = frame === 'whiteboard';
+  // Most frames are for one thing or the other, and only a clipping is
+  // genuinely either, so the choice is offered only where there is one.
+  const canChoose = takesImage(frame) && takesText(frame);
 
-  // The hanger follows the frame until the editor overrides it.
+  // The hanger follows the frame until the editor overrides it, and the frame
+  // decides what can go in it - picking an instant photo after writing a note
+  // leaves the dialog on text with no way to add the photograph.
   const chooseFrame = (next: FrameStyle) => {
     setFrame(next);
     setHanger(FRAME_SPECS[next].defaultHanger);
-    // These are for writing on rather than for a picture.
-    if (TEXT_FRAMES.includes(next)) setMode('text');
+    if (!takesImage(next)) setMode('text');
+    else if (!takesText(next)) setMode('image');
   };
 
   const takeFile = useCallback(async (file: File | undefined) => {
@@ -116,6 +125,11 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
       if (isGallery) {
         if (files.length === 0) {
           setError('Put at least one picture in it.');
+          setBusy(false);
+          return;
+        }
+        if (files.length > MAX_GALLERY) {
+          setError(`A ${frame} holds ${MAX_GALLERY} pictures. Take ${files.length - MAX_GALLERY} out.`);
           setBusy(false);
           return;
         }
@@ -151,7 +165,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
       if (mode === 'text') {
         // A whiteboard keeping the date is worth pinning up with nothing
         // written on it at all; everything else needs words to be anything.
-        if (!body.trim() && !lines.length) {
+        if (!body.trim() && !heading.trim() && !lines.length) {
           setError(
             isWhiteboard
               ? 'Write something on it, or give it a line to keep.'
@@ -163,6 +177,9 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
         const size = textSizeFor(frame);
         await onPlace({
           body: body.trim() || undefined,
+          // Written explicitly, even when empty, so the face knows the
+          // heading and the body have been told apart on this item.
+          heading: isWhiteboard ? heading.trim() : undefined,
           lines: lines.length ? lines : undefined,
           frame,
           hanger,
@@ -203,28 +220,51 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
     <Scrim label="Pin something up" onClose={onClose}>
         <h2>Pin something up</h2>
         <p className="lede">
-          Crop it down to what matters, choose how it hangs, then drop it on the board.
+          Pick what it is hung in, put something in it, then drop it on the board.
         </p>
 
-        <div className="field" hidden={isGallery}>
-          <label>What is it</label>
-          <div className="chooser">
-            <button
-              type="button"
-              className={mode === 'image' ? 'on' : ''}
-              onClick={() => setMode('image')}
-            >
-              A picture
-            </button>
-            <button
-              type="button"
-              className={mode === 'text' ? 'on' : ''}
-              onClick={() => setMode('text')}
-            >
-              Something written
-            </button>
-          </div>
+        {/*
+          The frame comes first because it decides everything under it: what
+          may go in the item at all, and which of the sections below are worth
+          showing. A grid of nine tiles pushed the rest of the dialog off the
+          bottom of a phone, so it is a list.
+        */}
+        <div className="field">
+          <label htmlFor="frame-choice">How it is framed</label>
+          <select
+            id="frame-choice"
+            value={frame}
+            onChange={(e) => chooseFrame(e.target.value as FrameStyle)}
+          >
+            {FRAME_ORDER.map((option) => (
+              <option key={option} value={option}>
+                {FRAME_SPECS[option].label} — {FRAME_SPECS[option].blurb}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {canChoose ? (
+          <div className="field">
+            <label>What is it</label>
+            <div className="chooser">
+              <button
+                type="button"
+                className={mode === 'image' ? 'on' : ''}
+                onClick={() => setMode('image')}
+              >
+                A picture
+              </button>
+              <button
+                type="button"
+                className={mode === 'text' ? 'on' : ''}
+                onClick={() => setMode('text')}
+              >
+                Something written
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {isGallery ? (
           <>
@@ -239,7 +279,9 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
             </div>
 
             <div className="field">
-              <label>Pictures {files.length ? `(${files.length})` : ''}</label>
+              <label>
+                Pictures {files.length ? `(${files.length} of ${MAX_GALLERY})` : ''}
+              </label>
               <label className="dropzone">
                 <span>
                   Choose pictures, or drop them here
@@ -330,44 +372,42 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           </>
         ) : (
           <>
+            {isWhiteboard ? (
+              <div className="field">
+                <label>Heading</label>
+                <input
+                  type="text"
+                  value={heading}
+                  onChange={(e) => setHeading(e.target.value)}
+                  maxLength={200}
+                  placeholder="The line across the top"
+                />
+              </div>
+            ) : null}
+
             <div className="field">
               <label>{isWhiteboard ? 'Written on it' : 'What it says'}</label>
               <textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder={isWhiteboard ? 'The heading, if it wants one...' : 'Write the notice...'}
+                placeholder={isWhiteboard ? 'Anything else on the board...' : 'Write the notice...'}
               />
             </div>
-
-            {isWhiteboard ? (
-              <div className="field">
-                <label>Lines it keeps</label>
-                <LinesEditor lines={lines} onChange={setLines} today={today} />
-                <p className="hint-text">
-                  These work themselves out every time the board is looked at, so nobody has to
-                  come back and change the number.
-                </p>
-              </div>
-            ) : null}
           </>
         )}
 
-        <div className="field" style={{ marginTop: 18 }}>
-          <label>How it is framed</label>
-          <div className="chooser">
-            {FRAME_ORDER.map((option) => (
-              <button
-                type="button"
-                key={option}
-                className={frame === option ? 'on' : ''}
-                onClick={() => chooseFrame(option)}
-              >
-                {FRAME_SPECS[option].label}
-                <span className="sub">{FRAME_SPECS[option].blurb}</span>
-              </button>
-            ))}
+        {/* Options belonging to this one frame, between what it holds and how
+            it hangs, because they change what the item says. */}
+        {isWhiteboard ? (
+          <div className="field">
+            <label>Date lines</label>
+            <LinesEditor lines={lines} onChange={setLines} today={today} />
+            <p className="hint-text">
+              These work themselves out every time the board is looked at, so nobody has to
+              come back and change the number.
+            </p>
           </div>
-        </div>
+        ) : null}
 
         <div className="field">
           <label>How it hangs</label>
@@ -404,7 +444,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
         ) : null}
 
         <div className="field">
-          <label>How it will hang</label>
+          <label>Preview</label>
           <FramePreview
             image={mode === 'image' && !isGallery ? image : null}
             rect={mode === 'image' && !isGallery ? rect : null}
@@ -412,6 +452,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
             hanger={hanger}
             pinColor={pinColor}
             body={isGallery ? name : mode === 'text' ? body : undefined}
+            heading={isWhiteboard ? heading : undefined}
             lines={isWhiteboard ? lines : undefined}
             today={today}
             galleryCount={isGallery ? files.length : undefined}

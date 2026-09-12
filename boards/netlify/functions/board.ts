@@ -6,6 +6,8 @@ import {
   FRAME_STYLES,
   HANGER_STYLES,
   LINE_KINDS,
+  MAX_BOARD_PICTURES,
+  MAX_GALLERY,
   MAX_LINES,
   type BoardItem,
   type BoardLine,
@@ -17,14 +19,20 @@ import {
 import { isCalendarDate, isTimeZone } from '../../shared/clock';
 
 const MAX_ITEMS = 400;
-/** Pictures one folder or magazine may hold. */
-const MAX_GALLERY = 60;
 
 const num = (value: unknown, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 
 const str = (value: unknown, max: number): string | undefined =>
   typeof value === 'string' && value.trim() ? value.slice(0, max) : undefined;
+
+/** Every picture on a board, counted across all of its items. */
+function countPictures(items: BoardItem[]): number {
+  return items.reduce(
+    (total, item) => total + (item.mediaIds?.length ?? (item.mediaId ? 1 : 0)),
+    0,
+  );
+}
 
 /**
  * A whiteboard's live lines, rebuilt the same way its item is.
@@ -71,6 +79,7 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
           .map((id) => id.slice(0, 64))
       : undefined,
     aspect: typeof item.aspect === 'number' && item.aspect > 0 ? item.aspect : undefined,
+    heading: str(item.heading, 200),
     body: str(item.body, 2000),
     lines: Array.isArray(item.lines)
       ? item.lines
@@ -129,6 +138,21 @@ export default async (req: Request): Promise<Response> => {
     const items = rawItems
       .map((item, index) => sanitizeItem(item, index))
       .filter((item): item is BoardItem => item !== null);
+
+    // Refused rather than trimmed: quietly dropping the pictures over the
+    // line would delete somebody's work on a save they did not know was too
+    // big. A board already over the limit - one filled before there was one -
+    // can still be saved as long as the save does not add to it, so the way
+    // to fix it is never blocked by the rule itself.
+    const pictures = countPictures(items);
+    if (pictures > MAX_BOARD_PICTURES && pictures > countPictures(current.items)) {
+      return json(
+        {
+          error: `That would put ${pictures} pictures on this board, and one board holds ${MAX_BOARD_PICTURES}. Take some down first.`,
+        },
+        { status: 409 },
+      );
+    }
 
     const next: BoardState = {
       version: 1,

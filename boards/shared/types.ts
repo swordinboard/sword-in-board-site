@@ -60,6 +60,22 @@ export interface BoardLine {
 
 /** Lines one whiteboard may carry. */
 export const MAX_LINES = 8;
+
+/**
+ * Pictures one folder or magazine may hold.
+ *
+ * A paging limit before a storage one: a magazine at sixty pictures is thirty
+ * page turns and a thumbnail strip with no thumb big enough to hit.
+ */
+export const MAX_GALLERY = 24;
+
+/**
+ * Pictures one board may hold across every item on it.
+ *
+ * At roughly a third of a megabyte each once they are cropped and re-encoded,
+ * this is the ceiling that actually bounds what a single board costs to keep.
+ */
+export const MAX_BOARD_PICTURES = 200;
 export type Role = 'viewer' | 'editor';
 
 export interface BoardItem {
@@ -73,6 +89,14 @@ export interface BoardItem {
   mediaIds?: string[];
   /** Natural aspect of the stored image, used to size without a layout shift. */
   aspect?: number;
+  /**
+   * The line across the top of a whiteboard, above whatever else is on it.
+   *
+   * Only the whiteboard has one. Boards written before the heading and the
+   * body were separated kept their heading in `body` and have none of this,
+   * which is what the fallback where it is drawn is for.
+   */
+  heading?: string;
   /** Text body, for note and paper items that carry writing instead of media. */
   body?: string;
   /**

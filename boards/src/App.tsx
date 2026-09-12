@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
+import { MAX_BOARD_PICTURES } from '../shared/types';
 import { SITE_NAME } from './lib/config';
 import * as api from './lib/api';
 import Board, { type BoardHandle } from './components/Board';
@@ -25,6 +26,13 @@ interface Toast {
 }
 
 const SAVE_DELAY_MS = 600;
+/**
+ * How often an open page re-checks that its key still opens this board.
+ *
+ * Short enough that "immediately" in the revoke warning is honest, long
+ * enough that a board left up all evening is not making a request a second.
+ */
+const SESSION_CHECK_MS = 45_000;
 
 /*
  * Zoom runs from 8% to 300%, so a slider that moved through it linearly would
@@ -83,6 +91,48 @@ export default function App() {
       .then(setSession)
       .catch(() => setSession({ authenticated: false, role: null, master: false, boardId: null }));
   }, []);
+
+  /**
+   * Keeps the open page honest about whether its key still opens anything.
+   *
+   * The server turns a revoked key away on the very next request, but a page
+   * already on screen makes almost no requests once it has loaded - a viewer
+   * cannot even save - so without this it would sit there showing a board its
+   * holder no longer has any right to. Re-checking on a timer and whenever
+   * the tab is looked at again closes that gap; a 401 from any other call
+   * closes it immediately.
+   */
+  useEffect(() => {
+    if (!session?.authenticated) return;
+
+    const lostIt = () => {
+      setSession({ authenticated: false, role: null, master: false, boardId: null });
+      setBoard(null);
+      setDialog(null);
+      say('That password no longer opens this board.', 'error');
+    };
+
+    const recheck = async () => {
+      try {
+        const now = await api.getSession();
+        if (!now.authenticated) lostIt();
+      } catch {
+        // A network blip is not a revocation; the next check settles it.
+      }
+    };
+
+    const timer = setInterval(recheck, SESSION_CHECK_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void recheck();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener(api.SIGNED_OUT, lostIt);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener(api.SIGNED_OUT, lostIt);
+    };
+  }, [session?.authenticated, say]);
 
   const refreshReports = useCallback(async () => {
     try {
@@ -215,6 +265,15 @@ export default function App() {
     say('Taken down.');
   }, [selectedId, persist, say]);
 
+  /** How many more pictures this board will take before it is full. */
+  const roomForPictures = useMemo(() => {
+    const used = (board?.items ?? []).reduce(
+      (total, item) => total + (item.mediaIds?.length ?? (item.mediaId ? 1 : 0)),
+      0,
+    );
+    return Math.max(0, MAX_BOARD_PICTURES - used);
+  }, [board]);
+
   /** The clock every whiteboard on this board counts against. */
   const setTimeZone = useCallback(
     (zone: string) => {
@@ -346,6 +405,8 @@ export default function App() {
       {canEdit && inspecting ? (
         <ItemInspector
           item={inspecting}
+          boardId={board?.id ?? ''}
+          roomForPictures={roomForPictures}
           timeZone={board?.timeZone}
           onTimeZone={setTimeZone}
           onChange={(patch) => patchItem(inspecting.id, patch)}

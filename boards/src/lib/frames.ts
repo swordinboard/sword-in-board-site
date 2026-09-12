@@ -1,8 +1,19 @@
 import { FRAME_STYLES, type FrameStyle, type HangerStyle } from '../../shared/types';
 
+/**
+ * What a frame is for.
+ *
+ * A frame is not a neutral border - an instant photo with no photograph in it
+ * is just a white rectangle, and a sticky note with a photograph on it is not
+ * a sticky note. So the frame decides what may go in it, and the add dialog
+ * stops offering the other thing.
+ */
+export type FrameHolds = 'image' | 'text' | 'either' | 'gallery';
+
 export interface FrameSpec {
   label: string;
   blurb: string;
+  holds: FrameHolds;
   /** Chrome around the media, in board pixels, matching frames.css. */
   padX: number;
   padTop: number;
@@ -16,6 +27,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   paper: {
     label: 'Paper',
     blurb: 'A plain sheet, pinned flat.',
+    holds: 'text',
     padX: 10,
     padTop: 10,
     padBottom: 10,
@@ -25,6 +37,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   polaroid: {
     label: 'Instant photo',
     blurb: 'White border, heavy at the bottom.',
+    holds: 'image',
     padX: 12,
     padTop: 12,
     padBottom: 46,
@@ -34,6 +47,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   clipping: {
     label: 'Clipping',
     blurb: 'Torn newsprint, slightly yellowed.',
+    holds: 'either',
     padX: 9,
     padTop: 9,
     padBottom: 9,
@@ -43,6 +57,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   framed: {
     label: 'Framed',
     blurb: 'Wood moulding, mat, and glass.',
+    holds: 'image',
     padX: 19,
     padTop: 19,
     padBottom: 19,
@@ -52,6 +67,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   note: {
     label: 'Sticky note',
     blurb: 'For writing rather than pictures.',
+    holds: 'text',
     padX: 14,
     padTop: 16,
     padBottom: 16,
@@ -61,6 +77,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   lined: {
     label: 'Notebook page',
     blurb: 'Ruled paper, torn from the binding.',
+    holds: 'text',
     // Room down the side for the torn edge and the margin rule.
     padX: 24,
     padTop: 16,
@@ -71,6 +88,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   folder: {
     label: 'Folder',
     blurb: 'A set of pictures, in a manila folder.',
+    holds: 'gallery',
     padX: 12,
     // The tab stands above the folder body.
     padTop: 22,
@@ -81,6 +99,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   magazine: {
     label: 'Magazine',
     blurb: 'A set of pictures, with the first as the cover.',
+    holds: 'gallery',
     padX: 10,
     padTop: 10,
     padBottom: 34,
@@ -90,6 +109,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   whiteboard: {
     label: 'Whiteboard',
     blurb: 'Write on it, or let it keep the date and the count.',
+    holds: 'text',
     padX: 16,
     padTop: 14,
     // Room for the tray along the bottom.
@@ -100,13 +120,13 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
   },
 };
 
-/**
- * Frames that hold writing rather than a picture.
- *
- * Choosing one of these in the add dialog switches it over to text, so the
- * cropper never appears for something that will never hold a photograph.
- */
-export const TEXT_FRAMES: FrameStyle[] = ['note', 'lined', 'whiteboard'];
+/** Whether this frame will take a picture at all. */
+export const takesImage = (frame: FrameStyle) =>
+  FRAME_SPECS[frame].holds === 'image' || FRAME_SPECS[frame].holds === 'either';
+
+/** Whether this frame will take writing at all. */
+export const takesText = (frame: FrameStyle) =>
+  FRAME_SPECS[frame].holds === 'text' || FRAME_SPECS[frame].holds === 'either';
 
 /**
  * Starting size for a written item, which has no media to take its shape

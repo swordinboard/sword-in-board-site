@@ -21,10 +21,19 @@ import type {
 const scope = (path: string, boardId?: string | null) =>
   boardId ? `${path}${path.includes('?') ? '&' : '?'}board=${encodeURIComponent(boardId)}` : path;
 
+/**
+ * Fired when the server no longer recognises this session, so the app can
+ * drop back to the gate instead of showing a board the holder has lost the
+ * key to. A revoked key stops working on the server at once; without this,
+ * an open page would carry on showing whatever it had already loaded.
+ */
+export const SIGNED_OUT = 'pinhold:signed-out';
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(path, { credentials: 'same-origin', ...init });
   const text = await res.text();
   const payload = text ? (JSON.parse(text) as unknown) : null;
+  if (res.status === 401) window.dispatchEvent(new Event(SIGNED_OUT));
   if (!res.ok) {
     const message =
       payload && typeof payload === 'object' && 'error' in payload

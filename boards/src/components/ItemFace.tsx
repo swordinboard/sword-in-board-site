@@ -17,6 +17,8 @@ export interface FaceItem {
   pinColor?: string;
   /** What a note says, or the name on a folder tab or magazine cover. */
   body?: string;
+  /** The line across the top of a whiteboard. */
+  heading?: string;
   mediaId?: string;
   mediaIds?: string[];
   lines?: BoardLine[];
@@ -73,6 +75,11 @@ export function Contents({ item, media, today }: ContentsProps) {
   if (item.frame === 'whiteboard') {
     const day = today ?? todayIn();
     const lines = item.lines ?? [];
+    // A whiteboard written before the heading and the body were separated
+    // kept its heading in `body` and had no body of its own, so that is how
+    // one with no heading set is still read.
+    const heading = item.heading ?? item.body;
+    const written = item.heading === undefined ? undefined : item.body;
     // With labels in play the values line up down the right-hand side. With
     // none at all there is nothing to line up against, so they stay left
     // where the writing is.
@@ -80,7 +87,8 @@ export function Contents({ item, media, today }: ContentsProps) {
     return (
       <>
         <div className="wb-face">
-          {item.body ? <div className="wb-title">{item.body}</div> : null}
+          {heading ? <div className="wb-title">{heading}</div> : null}
+          {written ? <div className="wb-body">{written}</div> : null}
           {lines.length ? (
             <div className={`wb-lines${labelled ? ' labelled' : ''}`}>
               {lines.map((line) => (
