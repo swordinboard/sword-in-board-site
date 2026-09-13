@@ -32,11 +32,29 @@ export const FRAME_STYLES: FrameStyle[] = [
   'whiteboard',
 ];
 
-export const HANGER_STYLES: HangerStyle[] = ['pin', 'tape', 'nail', 'none'];
+export const HANGER_STYLES: HangerStyle[] = [
+  'pin',
+  'tape',
+  'nail',
+  'magnetBar',
+  'magnetDisc',
+  'none',
+];
 
 /** The frames that hold a set of pictures rather than one. */
 export const GALLERY_FRAMES: FrameStyle[] = ['folder', 'magazine'];
-export type HangerStyle = 'pin' | 'tape' | 'nail' | 'none';
+export type HangerStyle = 'pin' | 'tape' | 'nail' | 'magnetBar' | 'magnetDisc' | 'none';
+
+/**
+ * A magnet's finish. Not a colour, because chrome is not one: it is a set of
+ * bands running light to dark, and a hex could not say that.
+ */
+export type MagnetFinish = 'black' | 'chrome';
+
+export const MAGNET_FINISHES: MagnetFinish[] = ['black', 'chrome'];
+
+/** The hangers that take a finish rather than a pin colour. */
+export const MAGNET_HANGERS: HangerStyle[] = ['magnetBar', 'magnetDisc'];
 
 /**
  * A line on a whiteboard that works itself out rather than being written.
@@ -130,8 +148,10 @@ export interface BoardItem {
   rotation: number;
   frame: FrameStyle;
   hanger: HangerStyle;
-  /** Hex colour for the pin head; ignored by tape and nail. */
+  /** Hex colour for the pin head; ignored by every other hanger. */
   pinColor?: string;
+  /** Finish for a magnet; ignored by every other hanger. */
+  finish?: MagnetFinish;
   z: number;
   createdAt: string;
 }
@@ -187,9 +207,23 @@ export interface BoardState {
  * wall it hangs on. Nothing about the items pinned to it - they keep the
  * frames they were given, so a preset never overrules a choice already made.
  */
-export type BoardStyle = 'cork' | 'medieval' | 'scifi' | 'western' | 'apocalypse';
+export type BoardStyle = 'cork' | 'medieval' | 'scifi' | 'western' | 'industrial';
 
-export const BOARD_STYLES: BoardStyle[] = ['cork', 'medieval', 'scifi', 'western', 'apocalypse'];
+export const BOARD_STYLES: BoardStyle[] = ['cork', 'medieval', 'scifi', 'western', 'industrial'];
+
+/**
+ * Styles that have been renamed, and what they are called now. A board saved
+ * under the old name keeps working and heals itself the next time it is
+ * saved; without this it would quietly fall back to the plain cork tokens,
+ * because nothing in the stylesheet answers to the old name any more.
+ */
+const RENAMED_STYLES: Record<string, BoardStyle> = { apocalypse: 'industrial' };
+
+export function boardStyle(raw: unknown): BoardStyle | undefined {
+  if (typeof raw !== 'string') return undefined;
+  if (BOARD_STYLES.includes(raw as BoardStyle)) return raw as BoardStyle;
+  return RENAMED_STYLES[raw];
+}
 
 export type SubmissionStatus = 'new' | 'reviewed' | 'placed' | 'archived';
 

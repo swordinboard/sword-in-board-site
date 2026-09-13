@@ -3,7 +3,7 @@ import { boardIdFor, forbidden, json, notFound, sessionFor, unauthorized } from 
 import { emptyBoard, expiryOf, loadBoard, saveBoard, touchBoard } from './_lib/store';
 import { titleObjection } from './_lib/naming';
 import {
-  BOARD_STYLES,
+  boardStyle,
   FRAME_STYLES,
   HANGER_STYLES,
   LINE_KINDS,
@@ -12,11 +12,12 @@ import {
   MIN_TYPE_PT,
   MAX_GALLERY,
   MAX_LINES,
+  MAGNET_FINISHES,
   type BoardItem,
   type BoardLine,
   type BoardLineKind,
   type BoardState,
-  type BoardStyle,
+  type MagnetFinish,
   type FrameStyle,
   type HangerStyle,
 } from '../../shared/types';
@@ -103,7 +104,13 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
     rotation: Math.max(-25, Math.min(25, num(item.rotation, 0))),
     frame,
     hanger,
-    pinColor: typeof item.pinColor === 'string' ? item.pinColor.slice(0, 24) : undefined,
+    // Plain hex only. This ends up in a custom property that the stylesheet
+    // substitutes into a background, and anything else there is somebody
+    // else's CSS - or somebody else's URL - running on the page.
+    pinColor: /^#[0-9a-f]{6}$/i.test(String(item.pinColor)) ? String(item.pinColor) : undefined,
+    finish: MAGNET_FINISHES.includes(item.finish as MagnetFinish)
+      ? (item.finish as MagnetFinish)
+      : undefined,
     z: Math.round(num(item.z, index)),
     createdAt:
       typeof item.createdAt === 'string' ? item.createdAt.slice(0, 40) : new Date().toISOString(),
@@ -178,9 +185,7 @@ export default async (req: Request): Promise<Response> => {
       // A zone this runtime does not recognise is dropped rather than stored,
       // so a whiteboard can never be left counting against nothing.
       timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
-      style: BOARD_STYLES.includes(body.style as BoardStyle)
-        ? (body.style as BoardStyle)
-        : current.style,
+      style: boardStyle(body.style) ?? current.style,
       // Only a plain hex colour: this ends up in a style attribute, and
       // anything else there is somebody else's CSS running on the page.
       wall: /^#[0-9a-f]{6}$/i.test(String(body.wall)) ? String(body.wall) : current.wall,

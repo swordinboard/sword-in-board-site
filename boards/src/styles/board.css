@@ -289,6 +289,61 @@
   box-shadow: 0 2px 4px rgba(40, 22, 6, 0.26);
 }
 
+/*
+ * Magnets, at the size the real thing comes in: a bar half an inch by an inch
+ * and a quarter, and a three-quarter-inch disc, at the board's 117px to the
+ * inch. Each straddles the item's top edge rather than sitting down on it -
+ * a magnet put square in the middle of a note covers the first line of it,
+ * which is not where anybody puts one.
+ */
+.fastener.magnet {
+  left: 50%;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 5px 9px rgba(0, 0, 0, 0.42);
+}
+
+.fastener.magnet.bar {
+  top: -30px;
+  width: 146px;
+  height: 59px;
+  margin-left: -73px;
+  border-radius: 7px;
+}
+
+.fastener.magnet.disc {
+  top: -48px;
+  width: 88px;
+  height: 88px;
+  margin-left: -44px;
+  border-radius: 50%;
+}
+
+.fastener.magnet.black {
+  background:
+    radial-gradient(120% 90% at 36% 18%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, #3b3b3f, #17171a 58%, #0b0b0d);
+}
+
+/*
+ * Chrome is not a colour, it is a horizon: everything above the middle is the
+ * sky it reflects and everything below is the ground, with a hard change
+ * where they meet. A flat grey with a highlight reads as plastic.
+ */
+.fastener.magnet.chrome {
+  background:
+    radial-gradient(70% 50% at 32% 16%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(
+      180deg,
+      #f1f5f7 0%,
+      #c3cbd1 26%,
+      #737c84 48%,
+      #98a2a9 52%,
+      #dde4e9 72%,
+      #7d868d 100%
+    );
+}
+
 .fastener.tape.left {
   left: -16px;
   transform: rotate(-42deg);
@@ -480,8 +535,8 @@
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(58, 38, 12, 0.34));
 }
 
-/* Rusted steel, and a board that has been out in it. */
-.stage[data-board-style='apocalypse'] {
+/* Steel that has been out in it, and warning paint on the frame. */
+.stage[data-board-style='industrial'] {
   /* Steel underneath; the rust texture over it is what makes it rust. */
   --frame-light: #5e6160;
   --frame-mid: #3a3d3c;

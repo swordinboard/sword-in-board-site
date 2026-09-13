@@ -14,7 +14,7 @@ const STYLE_LABELS: Record<BoardStyle, { name: string; blurb: string }> = {
   medieval: { name: 'Medieval', blurb: 'Dark oak and stretched hide.' },
   scifi: { name: 'Sci-fi', blurb: 'Graphite frame, a lit panel.' },
   western: { name: 'Western', blurb: 'Bleached planks and dust.' },
-  apocalypse: { name: 'Apocalypse', blurb: 'Rusted steel, left out in it.' },
+  industrial: { name: 'Industrial', blurb: 'Steel, rust and warning paint.' },
 };
 
 /** A few walls that suit the boards, for anyone not after a colour picker. */

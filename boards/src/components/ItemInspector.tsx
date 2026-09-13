@@ -1,5 +1,12 @@
 import type { BoardItem, BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
-import { GALLERY_FRAMES, MAX_TYPE_PT, MIN_TYPE_PT, PIN_COLORS } from '../../shared/types';
+import {
+  GALLERY_FRAMES,
+  MAGNET_FINISHES,
+  MAGNET_HANGERS,
+  MAX_TYPE_PT,
+  MIN_TYPE_PT,
+  PIN_COLORS,
+} from '../../shared/types';
 import { deviceZone } from '../../shared/clock';
 import {
   FRAME_ORDER,
@@ -209,6 +216,27 @@ export default function ItemInspector({
                 Back to the frame's own size
               </button>
             ) : null}
+          </div>
+        ) : null}
+
+        {MAGNET_HANGERS.includes(item.hanger) ? (
+          <div className="field">
+            <label>Magnet finish</label>
+            <div className="chooser">
+              {MAGNET_FINISHES.map((finish) => (
+                <button
+                  type="button"
+                  key={finish}
+                  className={(item.finish ?? 'black') === finish ? 'on' : ''}
+                  onClick={() => {
+                    onChange({ finish });
+                    onCommit();
+                  }}
+                >
+                  {finish === 'black' ? 'Plain black' : 'Chrome'}
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
 

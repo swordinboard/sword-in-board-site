@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
-import { GALLERY_FRAMES, MAX_GALLERY, PIN_COLORS } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle, MagnetFinish } from '../../shared/types';
+import {
+  GALLERY_FRAMES,
+  MAGNET_FINISHES,
+  MAGNET_HANGERS,
+  MAX_GALLERY,
+  PIN_COLORS,
+} from '../../shared/types';
 import { uploadMedia } from '../lib/api';
 import { cropToBlob, loadImage, readFileAsDataUrl, type CropRect } from '../lib/image';
 import {
@@ -31,6 +37,7 @@ export interface ItemDraft {
   frame: FrameStyle;
   hanger: HangerStyle;
   pinColor?: string;
+  finish?: MagnetFinish;
   w: number;
   h: number;
   rotation: number;
@@ -63,6 +70,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
   const [frame, setFrame] = useState<FrameStyle>('polaroid');
   const [hanger, setHanger] = useState<HangerStyle>('pin');
   const [pinColor, setPinColor] = useState<string>(PIN_COLORS[0]);
+  const [finish, setFinish] = useState<MagnetFinish>('black');
   const [body, setBody] = useState('');
   /** The line across the top of a written item. */
   const [heading, setHeading] = useState('');
@@ -161,6 +169,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           frame,
           hanger,
           pinColor: hanger === 'pin' ? pinColor : undefined,
+          finish: MAGNET_HANGERS.includes(hanger) ? finish : undefined,
           w: size.w,
           h: size.h,
           rotation: randomTilt(frame),
@@ -190,6 +199,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           frame,
           hanger,
           pinColor: hanger === 'pin' ? pinColor : undefined,
+          finish: MAGNET_HANGERS.includes(hanger) ? finish : undefined,
           w: size.w,
           h: size.h,
           rotation: randomTilt(frame),
@@ -217,6 +227,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
         frame,
         hanger,
         pinColor: hanger === 'pin' ? pinColor : undefined,
+        finish: MAGNET_HANGERS.includes(hanger) ? finish : undefined,
         w: size.w,
         h: needed !== null && needed > size.h ? needed : size.h,
         rotation: randomTilt(frame),
@@ -448,6 +459,24 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           </div>
         </div>
 
+        {MAGNET_HANGERS.includes(hanger) ? (
+          <div className="field">
+            <label>Magnet finish</label>
+            <div className="chooser">
+              {MAGNET_FINISHES.map((option) => (
+                <button
+                  type="button"
+                  key={option}
+                  className={finish === option ? 'on' : ''}
+                  onClick={() => setFinish(option)}
+                >
+                  {option === 'black' ? 'Plain black' : 'Chrome'}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         {hanger === 'pin' ? (
           <div className="field">
             <label>Pin colour</label>
@@ -475,6 +504,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
             frame={frame}
             hanger={hanger}
             pinColor={pinColor}
+            finish={finish}
             body={isGallery ? name : mode === 'text' ? body : undefined}
             heading={mode === 'text' ? heading : undefined}
             caption={frame === 'polaroid' ? caption : undefined}

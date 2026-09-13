@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle, MagnetFinish } from '../../shared/types';
 import { lineValue, todayIn } from '../../shared/clock';
 import { mediaUrl } from '../lib/api';
 
@@ -15,6 +15,7 @@ export interface FaceItem {
   frame: FrameStyle;
   hanger: HangerStyle;
   pinColor?: string;
+  finish?: MagnetFinish;
   /** What a note says, or the name on a folder tab or magazine cover. */
   body?: string;
   /** The line across the top of a written item. */
@@ -38,6 +39,16 @@ export function Fastener({ item }: { item: FaceItem }) {
       );
     case 'nail':
       return <span className="fastener nail" aria-hidden />;
+    case 'magnetBar':
+    case 'magnetDisc':
+      return (
+        <span
+          className={`fastener magnet ${item.hanger === 'magnetBar' ? 'bar' : 'disc'} ${
+            item.finish ?? 'black'
+          }`}
+          aria-hidden
+        />
+      );
     case 'tape':
       return (
         <>

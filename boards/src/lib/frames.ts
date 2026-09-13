@@ -194,6 +194,8 @@ export const HANGER_LABELS: Record<HangerStyle, string> = {
   pin: 'Pushpin',
   tape: 'Tape',
   nail: 'Nail',
+  magnetBar: 'Bar magnet',
+  magnetDisc: 'Round magnet',
   none: 'Nothing',
 };
 

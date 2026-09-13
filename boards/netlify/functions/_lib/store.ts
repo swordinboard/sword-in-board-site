@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   BOARD_DEFAULTS,
+  boardStyle,
   type AccessKey,
   type BoardState,
   type Invite,
@@ -109,7 +110,9 @@ const isBoard = (raw: unknown): raw is BoardState =>
 export async function loadBoard(id: string): Promise<BoardState | null> {
   const raw = await boardStore().get(id, { type: 'json' });
   if (!isBoard(raw)) return null;
-  return { ...raw, id };
+  // A board saved under a style's old name reads back under the new one, so
+  // renaming a preset does not quietly strip it from boards already using it.
+  return { ...raw, id, style: boardStyle(raw.style) };
 }
 
 export async function saveBoard(state: BoardState): Promise<BoardState> {

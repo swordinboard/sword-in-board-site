@@ -1,4 +1,4 @@
-import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
+import type { BoardLine, FrameStyle, HangerStyle, MagnetFinish } from '../../shared/types';
 import type { CropRect } from '../lib/image';
 import { sizeFor } from '../lib/frames';
 import { forwardRef } from 'react';
@@ -9,6 +9,7 @@ interface Props {
   rect: CropRect | null;
   frame: FrameStyle;
   hanger: HangerStyle;
+  finish?: MagnetFinish;
   pinColor?: string;
   body?: string;
   /** The line across the top of a written item. */
@@ -41,6 +42,7 @@ const FramePreview = forwardRef<HTMLDivElement, Props>(function FramePreview({
   rect,
   frame,
   hanger,
+  finish,
   pinColor,
   body,
   heading,
@@ -58,6 +60,7 @@ const FramePreview = forwardRef<HTMLDivElement, Props>(function FramePreview({
   const item = {
     frame,
     hanger,
+    finish,
     pinColor,
     body: body?.trim() || undefined,
     // Always set for a whiteboard, so the face treats the two apart rather

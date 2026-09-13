@@ -457,6 +457,14 @@
   top: 47.7px;
 }
 
+.frame-folder .fastener.magnet.bar {
+  top: 33px;
+}
+
+.frame-folder .fastener.magnet.disc {
+  top: 19px;
+}
+
 .frame-folder .folder-tab {
   position: absolute;
   top: 0;
