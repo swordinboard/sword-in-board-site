@@ -23,12 +23,21 @@
   display: block;
 }
 
+/*
+ * The size the writing on this frame is set at. Twelve point is the floor -
+ * below that nobody is reading it - and a size chosen for the item wins over
+ * whatever the frame would have worked out. A title is sized against this
+ * rather than against the page, so the two keep their relation at any size.
+ */
+.item.frame-paper {
+  --text: var(--type, max(20px, 2cqw));
+}
+
 .frame-paper .body-text {
   padding: 10px 14px;
   color: var(--ink);
   font-family: var(--serif);
-  /* Twelve point, and no smaller however small the sheet is cut. */
-  font-size: max(20px, 2cqw);
+  font-size: var(--text);
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -50,6 +59,37 @@
   filter: saturate(0.94) contrast(1.03);
 }
 
+/*
+ * Written across the white below the picture.
+ *
+ * Laid into the chin rather than added under the photograph, so however long
+ * it is it cannot push the picture up or the strip of white down: that strip
+ * is three quarters of an inch because that is what an instant photo has,
+ * and the writing has to live inside it.
+ *
+ * Which means the writing is sized to the room there is rather than the room
+ * it would like - the same bargain anybody makes with a pen and a photo. The
+ * length comes from the markup, and the line gets narrower as it gets longer.
+ */
+.frame-polaroid .photo-caption {
+  position: absolute;
+  right: 7%;
+  bottom: 12px;
+  left: 7%;
+  height: 70px;
+  overflow: hidden;
+  color: #2f2a22;
+  font-family: var(--hand);
+  font-size: max(10px, min(var(--type, 34px), calc(100cqw * 0.86 / var(--chars, 20) * 2.1)));
+  /* Matched to the box, so one line sits centred in the white. */
+  line-height: 70px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Nobody writes on a photograph perfectly straight. */
+  transform: rotate(-0.7deg);
+}
+
 /* ---------- a clipping, cut from a column ---------- */
 
 /*
@@ -62,8 +102,9 @@
  */
 .frame-clipping .surface {
   /* Clear of the tear, which bites a percentage of the height out of the top
-     and bottom and so reaches further in on a taller clipping. */
-  padding: 2.6cqh 14px 4.2cqh;
+     and bottom and so reaches further in on a taller clipping. The headline
+     sits right against the top, so the top needs the same room as the foot. */
+  padding: 4.4cqh 14px 4.4cqh;
   background:
     var(--tex-paper),
     linear-gradient(168deg, #eeeade, var(--newsprint) 45%, #d9d3c2);
@@ -115,13 +156,15 @@
   pointer-events: none;
 }
 
+.item.frame-clipping {
+  --text: var(--type, max(20px, 3.4cqw));
+}
+
 .frame-clipping .body-text {
   padding: 6px 2px 2px;
   color: #2e2a23;
   font-family: var(--serif);
-  /* Twelve point at the size a clipping is, and no smaller than that
-     whatever size it is cut to. */
-  font-size: max(20px, 3.4cqw);
+  font-size: var(--text);
   line-height: 1.42;
   text-align: justify;
   hyphens: auto;
@@ -210,12 +253,69 @@
   border-color: transparent transparent rgba(0, 0, 0, 0.12) transparent;
 }
 
+.item.frame-note {
+  --text: var(--type, max(20px, 6.8cqw));
+}
+
 .frame-note .body-text {
   color: #3d3306;
   font-family: var(--hand);
-  font-size: max(20px, 6.8cqw);
+  font-size: var(--text);
   line-height: 1.35;
   white-space: pre-wrap;
+}
+
+/* ---------- the title across the top of a written item ---------- */
+
+.item .title-text {
+  flex: 0 0 auto;
+  margin-bottom: 0.45em;
+  /* Against the writing it heads, not against the page. */
+  font-size: calc(var(--text, 20px) * 1.5);
+  line-height: 1.12;
+  white-space: pre-wrap;
+}
+
+.frame-paper .title-text {
+  padding: 0 6px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
+.frame-note .title-text,
+.frame-lined .title-text {
+  color: inherit;
+  font-family: var(--hand);
+  /* Underlined the way anybody underlines a heading by hand. */
+  border-bottom: 1px solid currentcolor;
+  padding-bottom: 0.1em;
+}
+
+.frame-lined .title-text {
+  /* Sits on a rule like everything else written on the page. */
+  line-height: var(--rule);
+  margin-bottom: 0;
+  border-bottom: 0;
+  text-decoration: underline;
+}
+
+/*
+ * On a clipping the title is the headline, and a headline is set bigger,
+ * tighter and heavier than the story, across the full measure rather than in
+ * the columns.
+ */
+.frame-clipping .title-text {
+  margin-bottom: 0.3em;
+  padding-bottom: 0.2em;
+  border-bottom: 1.5px solid rgba(52, 46, 36, 0.5);
+  color: #221f19;
+  font-family: var(--serif);
+  font-size: calc(var(--text, 20px) * 2.3);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.01em;
+  text-align: left;
 }
 
 /* ---------- shared media block ---------- */
@@ -252,7 +352,8 @@
  * of a ruling fixed in pixels under type that scales.
  */
 .item.frame-lined {
-  --rule: max(27px, 3.63cqw);
+  --text: var(--type, max(20px, 2.7cqw));
+  --rule: calc(var(--text) * 1.36);
 }
 
 .frame-lined .surface {
@@ -307,7 +408,7 @@
   position: relative;
   color: #253048;
   font-family: var(--hand);
-  font-size: max(20px, 2.7cqw);
+  font-size: var(--text);
   /* The same measure the rules are drawn at, so the writing sits on them. */
   line-height: var(--rule);
   white-space: pre-wrap;
@@ -616,7 +717,7 @@
    * Never below twelve point, whatever size the board is cut to, and never
    * above the inch a marker gives you however big it gets.
    */
-  --wb-pen: clamp(20px, 7.2cqh, 100px);
+  --wb-pen: var(--type, clamp(20px, 7.2cqh, 100px));
 }
 
 .frame-whiteboard .surface {

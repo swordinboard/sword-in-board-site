@@ -1,6 +1,5 @@
 import type { BoardItem, BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
-import { GALLERY_FRAMES } from '../../shared/types';
-import { PIN_COLORS } from '../../shared/types';
+import { GALLERY_FRAMES, MAX_TYPE_PT, MIN_TYPE_PT, PIN_COLORS } from '../../shared/types';
 import { deviceZone } from '../../shared/clock';
 import {
   FRAME_ORDER,
@@ -52,6 +51,14 @@ export default function ItemInspector({
 
   /** There is something on it whose height is worth fitting to. */
   const written = Boolean(item.body || item.heading || item.lines?.length);
+  /** Frames that carry writing whose size is worth choosing. */
+  const carriesType = takesText(item.frame) || item.frame === 'polaroid';
+  /**
+   * The size the frame would work out for itself, near enough, so the slider
+   * has somewhere sensible to start rather than jumping the moment it is
+   * touched. Twelve point is the floor everything else is built on.
+   */
+  const typeNow = item.typeSize ?? Math.max(12, Math.round((item.w * 0.02 * 72) / PX_PER_INCH));
 
   /**
    * Sets the height to whatever is actually on the item.
@@ -159,6 +166,33 @@ export default function ItemInspector({
             ))}
           </div>
         </div>
+
+        {carriesType ? (
+          <div className="field">
+            <label>Writing &mdash; {typeNow}pt</label>
+            <input
+              type="range"
+              min={MIN_TYPE_PT}
+              max={MAX_TYPE_PT}
+              value={typeNow}
+              onChange={(e) => onChange({ typeSize: Number(e.target.value) })}
+              onPointerUp={onCommit}
+              onKeyUp={onCommit}
+            />
+            {item.typeSize ? (
+              <button
+                className="btn ghost"
+                type="button"
+                onClick={() => {
+                  onChange({ typeSize: undefined });
+                  onCommit();
+                }}
+              >
+                Back to the frame's own size
+              </button>
+            ) : null}
+          </div>
+        ) : null}
 
         {item.hanger === 'pin' ? (
           <div className="field">
@@ -286,13 +320,43 @@ export default function ItemInspector({
             </div>
           </>
         ) : takesText(item.frame) ? (
+          <>
+            <div className="field">
+              <label>{item.frame === 'clipping' ? 'Headline' : 'Title'}</label>
+              <input
+                type="text"
+                value={item.heading ?? ''}
+                maxLength={200}
+                placeholder="Optional"
+                onChange={(e) => onChange({ heading: e.target.value || undefined })}
+                onBlur={onCommit}
+              />
+            </div>
+
+            <div className="field">
+              <label>Text</label>
+              <textarea
+                value={item.body ?? ''}
+                onChange={(e) => onChange({ body: e.target.value || undefined })}
+                onBlur={onCommit}
+              />
+            </div>
+          </>
+        ) : item.frame === 'polaroid' ? (
           <div className="field">
-            <label>Text</label>
-            <textarea
-              value={item.body ?? ''}
-              onChange={(e) => onChange({ body: e.target.value || undefined })}
+            <label>Written underneath</label>
+            <input
+              type="text"
+              value={item.caption ?? ''}
+              maxLength={160}
+              placeholder="Optional"
+              onChange={(e) => onChange({ caption: e.target.value || undefined })}
               onBlur={onCommit}
             />
+            <p className="hint-text">
+              It goes on the white below the picture, and is written smaller the more of it
+              there is. The white strip stays the size an instant photo's is.
+            </p>
           </div>
         ) : null}
 

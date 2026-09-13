@@ -8,6 +8,8 @@ import {
   HANGER_STYLES,
   LINE_KINDS,
   MAX_BOARD_PICTURES,
+  MAX_TYPE_PT,
+  MIN_TYPE_PT,
   MAX_GALLERY,
   MAX_LINES,
   type BoardItem,
@@ -82,6 +84,11 @@ function sanitizeItem(raw: unknown, index: number): BoardItem | null {
       : undefined,
     aspect: typeof item.aspect === 'number' && item.aspect > 0 ? item.aspect : undefined,
     heading: str(item.heading, 200),
+    caption: str(item.caption, 160),
+    typeSize:
+      typeof item.typeSize === 'number' && Number.isFinite(item.typeSize)
+        ? Math.min(MAX_TYPE_PT, Math.max(MIN_TYPE_PT, Math.round(item.typeSize)))
+        : undefined,
     body: str(item.body, 2000),
     lines: Array.isArray(item.lines)
       ? item.lines

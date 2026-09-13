@@ -17,8 +17,10 @@ export interface FaceItem {
   pinColor?: string;
   /** What a note says, or the name on a folder tab or magazine cover. */
   body?: string;
-  /** The line across the top of a whiteboard. */
+  /** The line across the top of a written item. */
   heading?: string;
+  /** Written on the white below an instant photo. */
+  caption?: string;
   mediaId?: string;
   mediaIds?: string[];
   lines?: BoardLine[];
@@ -148,11 +150,31 @@ export function Contents({ item, media, today }: ContentsProps) {
   }
 
   return (
-    <div className="stack">
-      {item.frame === 'lined' ? <div className="tear" aria-hidden /> : null}
-      {image ? <div className="media">{image}</div> : null}
-      {item.body ? <div className="body-text">{item.body}</div> : null}
-    </div>
+    <>
+      <div className="stack">
+        {item.frame === 'lined' ? <div className="tear" aria-hidden /> : null}
+        {item.heading ? <div className="title-text">{item.heading}</div> : null}
+        {image ? <div className="media">{image}</div> : null}
+        {item.body ? <div className="body-text">{item.body}</div> : null}
+      </div>
+      {/*
+        The caption sits in the white below the picture rather than in the
+        flow above it, so however long it is it can never push the photograph
+        up or the white strip down - the strip is a real measurement and the
+        writing has to live inside it.
+
+        Its length goes to the stylesheet so the writing can be sized to the
+        room there is, which is what a hand does with a pen.
+      */}
+      {item.caption ? (
+        <div
+          className="photo-caption"
+          style={{ ['--chars' as string]: Math.max(8, item.caption.length) }}
+        >
+          {item.caption}
+        </div>
+      ) : null}
+    </>
   );
 }
 

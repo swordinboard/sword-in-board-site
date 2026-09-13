@@ -25,6 +25,7 @@ export interface ItemDraft {
   aspect?: number;
   body?: string;
   heading?: string;
+  caption?: string;
   lines?: BoardLine[];
   frame: FrameStyle;
   hanger: HangerStyle;
@@ -62,8 +63,10 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
   const [hanger, setHanger] = useState<HangerStyle>('pin');
   const [pinColor, setPinColor] = useState<string>(PIN_COLORS[0]);
   const [body, setBody] = useState('');
-  /** The line across the top of a whiteboard. */
+  /** The line across the top of a written item. */
   const [heading, setHeading] = useState('');
+  /** Written on the white below an instant photo. */
+  const [caption, setCaption] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
@@ -179,7 +182,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           body: body.trim() || undefined,
           // Written explicitly, even when empty, so the face knows the
           // heading and the body have been told apart on this item.
-          heading: isWhiteboard ? heading.trim() : undefined,
+          heading: isWhiteboard ? heading.trim() : heading.trim() || undefined,
           lines: lines.length ? lines : undefined,
           frame,
           hanger,
@@ -202,6 +205,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
       const size = sizeFor(frame, aspect);
       await onPlace({
         mediaId: id,
+        caption: frame === 'polaroid' ? caption.trim() || undefined : undefined,
         aspect,
         frame,
         hanger,
@@ -364,6 +368,18 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
                   </div>
                 </div>
                 <Cropper image={image} ratio={ratio} onChange={setRect} />
+                {frame === 'polaroid' ? (
+                  <div className="field" style={{ marginTop: 14 }}>
+                    <label>Written underneath</label>
+                    <input
+                      type="text"
+                      value={caption}
+                      maxLength={160}
+                      placeholder="Optional"
+                      onChange={(e) => setCaption(e.target.value)}
+                    />
+                  </div>
+                ) : null}
                 <button className="btn ghost" type="button" onClick={() => setImage(null)}>
                   Choose a different image
                 </button>
@@ -372,18 +388,18 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
           </>
         ) : (
           <>
-            {isWhiteboard ? (
-              <div className="field">
-                <label>Heading</label>
-                <input
-                  type="text"
-                  value={heading}
-                  onChange={(e) => setHeading(e.target.value)}
-                  maxLength={200}
-                  placeholder="The line across the top"
-                />
-              </div>
-            ) : null}
+            <div className="field">
+              <label>
+                {isWhiteboard ? 'Heading' : frame === 'clipping' ? 'Headline' : 'Title'}
+              </label>
+              <input
+                type="text"
+                value={heading}
+                onChange={(e) => setHeading(e.target.value)}
+                maxLength={200}
+                placeholder={isWhiteboard ? 'The line across the top' : 'Optional'}
+              />
+            </div>
 
             <div className="field">
               <label>{isWhiteboard ? 'Written on it' : 'What it says'}</label>
@@ -452,7 +468,8 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
             hanger={hanger}
             pinColor={pinColor}
             body={isGallery ? name : mode === 'text' ? body : undefined}
-            heading={isWhiteboard ? heading : undefined}
+            heading={mode === 'text' ? heading : undefined}
+            caption={frame === 'polaroid' ? caption : undefined}
             lines={isWhiteboard ? lines : undefined}
             today={today}
             galleryCount={isGallery ? files.length : undefined}

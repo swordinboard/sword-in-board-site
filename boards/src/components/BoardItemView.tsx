@@ -31,6 +31,8 @@ function BoardItemView({ item, editable, selected, dragging, today, onPointerDow
         height: item.h,
         zIndex: dragging ? 9999 : item.z,
         transform: `rotate(${item.rotation}deg)`,
+        // A point is 1/72 of an inch, and an inch is 117 board pixels.
+        ...(item.typeSize ? { ['--type' as string]: `${item.typeSize * (117 / 72)}px` } : null),
       }}
       // So the inspector can measure what is written on this one.
       data-item={item.id}

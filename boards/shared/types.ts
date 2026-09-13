@@ -58,6 +58,10 @@ export interface BoardLine {
   date?: string;
 }
 
+/** The range a chosen type size may take, in points. */
+export const MIN_TYPE_PT = 8;
+export const MAX_TYPE_PT = 96;
+
 /** Lines one whiteboard may carry. */
 export const MAX_LINES = 8;
 
@@ -99,6 +103,17 @@ export interface BoardItem {
   heading?: string;
   /** Text body, for note and paper items that carry writing instead of media. */
   body?: string;
+  /**
+   * Written across the bottom of an instant photo, in the white below the
+   * picture. Only that frame has one, because only that frame has the strip
+   * of white that a caption goes on.
+   */
+  caption?: string;
+  /**
+   * Chosen size for the writing, in points, overriding the size the frame
+   * would have worked out for itself. Unset leaves it to the frame.
+   */
+  typeSize?: number;
   /**
    * Lines a whiteboard works out for itself, drawn under whatever is written
    * on it. Nothing here is ever written back to storage: the numbers are

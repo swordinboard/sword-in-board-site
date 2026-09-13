@@ -10,8 +10,12 @@ interface Props {
   hanger: HangerStyle;
   pinColor?: string;
   body?: string;
-  /** For a whiteboard: the line across the top. */
+  /** The line across the top of a written item. */
   heading?: string;
+  /** Written on the white below an instant photo. */
+  caption?: string;
+  /** Chosen size for the writing, in points. */
+  typeSize?: number;
   /** For a whiteboard: the lines it keeps, drawn as they will read. */
   lines?: BoardLine[];
   /** Today in the board's zone, so the preview shows the real day. */
@@ -39,6 +43,8 @@ export default function FramePreview({
   pinColor,
   body,
   heading,
+  caption,
+  typeSize,
   lines,
   today,
   galleryCount,
@@ -55,7 +61,8 @@ export default function FramePreview({
     body: body?.trim() || undefined,
     // Always set for a whiteboard, so the face treats the two apart rather
     // than falling back to reading the body as a heading.
-    heading: frame === 'whiteboard' ? (heading?.trim() ?? '') : undefined,
+    heading: frame === 'whiteboard' ? (heading?.trim() ?? '') : heading?.trim() || undefined,
+    caption: caption?.trim() || undefined,
     lines,
     // Stand-in ids purely so the face draws the right count; the cover itself
     // comes through `media` as an object URL, since nothing is uploaded yet.
@@ -99,6 +106,7 @@ export default function FramePreview({
             height: size.h,
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
+            ...(typeSize ? { ['--type' as string]: `${typeSize * (117 / 72)}px` } : null),
           }}
         >
           <Fastener item={item} />
