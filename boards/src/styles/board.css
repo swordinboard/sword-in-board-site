@@ -1,13 +1,17 @@
 /* The board surface: procedural cork and wood, plus pan/zoom scaffolding. */
 
 :root {
-  /* Fine cork flecks. */
-  --tex-cork: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='5' stitchTiles='stitch' seed='11'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.22 0 0 0 0 0.10 0.42 0.34 0.22 0 -0.14'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23f)'/%3E%3C/svg%3E");
+  /*
+   * Cork, as granules rather than as a blur. The alpha is stepped so each one
+   * ends somewhere instead of fading out, and the coarsest thing in it is a
+   * granule wide - a texture with anything larger in it reads as a repeating
+   * pattern once it is tiled across four thousand pixels of board.
+   */
+  --tex-cork: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.085' numOctaves='3' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.38 0 0 0 0 0.23 0 0 0 0 0.09 0.95 0.75 0.45 0 -0.42'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.16 0.06 0.30 0.10 0.38 0.02 0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='340' height='340' filter='url(%23k)'/%3E%3C/svg%3E");
   /* Broad mottling so the cork does not read as uniform noise. */
   --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='3' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.16 0 0 0 0 0.06 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23g)'/%3E%3C/svg%3E");
   /* Stretched noise reads as wood grain. */
   --tex-wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='140'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.5' numOctaves='4' stitchTiles='stitch' seed='3'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/%3E%3C/filter%3E%3Crect width='400' height='140' filter='url(%23w)'/%3E%3C/svg%3E");
-  /* Tooth for paper stock. */
   /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
      it streaks sideways, the way a hand wipes. */
   --tex-wipe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='300'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.09' numOctaves='2' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42 0 0 0 0 0.46 0 0 0 0 0.52 0.5 0.4 0.3 0 -0.58'/%3E%3C/filter%3E%3Crect width='420' height='300' filter='url(%23v)'/%3E%3C/svg%3E");
@@ -21,7 +25,12 @@
    * relative to the grain on purpose: a smaller one showed its own edges as
    * a visible lattice across the board.
    */
-  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45 0 0 0 0 0.22 0 0 0 0 0.08 0.7 0.5 0.3 0 -0.64'/%3E%3C/filter%3E%3Crect width='640' height='640' filter='url(%23r)'/%3E%3C/svg%3E");
+  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.075' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.5'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.09 0.26 0.03 0.17 0.34 0.06 0.21'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='640' height='640' filter='url(%23r)'/%3E%3C/svg%3E");
+  /* Grain running the length of a plank: fine across it, long along it. */
+  --tex-plank: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='640'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.003' numOctaves='4' stitchTiles='stitch' seed='4'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.62 0.44 0.26 0 -0.52'/%3E%3C/filter%3E%3Crect width='320' height='640' filter='url(%23q)'/%3E%3C/svg%3E");
+  /* Hide: a fine irregular grain with no direction to it. */
+  --tex-hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.11' numOctaves='4' stitchTiles='stitch' seed='23'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0 0.13 0.5 0.4 0.28 0 -0.30'/%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23d)'/%3E%3C/svg%3E");
+  /* Tooth for paper stock. */
   --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 
@@ -63,7 +72,8 @@
 
 .board {
   position: relative;
-  padding: 30px;
+  /* Matches FRAME_PAD in Board.tsx, which places everything against it. */
+  padding: 45px;
   border-radius: 6px;
   background:
     var(--tex-frame),
@@ -79,7 +89,7 @@
 .board::after {
   content: '';
   position: absolute;
-  inset: 24px;
+  inset: 36px;
   border-radius: 3px;
   box-shadow:
     0 0 0 2px rgba(0, 0, 0, 0.32),
@@ -346,26 +356,55 @@
 
 .stage {
   --tex-frame: var(--tex-wood);
-  --tex-surface: var(--tex-cork), var(--tex-mottle);
+  --tex-surface: var(--tex-cork);
   --surface-sheen: radial-gradient(120% 90% at 30% 20%, rgba(255, 226, 178, 0.3), transparent 60%);
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 55%, rgba(48, 26, 8, 0.34));
 }
 
-/* Dark oak and a hide stretched over it, lit by something burning. */
+/*
+ * A sign, out of dark planks worked with rough tools.
+ *
+ * The boards are set on end and joined, and the joins are deliberately not
+ * evenly spaced: two runs of seams at lengths that do not divide into each
+ * other, so the repeat is long enough that nobody counts it. Anything evenly
+ * spaced reads as machined, which is the one thing it should not be.
+ */
 .stage[data-board-style='medieval'] {
-  --frame-light: #43301a;
-  --frame-mid: #2a1d0f;
-  --frame-dark: #140d06;
-  --surface-base: #cdb68b;
-  --surface-deep: #a68d63;
-  --surface-shadow: rgba(48, 30, 8, 0.6);
-  --surface-inner: rgba(48, 30, 8, 0.4);
-  --surface-ink: rgba(66, 46, 20, 0.62);
+  --frame-light: #3c2a15;
+  --frame-mid: #24180b;
+  --frame-dark: #100a04;
+  --surface-base: #3a2814;
+  --surface-deep: #1f1409;
+  --surface-shadow: rgba(12, 7, 2, 0.72);
+  --surface-inner: rgba(12, 7, 2, 0.5);
+  --surface-ink: rgba(226, 202, 160, 0.4);
   --wall-color: #14100c;
   --wall-glow: radial-gradient(circle at 50% 34%, #2a2014 0%, #0b0806 100%);
-  --tex-surface: var(--tex-paper), var(--tex-mottle);
-  --surface-sheen: radial-gradient(110% 80% at 34% 16%, rgba(255, 216, 150, 0.26), transparent 62%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 48%, rgba(38, 22, 6, 0.46));
+  --tex-frame: var(--tex-plank);
+  --tex-surface:
+    /* The seams, and the shadow each plank casts into the next. A plank is
+       a little over five inches across at PX_PER_INCH, so a board this wide
+       is made of six or seven of them rather than thirty slats. */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 604px,
+      rgba(8, 4, 1, 0.55) 604px 616px,
+      rgba(120, 92, 56, 0.07) 616px 628px
+    ),
+    repeating-linear-gradient(90deg, transparent 0 869px, rgba(8, 4, 1, 0.3) 869px 878px),
+    /* No two boards off the same tree take the stain the same way. The cycle
+       is four planks long against seam runs of six and nine, so the eye never
+       finds the repeat. */
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 240, 214, 0.035) 0 604px,
+      rgba(0, 0, 0, 0.06) 604px 1208px,
+      rgba(255, 240, 214, 0.015) 1208px 1812px,
+      transparent 1812px 2416px
+    ),
+    var(--tex-plank);
+  --surface-sheen: radial-gradient(110% 80% at 34% 16%, rgba(255, 198, 120, 0.07), transparent 56%);
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 38%, rgba(8, 4, 1, 0.6));
 }
 
 /* Brushed graphite and a backlit panel. */
@@ -386,25 +425,31 @@
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 46%, rgba(2, 10, 18, 0.6));
 }
 
-/* Sun-bleached planks and dust. */
+/*
+ * Hide stretched over a frame somebody took trouble over.
+ *
+ * The one board where a broad mottle is right rather than blurry: a skin is
+ * unevenly coloured, so the large-scale variation is the material rather
+ * than a texture failing to hide its own tiling. Kept gentle all the same.
+ */
 .stage[data-board-style='western'] {
-  --frame-light: #a28a68;
-  --frame-mid: #7a664b;
-  --frame-dark: #453a2b;
-  --surface-base: #dac69f;
-  --surface-deep: #b69d75;
-  --surface-shadow: rgba(80, 58, 26, 0.5);
-  --surface-inner: rgba(80, 58, 26, 0.3);
-  --surface-ink: rgba(92, 66, 32, 0.58);
+  --frame-light: #9d7b4e;
+  --frame-mid: #6f5330;
+  --frame-dark: #3c2b17;
+  --surface-base: #c9a978;
+  --surface-deep: #a5854f;
+  --surface-shadow: rgba(72, 48, 18, 0.52);
+  --surface-inner: rgba(72, 48, 18, 0.28);
+  --surface-ink: rgba(84, 58, 24, 0.6);
   --wall-color: #1b1610;
   --wall-glow: radial-gradient(circle at 50% 38%, #3b2c1a 0%, #120d08 100%);
-  /* Planks drawn rather than sampled: the wood texture is 400px wide and
-     tiled a visible seam every 400px across a board twice that. */
+  --tex-frame: var(--tex-wood);
   --tex-surface:
-    repeating-linear-gradient(180deg, transparent 0 84px, rgba(84, 60, 28, 0.34) 84px 87px),
-    var(--tex-mottle);
-  --surface-sheen: radial-gradient(120% 90% at 28% 14%, rgba(255, 238, 196, 0.32), transparent 58%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 58%, rgba(66, 46, 16, 0.3));
+    var(--tex-hide),
+    /* Where the hide is drawn tight over the frame it goes lighter. */
+    radial-gradient(125% 100% at 50% 45%, rgba(255, 232, 186, 0.22), rgba(92, 62, 24, 0.14) 78%);
+  --surface-sheen: radial-gradient(120% 90% at 30% 16%, rgba(255, 240, 205, 0.2), transparent 58%);
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(58, 38, 12, 0.34));
 }
 
 /* Rusted steel, and a board that has been out in it. */
@@ -413,8 +458,8 @@
   --frame-light: #565049;
   --frame-mid: #37322c;
   --frame-dark: #1d1a17;
-  --surface-base: #3e3d39;
-  --surface-deep: #242322;
+  --surface-base: #4a463d;
+  --surface-deep: #2b2823;
   --surface-shadow: rgba(18, 14, 10, 0.7);
   --surface-inner: rgba(18, 14, 10, 0.5);
   --surface-ink: rgba(226, 214, 196, 0.5);
@@ -424,7 +469,20 @@
   /* Rust in patches over grime, rather than rust as the whole surface. */
   --tex-surface:
     var(--tex-rust),
-    linear-gradient(168deg, rgba(10, 10, 9, 0.45), transparent 38%, rgba(10, 10, 9, 0.5));
+    /* Weeping streaks, where the wet has run down the face. */
+    repeating-linear-gradient(
+      91deg,
+      transparent 0 84px,
+      rgba(74, 38, 14, 0.1) 84px 104px,
+      transparent 104px 173px
+    ),
+    /* It takes hold at the edges first, so the middle stays steel. */
+    /* Two patches where it has really gone, so the rust is somewhere in
+       particular rather than evenly over the whole sheet. */
+    radial-gradient(58% 44% at 18% 74%, rgba(126, 62, 22, 0.3), transparent 70%),
+    radial-gradient(46% 62% at 82% 22%, rgba(112, 54, 18, 0.26), transparent 72%),
+    radial-gradient(150% 120% at 50% 48%, rgba(22, 21, 19, 0.16) 24%, transparent 78%),
+    linear-gradient(168deg, rgba(10, 10, 9, 0.26), transparent 40%, rgba(10, 10, 9, 0.32));
   --surface-sheen: radial-gradient(120% 90% at 30% 18%, rgba(255, 236, 206, 0.1), transparent 52%);
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 40%, rgba(6, 5, 4, 0.62));
 }
