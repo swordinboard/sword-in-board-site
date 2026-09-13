@@ -36,9 +36,9 @@
   --frame-mid: #6b4423;
   --frame-dark: #3f2713;
   --surface-base: #c69a63;
-  --surface-deep: #a97b46;
+  --surface-deep: #bc8f59;
   --surface-shadow: rgba(60, 33, 10, 0.55);
-  --surface-inner: rgba(60, 33, 10, 0.32);
+  --surface-inner: rgba(60, 33, 10, 0.18);
   --surface-ink: rgba(70, 42, 16, 0.6);
   --wall-color: #17140f;
   --wall-glow: radial-gradient(circle at 50% 40%, #2a241b 0%, #100e0a 100%);

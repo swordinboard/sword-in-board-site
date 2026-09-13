@@ -41,6 +41,11 @@
    * every chip - paint is on or off, and so is this.
    */
   --tex-worn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='n' x='0' y='0' width='900' height='900' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.055' numOctaves='4' stitchTiles='stitch' seed='29'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.9 0.7 0.4 0 0.12'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='1 1 0 1 1 1 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='900' height='900' filter='url(%23n)'/%3E%3C/svg%3E");
+  /*
+   * A hand-forged nail head: not round, because nothing off an anvil is, and
+   * matte, because iron that has been hammered does not shine.
+   */
+  --iron-nail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52'%3E%3Cdefs%3E%3CradialGradient id='i' cx='34%25' cy='26%25' r='78%25'%3E%3Cstop offset='0' stop-color='%238b857b'/%3E%3Cstop offset='38%25' stop-color='%233d3933'/%3E%3Cstop offset='100%25' stop-color='%230b0a09'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cg transform='rotate(9 26 26)'%3E%3Crect x='5' y='9' width='42' height='42' rx='13' fill='%23000' fill-opacity='0.5'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='url(%23i)'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='none' stroke='%23a39c90' stroke-opacity='0.3' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E");
   /* Tooth for paper stock. */
   --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p' x='0' y='0' width='180' height='180' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
@@ -102,9 +107,7 @@
   position: absolute;
   inset: 80px;
   border-radius: 7px;
-  box-shadow:
-    0 0 0 4px rgba(0, 0, 0, 0.32),
-    0 4px 11px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--frame-bevel, 0 0 0 4px rgba(0, 0, 0, 0.32), 0 4px 11px rgba(0, 0, 0, 0.4));
   pointer-events: none;
 }
 
@@ -158,7 +161,12 @@
   pointer-events: none;
 }
 
-/* Vignette, so the middle of a large board still feels lit. */
+/*
+ * Vignette, so the middle of a large board still feels lit. Kept light: this
+ * is the third thing shading the same surface, after the base-to-deep ramp
+ * and the inset glow, and three of them stacked stop reading as one lit
+ * board and start reading as two materials joined across the middle.
+ */
 .cork::before {
   content: '';
   position: absolute;
@@ -444,7 +452,7 @@
   --tex-frame: var(--tex-wood);
   --tex-surface: var(--tex-cork);
   --surface-sheen: radial-gradient(120% 90% at 30% 20%, rgba(255, 226, 178, 0.3), transparent 60%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 55%, rgba(48, 26, 8, 0.34));
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 62%, rgba(48, 26, 8, 0.18));
 }
 
 /*
@@ -460,9 +468,9 @@
   --frame-mid: #24180b;
   --frame-dark: #100a04;
   --surface-base: #3a2814;
-  --surface-deep: #1f1409;
+  --surface-deep: #2e1f10;
   --surface-shadow: rgba(12, 7, 2, 0.72);
-  --surface-inner: rgba(12, 7, 2, 0.5);
+  --surface-inner: rgba(12, 7, 2, 0.3);
   --surface-ink: rgba(226, 202, 160, 0.4);
   --wall-color: #14100c;
   --wall-glow: radial-gradient(circle at 50% 34%, #2a2014 0%, #0b0806 100%);
@@ -486,8 +494,15 @@
       rgba(10, 5, 1, 0.1) 173px 201px
     ),
     var(--tex-plank);
+  /* A sign this rough was never trimmed out; it was nailed together. */
+  --frame-bevel: none;
+  --frame-marks:
+    var(--iron-nail) left 24px top 24px / 52px 52px no-repeat,
+    var(--iron-nail) right 24px top 24px / 52px 52px no-repeat,
+    var(--iron-nail) left 24px bottom 24px / 52px 52px no-repeat,
+    var(--iron-nail) right 24px bottom 24px / 52px 52px no-repeat;
   --surface-sheen: radial-gradient(110% 80% at 34% 16%, rgba(255, 198, 120, 0.07), transparent 56%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 38%, rgba(8, 4, 1, 0.6));
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 50%, rgba(8, 4, 1, 0.34));
 }
 
 /* Brushed graphite and a backlit panel. */
@@ -496,16 +511,16 @@
   --frame-mid: #2f353d;
   --frame-dark: #14181d;
   --surface-base: #1e2c36;
-  --surface-deep: #0e161d;
+  --surface-deep: #16212a;
   --surface-shadow: rgba(0, 14, 24, 0.65);
-  --surface-inner: rgba(0, 14, 24, 0.45);
+  --surface-inner: rgba(0, 14, 24, 0.3);
   --surface-ink: rgba(150, 205, 225, 0.55);
   --wall-color: #06090c;
   --wall-glow: radial-gradient(circle at 50% 30%, #101d28 0%, #04070a 100%);
   --tex-frame: none;
   --tex-surface: var(--tex-grid);
   --surface-sheen: linear-gradient(158deg, rgba(96, 200, 232, 0.12), transparent 52%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 46%, rgba(2, 10, 18, 0.6));
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(2, 10, 18, 0.42));
 }
 
 /*
@@ -520,9 +535,9 @@
   --frame-mid: #6f5330;
   --frame-dark: #3c2b17;
   --surface-base: #c9a978;
-  --surface-deep: #a5854f;
+  --surface-deep: #bb9a66;
   --surface-shadow: rgba(72, 48, 18, 0.52);
-  --surface-inner: rgba(72, 48, 18, 0.28);
+  --surface-inner: rgba(72, 48, 18, 0.16);
   --surface-ink: rgba(84, 58, 24, 0.6);
   --wall-color: #1b1610;
   --wall-glow: radial-gradient(circle at 50% 38%, #3b2c1a 0%, #120d08 100%);
@@ -531,8 +546,10 @@
     var(--tex-hide),
     /* Where the hide is drawn tight over the frame it goes lighter. */
     radial-gradient(125% 100% at 50% 45%, rgba(255, 232, 186, 0.22), rgba(92, 62, 24, 0.14) 78%);
+  /* Rustic materials, well put together - but not trimmed out either. */
+  --frame-bevel: none;
   --surface-sheen: radial-gradient(120% 90% at 30% 16%, rgba(255, 240, 205, 0.2), transparent 58%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(58, 38, 12, 0.34));
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 62%, rgba(58, 38, 12, 0.18));
 }
 
 /* Steel that has been out in it, and warning paint on the frame. */
@@ -542,9 +559,9 @@
   --frame-mid: #3a3d3c;
   --frame-dark: #1e2120;
   --surface-base: #515553;
-  --surface-deep: #2c2f2f;
+  --surface-deep: #3c4040;
   --surface-shadow: rgba(14, 17, 17, 0.7);
-  --surface-inner: rgba(14, 17, 17, 0.5);
+  --surface-inner: rgba(14, 17, 17, 0.32);
   --surface-ink: rgba(226, 230, 228, 0.5);
   --wall-color: #0e1010;
   --wall-glow: radial-gradient(circle at 50% 36%, #23262a 0%, #070808 100%);
@@ -568,5 +585,5 @@
     var(--hazard-v) right center / 100px 1000px no-repeat;
   --frame-wear: var(--tex-worn);
   --surface-sheen: linear-gradient(158deg, rgba(226, 236, 240, 0.08), transparent 50%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 44%, rgba(6, 8, 8, 0.58));
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(6, 8, 8, 0.38));
 }
