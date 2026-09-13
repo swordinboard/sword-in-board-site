@@ -505,10 +505,7 @@
   padding: 26px 0;
   border-radius: 10px;
   /* The cork, so the preview is judged against what it will sit on. */
-  background:
-    var(--tex-cork),
-    var(--tex-mottle),
-    linear-gradient(160deg, #c89a5e, #b3823f 55%, #9d6f34);
+  background: url('./tex/surface-cork.jpg') center / cover no-repeat, #c69a63;
   overflow: hidden;
 }
 

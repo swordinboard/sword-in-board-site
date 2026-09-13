@@ -61,6 +61,8 @@ export const TEXTURES = [
     name: "tex-cork",
     width: 1587,
     height: 1587,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 1,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1587' height='1587'><filter id='k' x='0' y='0' width='1587' height='1587' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.0182' numOctaves='3' stitchTiles='stitch' seed='7'/><feColorMatrix type='matrix' values='0 0 0 0 0.38 0 0 0 0 0.23 0 0 0 0 0.09 0.95 0.75 0.45 0 -0.42'/><feComponentTransfer><feFuncA type='discrete' tableValues='0 0.16 0.06 0.30 0.10 0.38 0.02 0.22'/></feComponentTransfer></filter><rect width='1587' height='1587' filter='url(#k)'/></svg>",
   },
@@ -68,6 +70,8 @@ export const TEXTURES = [
     name: "tex-mottle",
     width: 2800,
     height: 2800,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 0.12,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'><filter id='g' x='0' y='0' width='2800' height='2800' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='5'/><feColorMatrix type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.16 0 0 0 0 0.06 0.5 0.4 0.3 0 -0.42'/></filter><rect width='2800' height='2800' filter='url(#g)'/></svg>",
   },
@@ -82,6 +86,8 @@ export const TEXTURES = [
     name: "tex-rust",
     width: 2987,
     height: 2987,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 0.55,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2987' height='2987'><filter id='r' x='0' y='0' width='2987' height='2987' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.0161' numOctaves='5' stitchTiles='stitch' seed='13'/><feColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.62'/><feComponentTransfer><feFuncA type='discrete' tableValues='0 0 0.09 0 0.05 0.13 0 0.06'/></feComponentTransfer></filter><rect width='2987' height='2987' filter='url(#r)'/></svg>",
   },
@@ -89,6 +95,8 @@ export const TEXTURES = [
     name: "tex-plank",
     width: 1493,
     height: 2987,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 0.3,
     drawn: [1120, 2240],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1493' height='2987'><filter id='q' x='0' y='0' width='1493' height='2987' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='4'/><feColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/></filter><rect width='1493' height='2987' filter='url(#q)'/></svg>",
@@ -97,6 +105,8 @@ export const TEXTURES = [
     name: "tex-hide",
     width: 1960,
     height: 1960,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 0.25,
     drawn: [980, 980],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1960' height='1960'><filter id='d' x='0' y='0' width='1960' height='1960' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.0236' numOctaves='4' stitchTiles='stitch' seed='23'/><feColorMatrix type='matrix' values='0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0 0.13 0.5 0.4 0.28 0 -0.30'/></filter><rect width='1960' height='1960' filter='url(#d)'/></svg>",
@@ -105,6 +115,8 @@ export const TEXTURES = [
     name: "tex-grime",
     width: 2800,
     height: 2800,
+    // Only an input to a board surface; never shipped on its own.
+    internal: true,
     scale: 0.15,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'><filter id='m' x='0' y='0' width='2800' height='2800' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='11'/><feColorMatrix type='matrix' values='0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0 0.22 0.5 0.4 0.3 0 -0.42'/></filter><rect width='2800' height='2800' filter='url(#m)'/></svg>",
   },
@@ -125,6 +137,22 @@ export const TEXTURES = [
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p' x='0' y='0' width='180' height='180' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/><feColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/></filter><rect width='180' height='180' filter='url(#p)'/></svg>",
   },
 
+
+  /* Brushed steel, drawn the length of each side the same way. */
+  {
+    name: "frame-steel-rail",
+    width: 1200,
+    height: 100,
+    scale: [0.25, 1],
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='100'><filter id='sa' x='0' y='0' width='1200' height='100' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.002 0.09' numOctaves='3' stitchTiles='stitch' seed='19'/><feColorMatrix type='matrix' values='0 0 0 0 0.1 0 0 0 0 0.11 0 0 0 0 0.11 0.6 0.5 0.35 0 -0.34'/></filter><rect width='1200' height='100' filter='url(#sa)'/></svg>",
+  },
+  {
+    name: "frame-steel-stile",
+    width: 100,
+    height: 1200,
+    scale: [1, 0.25],
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='1200'><filter id='sb' x='0' y='0' width='100' height='1200' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.09 0.002' numOctaves='3' stitchTiles='stitch' seed='19'/><feColorMatrix type='matrix' values='0 0 0 0 0.1 0 0 0 0 0.11 0 0 0 0 0.11 0.6 0.5 0.35 0 -0.34'/></filter><rect width='100' height='1200' filter='url(#sb)'/></svg>",
+  },
   /*
    * The frame, as four lengths of moulding rather than one sheet.
    *
@@ -171,6 +199,68 @@ export const COMPOSED = [
   { name: 'hazard-v', width: 100, height: 1000, scale: 1, get html() { return hazard(100, 1000, -45); } },
 ];
 
+/**
+ * A board's whole surface, as one picture.
+ *
+ * These used to be a stack of CSS layers over a tiled texture, and a tiled
+ * background inside a scaled transform seams: the browser samples each tile
+ * independently, so every join shows as a hard edge. Measured at the zooms a
+ * phone uses, a tile seams whether it is upscaled or drawn at 1:1 - so a
+ * better tile was never going to fix it. One picture that never repeats has
+ * no joins to show.
+ *
+ * Each is square, at the board's larger dimension, and drawn with `cover`, so
+ * one file serves a landscape board, a portrait one, and any size in between
+ * without stretching. They are opaque and baked over the base colour, which
+ * lets them be jpeg: the noise these are made of is what makes a png large,
+ * and a jpeg of it is a quarter of the size at a quality nobody can see past.
+ *
+ * The stack that produces each one lives here now and nowhere else, so there
+ * is no second copy in the stylesheet to drift from it.
+ */
+const BOARD = 4200;
+
+export const SURFACES = [
+  {
+    name: 'surface-cork',
+    base: '#c69a63',
+    layers: `{tex-cork}`,
+  },
+  {
+    name: 'surface-medieval',
+    base: '#3a2814',
+    layers: `
+      repeating-linear-gradient(90deg, transparent 0 616px,
+        rgba(8, 4, 1, 0.55) 616px 639px, rgba(120, 92, 56, 0.07) 639px 667px),
+      repeating-linear-gradient(90deg, transparent 0 919px, rgba(8, 4, 1, 0.3) 919px 933px),
+      repeating-linear-gradient(2deg, transparent 0 159px,
+        rgba(255, 232, 190, 0.045) 159px 173px, rgba(10, 5, 1, 0.1) 173px 201px),
+      {tex-plank}`,
+  },
+  {
+    name: 'surface-western',
+    base: '#c9a978',
+    layers: `
+      {tex-hide},
+      radial-gradient(125% 100% at 50% 45%, rgba(255, 232, 186, 0.22), rgba(92, 62, 24, 0.14) 78%)`,
+  },
+  {
+    name: 'surface-industrial',
+    base: '#515553',
+    layers: `
+      {tex-rust},
+      {tex-grime},
+      linear-gradient(168deg, rgba(12, 14, 14, 0.4), transparent 40%, rgba(12, 14, 14, 0.45))`,
+  },
+  {
+    name: 'surface-scifi',
+    base: '#1e2c36',
+    layers: `
+      repeating-linear-gradient(0deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px),
+      repeating-linear-gradient(90deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px)`,
+  },
+];
+
 /* Everything below only runs when this file is run directly. */
 if (import.meta.url === `file://${process.argv[1]}`) {
   let chromium;
@@ -190,24 +280,51 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const browser = await chromium.launch(
     process.env.PLAYWRIGHT_CHROMIUM ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM } : {},
   );
+  const kb = (n) => `${(n / 1024).toFixed(0)} KB`;
+
+  /* Every filter, kept in memory: some are only ever inputs to a surface. */
+  const baked = new Map();
   for (const tex of [...TEXTURES, ...COMPOSED]) {
-    if (tex.internal) continue;
     const [sx, sy] = Array.isArray(tex.scale) ? tex.scale : [tex.scale, tex.scale];
     const w = Math.round(tex.width * sx);
     const h = Math.round(tex.height * sy);
-    // Drawn at the baked size rather than cropped to it, so a reduced bake is
-    // the same picture at fewer pixels.
     const page = await browser.newPage({ viewport: { width: w, height: h } });
     await page.setContent(
       `<style>html,body{margin:0;background:transparent}svg,div{display:block;width:${w}px;height:${h}px}</style>${tex.svg ?? tex.html}`,
     );
     await page.waitForTimeout(120);
-    // Transparent: every one of these is a single colour over varying alpha.
-    writeFileSync(join(out, `${tex.name}.png`), await page.screenshot({ omitBackground: true }));
+    baked.set(tex.name, await page.screenshot({ omitBackground: true }));
     await page.close();
-    const kb = (statSync(join(out, `${tex.name}.png`)).size / 1024).toFixed(0);
+    if (tex.internal) continue;
+    writeFileSync(join(out, `${tex.name}.png`), baked.get(tex.name));
     const [dw, dh] = tex.drawn ?? [tex.width, tex.height];
-    console.log(`${tex.name.padEnd(12)} drawn ${dw}x${dh}  baked ${w}x${h}  ${kb} KB`);
+    console.log(`${tex.name.padEnd(18)} drawn ${dw}x${dh}  baked ${w}x${h}  ${kb(statSync(join(out, `${tex.name}.png`)).size)}`);
+  }
+
+  /* Then each board surface, as one picture over its own base colour. */
+  /*
+   * Composed from the filters, not from the baked pngs. A png of a stitched
+   * filter no longer stitches: downscaling it samples the edge pixels against
+   * nothing, so tiling one into a surface bakes a seam in permanently. The
+   * filter itself wraps at any size.
+   */
+  const uri = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  for (const s of SURFACES) {
+    const size = s.size ?? 2100;
+    const layers = s.layers.replace(/\{(tex-[a-z-]+)\}/g, (_, n) => {
+      const tex = TEXTURES.find((t) => t.name === n);
+      const [w, h] = tex.drawn ?? [tex.width, tex.height];
+      return `${uri(tex.svg)} 0 0 / ${w}px ${h}px repeat`;
+    });
+    const page = await browser.newPage({ viewport: { width: size, height: size } });
+    await page.setContent(`<style>html,body{margin:0}
+      #s{width:${BOARD}px;height:${BOARD}px;transform:scale(${size / BOARD});transform-origin:0 0;
+         background:${layers.trim()},${s.base}}</style><div id="s"></div>`);
+    await page.waitForTimeout(200);
+    const buf = await page.screenshot({ type: 'jpeg', quality: s.quality ?? 84 });
+    await page.close();
+    writeFileSync(join(out, `${s.name}.jpg`), buf);
+    console.log(`${s.name.padEnd(18)} drawn ${BOARD}x${BOARD}  baked ${size}x${size}  ${kb(buf.length)}`);
   }
   await browser.close();
 }
