@@ -219,6 +219,12 @@ export default function SidePanel({
                 })}
                 . Looking at it pushes that back.
               </>
+            ) : official ? (
+              <>
+                <br />
+                <br />
+                Kept for as long as the site is, being one of its own.
+              </>
             ) : null}
           </p>
         </div>

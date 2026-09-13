@@ -382,7 +382,16 @@ export function boardTtlDays(): number {
   return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 180;
 }
 
-export function expiryOf(board: BoardState): string {
+/**
+ * When this board will be cleared, or nothing at all if it never will be.
+ *
+ * A board the site has marked as its own is kept whatever happens to it. The
+ * sweep exists to clear boards nobody wants any more, and a board that
+ * speaks for the site is not one of those - it may sit untouched for a year
+ * and still be the one thing a visitor is meant to find.
+ */
+export function expiryOf(board: BoardState): string | undefined {
+  if (board.official) return undefined;
   const seen = board.lastSeenAt ?? board.updatedAt;
   return new Date(new Date(seen).getTime() + boardTtlDays() * 86400_000).toISOString();
 }
@@ -524,11 +533,20 @@ async function forgetRecovery(boardId: string): Promise<void> {
   await boardSecretStore().delete(boardId);
 }
 
-/** Boards untouched for longer than the site's limit. */
+/**
+ * Boards untouched for longer than the site's limit.
+ *
+ * Read through expiryOf rather than by date alone, so a board that never
+ * expires cannot turn up here however long it is left. The sweep is not the
+ * only thing that asks, and the answer had better be the same everywhere.
+ */
 export async function expiredBoards(): Promise<BoardState[]> {
   const now = Date.now();
   const boards = await listBoards();
-  return boards.filter((board) => new Date(expiryOf(board)).getTime() < now);
+  return boards.filter((board) => {
+    const at = expiryOf(board);
+    return at !== undefined && new Date(at).getTime() < now;
+  });
 }
 
 /* --------------------------------------------------------------- reports */

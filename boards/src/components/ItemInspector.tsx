@@ -10,6 +10,7 @@ import {
   takesImage,
   takesText,
 } from '../lib/frames';
+import { useState } from 'react';
 import { useToday, zoneOptions } from '../lib/clock';
 import GalleryEditor from './GalleryEditor';
 import LinesEditor from './LinesEditor';
@@ -43,6 +44,8 @@ export default function ItemInspector({
   onClose,
 }: Props) {
   const today = useToday(timeZone);
+  /** Taking something down cannot be undone, so it is asked twice. */
+  const [confirming, setConfirming] = useState(false);
 
   /**
    * Anything holding a picture keeps the shape it was given, and one slider
@@ -399,14 +402,31 @@ export default function ItemInspector({
           </>
         ) : null}
 
-        <div className="btn-row">
-          <button className="btn ghost" type="button" onClick={onBringToFront}>
-            Bring to front
-          </button>
-          <button className="btn danger" type="button" onClick={onDelete}>
-            Take it down
-          </button>
-        </div>
+        {confirming ? (
+          <div className="danger-zone">
+            <p>
+              Take this down? There is no undo and nothing keeps a copy, so whatever is on it
+              is gone.
+            </p>
+            <div className="actions">
+              <button className="btn danger" type="button" onClick={onDelete}>
+                Take it down
+              </button>
+              <button className="btn ghost" type="button" onClick={() => setConfirming(false)}>
+                Leave it up
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="btn-row">
+            <button className="btn ghost" type="button" onClick={onBringToFront}>
+              Bring to front
+            </button>
+            <button className="btn danger" type="button" onClick={() => setConfirming(true)}>
+              Take it down
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

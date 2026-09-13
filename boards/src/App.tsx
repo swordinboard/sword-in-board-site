@@ -458,6 +458,9 @@ export default function App() {
 
       {canEdit && inspecting ? (
         <ItemInspector
+          // Fresh per item, so a confirmation opened on one is never left
+          // standing over the next.
+          key={inspecting.id}
           item={inspecting}
           boardId={board?.id ?? ''}
           roomForPictures={roomForPictures}
