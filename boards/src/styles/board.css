@@ -25,11 +25,22 @@
    * relative to the grain on purpose: a smaller one showed its own edges as
    * a visible lattice across the board.
    */
-  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2987' height='2987'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0161' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.62'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.06 0.17 0.02 0.11 0.22 0.04 0.14'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='2987' height='2987' filter='url(%23r)'/%3E%3C/svg%3E");
+  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2987' height='2987'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0161' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.62'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.09 0 0.05 0.13 0 0.06'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='2987' height='2987' filter='url(%23r)'/%3E%3C/svg%3E");
   /* Grain running the length of a plank: fine across it, long along it. */
   --tex-plank: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1493' height='2987'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='4'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/%3E%3C/filter%3E%3Crect width='1493' height='2987' filter='url(%23q)'/%3E%3C/svg%3E");
   /* Hide: a fine irregular grain with no direction to it. */
   --tex-hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1960' height='1960'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0236' numOctaves='4' stitchTiles='stitch' seed='23'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0 0.13 0.5 0.4 0.28 0 -0.30'/%3E%3C/filter%3E%3Crect width='1960' height='1960' filter='url(%23d)'/%3E%3C/svg%3E");
+  /* Grime, the same clouding as the mottle but cold: steel does not brown. */
+  --tex-grime: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='11'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0 0.22 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='2800' height='2800' filter='url(%23m)'/%3E%3C/svg%3E");
+  /*
+   * Missing paint. Steel-coloured rather than dark, so where it falls on a
+   * painted stripe it reads as a chip and on bare frame it barely shows.
+   * Posterised, because a chip has an edge - and drawn at the size of the
+   * band it belongs to, so nothing has to stretch a square of noise into a
+   * strip and get streaks instead of flecks.
+   */
+  --tex-chip-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1500' height='100'%3E%3Cfilter id='ch'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06' numOctaves='3' stitchTiles='stitch' seed='17'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.38 0 0 0 0 0.37 0.9 0.7 0.4 0 -0.55'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.34 0 0.14 0.45 0 0.07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='1500' height='100' filter='url(%23ch)'/%3E%3C/svg%3E");
+  --tex-chip-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='1000'%3E%3Cfilter id='cv'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06' numOctaves='3' stitchTiles='stitch' seed='17'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.38 0 0 0 0 0.37 0.9 0.7 0.4 0 -0.55'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.34 0 0.14 0.45 0 0.07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100' height='1000' filter='url(%23cv)'/%3E%3C/svg%3E");
   /* Tooth for paper stock. */
   --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
@@ -94,6 +105,22 @@
   box-shadow:
     0 0 0 4px rgba(0, 0, 0, 0.32),
     0 4px 11px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+/*
+ * Whatever has been painted on the frame. A pseudo-element rather than more
+ * layers on .board's own background: only one preset wants marks, and a
+ * per-layer size list on a shared background is a thing every other preset
+ * would then have to keep in step. It sits above the frame and below the
+ * cork, so it shows in the border and nowhere else.
+ */
+.board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 13px;
+  background: var(--frame-marks, none);
   pointer-events: none;
 }
 
@@ -452,23 +479,38 @@
 /* Rusted steel, and a board that has been out in it. */
 .stage[data-board-style='apocalypse'] {
   /* Steel underneath; the rust texture over it is what makes it rust. */
-  --frame-light: #565049;
-  --frame-mid: #37322c;
-  --frame-dark: #1d1a17;
-  --surface-base: #3e3d39;
-  --surface-deep: #242322;
-  --surface-shadow: rgba(18, 14, 10, 0.7);
-  --surface-inner: rgba(18, 14, 10, 0.5);
-  --surface-ink: rgba(226, 214, 196, 0.5);
-  --wall-color: #100e0c;
-  --wall-glow: radial-gradient(circle at 50% 36%, #262019 0%, #070605 100%);
-  --tex-frame: var(--tex-rust);
-  /* Rust in patches over grime, rather than rust as the whole surface. */
+  --frame-light: #5e6160;
+  --frame-mid: #3a3d3c;
+  --frame-dark: #1e2120;
+  --surface-base: #515553;
+  --surface-deep: #2c2f2f;
+  --surface-shadow: rgba(14, 17, 17, 0.7);
+  --surface-inner: rgba(14, 17, 17, 0.5);
+  --surface-ink: rgba(226, 230, 228, 0.5);
+  --wall-color: #0e1010;
+  --wall-glow: radial-gradient(circle at 50% 36%, #23262a 0%, #070808 100%);
+  --tex-frame: var(--tex-grime);
+  /* Rust where it has taken, and steel everywhere it has not. */
   --tex-surface:
     var(--tex-rust),
-    /* Where it has taken hold and where it has not. */
-    var(--tex-mottle),
-    linear-gradient(168deg, rgba(10, 10, 9, 0.5), transparent 38%, rgba(10, 10, 9, 0.55));
-  --surface-sheen: radial-gradient(120% 90% at 30% 18%, rgba(255, 236, 206, 0.1), transparent 52%);
-  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 40%, rgba(6, 5, 4, 0.62));
+    var(--tex-grime),
+    linear-gradient(168deg, rgba(12, 14, 14, 0.4), transparent 40%, rgba(12, 14, 14, 0.45));
+  /*
+   * Hazard stripes, one run centred on each side. They stop well short of the
+   * corners: this is paint somebody put where a hand or a shin would meet the
+   * frame, not a border.
+   */
+  --hazard-h: repeating-linear-gradient(45deg, #c6a02b 0 34px, #24261f 34px 68px);
+  --hazard-v: repeating-linear-gradient(-45deg, #c6a02b 0 34px, #24261f 34px 68px);
+  --frame-marks:
+    var(--tex-chip-h) top center / 1500px 100px no-repeat,
+    var(--hazard-h) top center / 1500px 100px no-repeat,
+    var(--tex-chip-h) bottom center / 1500px 100px no-repeat,
+    var(--hazard-h) bottom center / 1500px 100px no-repeat,
+    var(--tex-chip-v) left center / 100px 1000px no-repeat,
+    var(--hazard-v) left center / 100px 1000px no-repeat,
+    var(--tex-chip-v) right center / 100px 1000px no-repeat,
+    var(--hazard-v) right center / 100px 1000px no-repeat;
+  --surface-sheen: linear-gradient(158deg, rgba(226, 236, 240, 0.08), transparent 50%);
+  --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 44%, rgba(6, 8, 8, 0.58));
 }
