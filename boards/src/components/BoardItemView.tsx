@@ -18,6 +18,9 @@ function BoardItemView({ item, editable, selected, dragging, today, onPointerDow
       className={[
         'item',
         `frame-${item.frame}`,
+        // A picture keeps the shape it was cropped to whatever is written
+        // around it, rather than giving up its height to make room.
+        item.aspect ? 'shaped' : '',
         editable ? 'editable' : '',
         selected ? 'selected' : '',
         dragging ? 'dragging' : '',
@@ -31,6 +34,7 @@ function BoardItemView({ item, editable, selected, dragging, today, onPointerDow
         height: item.h,
         zIndex: dragging ? 9999 : item.z,
         transform: `rotate(${item.rotation}deg)`,
+        ...(item.aspect ? { ['--aspect' as string]: String(item.aspect) } : null),
         // A point is 1/72 of an inch, and an inch is 117 board pixels.
         ...(item.typeSize ? { ['--type' as string]: `${item.typeSize * (117 / 72)}px` } : null),
       }}

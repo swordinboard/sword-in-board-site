@@ -1,6 +1,7 @@
 import type { BoardLine, FrameStyle, HangerStyle } from '../../shared/types';
 import type { CropRect } from '../lib/image';
 import { sizeFor } from '../lib/frames';
+import { forwardRef } from 'react';
 import { Contents, Fastener } from './ItemFace';
 
 interface Props {
@@ -35,7 +36,7 @@ interface Props {
  * than by re-encoding it. Producing a real cropped file on every handle drag
  * would be far too slow, and the result on screen is identical.
  */
-export default function FramePreview({
+const FramePreview = forwardRef<HTMLDivElement, Props>(function FramePreview({
   image,
   rect,
   frame,
@@ -50,7 +51,7 @@ export default function FramePreview({
   galleryCount,
   galleryCover,
   max = 190,
-}: Props) {
+}, ref) {
   const aspect = rect && rect.h > 0 ? rect.w / rect.h : 1;
   const size = sizeFor(frame, aspect);
   const scale = Math.min(1, max / Math.max(size.w, size.h));
@@ -100,12 +101,14 @@ export default function FramePreview({
       */}
       <div className="preview-stage" style={{ width: size.w * scale, height: size.h * scale }}>
         <div
-          className={`item frame-${frame}`}
+          ref={ref}
+          className={`item frame-${frame}${rect ? ' shaped' : ''}`}
           style={{
             width: size.w,
             height: size.h,
             transform: `scale(${scale})`,
             transformOrigin: 'top left',
+            ...(rect && rect.h > 0 ? { ['--aspect' as string]: String(rect.w / rect.h) } : null),
             ...(typeSize ? { ['--type' as string]: `${typeSize * (117 / 72)}px` } : null),
           }}
         >
@@ -117,4 +120,6 @@ export default function FramePreview({
       </div>
     </div>
   );
-}
+});
+
+export default FramePreview;

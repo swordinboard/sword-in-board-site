@@ -14,6 +14,7 @@ import {
   textSizeFor,
 } from '../lib/frames';
 import { useToday } from '../lib/clock';
+import { heightForContent } from '../lib/fit';
 import Cropper from './Cropper';
 import FramePreview from './FramePreview';
 import LinesEditor from './LinesEditor';
@@ -76,6 +77,8 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
   /** A whiteboard's live lines, set up before it ever goes on the wall. */
   const [lines, setLines] = useState<BoardLine[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  /** The item as the preview draws it, so it can be measured before it goes up. */
+  const previewRef = useRef<HTMLDivElement>(null);
   const today = useToday(timeZone);
 
   useEffect(() => {
@@ -203,6 +206,10 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
       const { id } = await uploadMedia(blob, boardId);
       const aspect = rect.w / rect.h;
       const size = sizeFor(frame, aspect);
+      // A clipping can carry a headline and a story as well as the picture,
+      // and those need room of their own. The preview has already drawn the
+      // item at its true size, so it knows how much.
+      const needed = heightForContent(previewRef.current);
       await onPlace({
         mediaId: id,
         caption: frame === 'polaroid' ? caption.trim() || undefined : undefined,
@@ -211,7 +218,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
         hanger,
         pinColor: hanger === 'pin' ? pinColor : undefined,
         w: size.w,
-        h: size.h,
+        h: needed !== null && needed > size.h ? needed : size.h,
         rotation: randomTilt(frame),
       });
     } catch (e) {
@@ -462,6 +469,7 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
         <div className="field">
           <label>Preview</label>
           <FramePreview
+            ref={previewRef}
             image={mode === 'image' && !isGallery ? image : null}
             rect={mode === 'image' && !isGallery ? rect : null}
             frame={frame}

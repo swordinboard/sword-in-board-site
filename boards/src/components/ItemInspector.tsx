@@ -10,8 +10,9 @@ import {
   takesImage,
   takesText,
 } from '../lib/frames';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToday, zoneOptions } from '../lib/clock';
+import { heightForContent } from '../lib/fit';
 import GalleryEditor from './GalleryEditor';
 import LinesEditor from './LinesEditor';
 
@@ -69,40 +70,48 @@ export default function ItemInspector({
    */
   const typeNow = item.typeSize ?? Math.max(12, Math.round((item.w * 0.02 * 72) / PX_PER_INCH));
 
+  /** What this item would need to be to show everything on it. */
+  const needed = () =>
+    heightForContent(document.querySelector<HTMLElement>(`[data-item="${item.id}"]`));
+
   /**
    * Sets the height to whatever is actually on the item.
    *
-   * Text that runs past the bottom of its sheet is simply cut off, and until
-   * now the only way out was to widen the whole thing until it happened to
-   * fit. This measures the item as it is drawn and gives it the room it
-   * asked for - or takes back the room it never used.
+   * Text that runs past the bottom of its sheet is simply cut off, and the
+   * only way out used to be widening the whole thing until it happened to
+   * fit. This gives it the room it asked for - or takes back the room it
+   * never used.
    */
   const fitToText = () => {
-    const surface = document.querySelector<HTMLElement>(`[data-item="${item.id}"] .surface`);
-    const flow = surface?.querySelector<HTMLElement>('.stack, .wb-face');
-    if (!surface || !flow) return;
-
-    const pad = (el: HTMLElement) => {
-      const style = getComputedStyle(el);
-      return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-    };
-    // Measured from the parts rather than from the container: a container
-    // stretched to the item is as tall as the item by definition, whatever
-    // it holds, so it can never report that its contents do not fit.
-    const gap = parseFloat(getComputedStyle(flow).rowGap) || 0;
-    const parts = [...flow.children].filter(
-      (el): el is HTMLElement =>
-        el instanceof HTMLElement && getComputedStyle(el).position !== 'absolute',
-    );
-    if (parts.length === 0) return;
-    const content =
-      parts.reduce((total, part) => total + part.scrollHeight, 0) + (parts.length - 1) * gap;
-
-    const next = Math.max(100, Math.round(content + pad(surface)));
-    if (next === item.h) return;
+    const next = needed();
+    if (next === null || next === item.h) return;
     onChange({ h: next });
     onCommit();
   };
+
+  /*
+   * An item holding a picture has no height of its own to set, so writing on
+   * one has to make it taller by itself. Otherwise a headline and a story
+   * added to a clipping have nowhere to go: either they squeeze the
+   * photograph or they fall off the bottom.
+   *
+   * Keyed on what actually changes the room needed - the writing, and the
+   * width it has to wrap into - and it runs on opening the settings too, so
+   * anything pinned up before this squares itself up as soon as it is
+   * looked at.
+   */
+  useEffect(() => {
+    // Any item with a picture, not only one that currently has writing: take
+    // the writing off again and it should shrink back to the photograph.
+    if (!item.aspect) return;
+    const next = needed();
+    if (next === null || Math.abs(next - item.h) <= 1) return;
+    onChange({ h: next });
+    onCommit();
+    // onChange and onCommit are made afresh on every render; depending on
+    // them would run this on every render rather than on a real change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id, item.aspect, item.w, item.body, item.heading, item.typeSize]);
 
   /** Width changes keep the media's proportions by re-deriving the height. */
   const resize = (width: number) => {

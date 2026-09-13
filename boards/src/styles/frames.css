@@ -107,18 +107,18 @@
   /* Clear of the tear, which bites a percentage of the height out of the top
      and bottom and so reaches further in on a taller clipping. The headline
      sits right against the top, so the top needs the same room as the foot. */
-  padding: 4.4cqh 2.4cqw 4.4cqh;
+  padding: max(22px, 2.8cqw) 2.4cqw max(20px, 2.6cqw);
   background:
     var(--tex-paper),
     linear-gradient(168deg, #eeeade, var(--newsprint) 45%, #d9d3c2);
   /* Sides cut with scissors - near enough straight, wavering a little; top
-     and bottom torn. drop-shadow on .item traces the outline. */
+     and bottom torn, at a depth in pixels rather than a share of the height,
+     so the padding that clears the tear does not depend on the height it is
+     helping to work out. drop-shadow on .item traces the outline. */
   clip-path: polygon(
-    0.8% 2.2%, 9% 0%, 18% 2.6%, 27% 0.4%, 36% 3%, 45% 0.6%, 54% 3.2%, 63% 0.8%,
-    72% 3%, 81% 0.4%, 90% 2.8%, 99% 1%,
-    99.4% 20%, 98.8% 40%, 99.4% 60%, 98.8% 80%, 99.2% 99%,
-    90% 97.2%, 81% 99.6%, 72% 97%, 63% 99.4%, 54% 96.8%, 45% 99.4%, 36% 97%,
-    27% 99.6%, 18% 97.4%, 9% 100%, 0.6% 98%,
+    0.8% 0px, 9.7% 12.5px, 18.7% 0px, 27.6% 13.0px, 36.5% 0px, 45.4% 11.8px, 54.4% 0px, 63.3% 11.8px, 72.2% 0px, 81.1% 11.3px, 90.1% 0px, 99.0% 14.0px,
+    99.4% 20%, 98.8% 40%, 99.4% 60%, 98.8% 80%,
+    99.0% 100%, 90.1% calc(100% - 10.8px), 81.1% 100%, 72.2% calc(100% - 10.2px), 63.3% 100%, 54.4% calc(100% - 10.7px), 45.4% 100%, 36.5% calc(100% - 10.7px), 27.6% 100%, 18.7% calc(100% - 11.0px), 9.7% 100%, 0.8% calc(100% - 10.7px),
     1.2% 80%, 0.6% 60%, 1.2% 40%, 0.6% 20%
   );
 }
@@ -330,6 +330,19 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+/*
+ * A picture is the shape it was cropped to, and stays it.
+ *
+ * As a flexible box it was whatever was left after everything else had taken
+ * its height, so adding a headline and a story to a clipping squeezed the
+ * photograph into a letterbox strip rather than making the clipping taller.
+ * The crop decides the picture's height; what has to give is the item.
+ */
+.item.shaped .stack .media {
+  flex: 0 0 auto;
+  aspect-ratio: var(--aspect);
 }
 
 .item .stack {
