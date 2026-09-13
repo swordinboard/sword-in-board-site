@@ -186,8 +186,18 @@
   /* 70px of moulding at seven inches across. */
   padding: 8.55cqw;
   border-radius: 5.8px;
+  /*
+   * Four lengths of moulding, as on the board's own frame: the grain on each
+   * side runs along that side. The bands are the same absolute size here as
+   * there, because grain is the size the tree made it and does not shrink to
+   * suit a smaller frame - only the mat's own inset decides how much of each
+   * band shows, and it covers the rest.
+   */
   background:
-    var(--tex-wood),
+    url('./tex/frame-wood-stile.png') left top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-stile.png') right top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-rail.png') left top / 1867px 100px repeat-x,
+    url('./tex/frame-wood-rail.png') left bottom / 1867px 100px repeat-x,
     linear-gradient(150deg, #7d5230, #5a3a1f 48%, #33200f);
   box-shadow:
     0 2.9px 0 rgba(255, 226, 190, 0.28) inset,

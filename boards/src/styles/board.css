@@ -10,8 +10,6 @@
   --tex-cork: url('./tex/tex-cork.png') 0 0 / 1587px 1587px;
   /* Broad mottling so the cork does not read as uniform noise. */
   --tex-mottle: url('./tex/tex-mottle.png') 0 0 / 2800px 2800px;
-  /* Stretched noise reads as wood grain. */
-  --tex-wood: url('./tex/tex-wood.png') 0 0 / 1867px 653px;
   /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
      it streaks sideways, the way a hand wipes. */
   --tex-wipe: url('./tex/tex-wipe.png') 0 0 / 420px 300px;

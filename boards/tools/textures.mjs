@@ -18,7 +18,12 @@
  * package: the bitmaps are committed, so nobody installs a browser driver to
  * build or run the site. Only somebody changing a texture runs this.
  *
- * `scale` is how much of the tile's own resolution the bitmap is baked at.
+ * `scale` is how much of the tile's own resolution the bitmap is baked at,
+ * either one number or a [x, y] pair. The pair matters for the frame bands:
+ * wood grain runs 775px along a length of moulding and 9px across it, so the
+ * across dimension needs every pixel it has and the along dimension needs
+ * almost none. Baking both down together washes the grain out; baking them
+ * separately keeps it and still costs a quarter of the bytes.
  * Textures carrying hard edges - cork's granules, rust, the paint wear - are
  * baked close to full, because the edges are the point. Smooth clouding is
  * baked small and stretched back up, because nobody can see the difference
@@ -65,13 +70,6 @@ export const TEXTURES = [
     height: 2800,
     scale: 0.12,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'><filter id='g' x='0' y='0' width='2800' height='2800' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='5'/><feColorMatrix type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.16 0 0 0 0 0.06 0.5 0.4 0.3 0 -0.42'/></filter><rect width='2800' height='2800' filter='url(#g)'/></svg>",
-  },
-  {
-    name: "tex-wood",
-    width: 1867,
-    height: 653,
-    scale: 0.4,
-    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1867' height='653'><filter id='w' x='0' y='0' width='1867' height='653' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00129 0.1071' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/></filter><rect width='1867' height='653' filter='url(#w)'/></svg>",
   },
   {
     name: "tex-wipe",
@@ -141,28 +139,28 @@ export const TEXTURES = [
     name: "frame-wood-rail",
     width: 1867,
     height: 100,
-    scale: 0.4,
+    scale: [0.25, 1],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1867' height='100'><filter id='fa' x='0' y='0' width='1867' height='100' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00129 0.1071' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/></filter><rect width='1867' height='100' filter='url(#fa)'/></svg>",
   },
   {
     name: "frame-wood-stile",
     width: 100,
     height: 1867,
-    scale: 0.4,
+    scale: [1, 0.25],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='1867'><filter id='fb' x='0' y='0' width='100' height='1867' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.1071 0.00129' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/></filter><rect width='100' height='1867' filter='url(#fb)'/></svg>",
   },
   {
     name: "frame-plank-rail",
     width: 2240,
     height: 100,
-    scale: 0.4,
+    scale: [0.25, 1],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2240' height='100'><filter id='fc' x='0' y='0' width='2240' height='100' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00107 0.03' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/></filter><rect width='2240' height='100' filter='url(#fc)'/></svg>",
   },
   {
     name: "frame-plank-stile",
     width: 100,
     height: 2240,
-    scale: 0.4,
+    scale: [1, 0.25],
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='2240'><filter id='fd' x='0' y='0' width='100' height='2240' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/></filter><rect width='100' height='2240' filter='url(#fd)'/></svg>",
   },
 ];
@@ -194,8 +192,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   );
   for (const tex of [...TEXTURES, ...COMPOSED]) {
     if (tex.internal) continue;
-    const w = Math.round(tex.width * tex.scale);
-    const h = Math.round(tex.height * tex.scale);
+    const [sx, sy] = Array.isArray(tex.scale) ? tex.scale : [tex.scale, tex.scale];
+    const w = Math.round(tex.width * sx);
+    const h = Math.round(tex.height * sy);
     // Drawn at the baked size rather than cropped to it, so a reduced bake is
     // the same picture at fewer pixels.
     const page = await browser.newPage({ viewport: { width: w, height: h } });
