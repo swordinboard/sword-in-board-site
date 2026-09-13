@@ -7,14 +7,14 @@
    * granule wide - a texture with anything larger in it reads as a repeating
    * pattern once it is tiled across four thousand pixels of board.
    */
-  --tex-cork: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1587' height='1587'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0182' numOctaves='3' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.38 0 0 0 0 0.23 0 0 0 0 0.09 0.95 0.75 0.45 0 -0.42'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.16 0.06 0.30 0.10 0.38 0.02 0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='1587' height='1587' filter='url(%23k)'/%3E%3C/svg%3E");
+  --tex-cork: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1587' height='1587'%3E%3Cfilter id='k' x='0' y='0' width='1587' height='1587' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0182' numOctaves='3' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.38 0 0 0 0 0.23 0 0 0 0 0.09 0.95 0.75 0.45 0 -0.42'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0.16 0.06 0.30 0.10 0.38 0.02 0.22'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='1587' height='1587' filter='url(%23k)'/%3E%3C/svg%3E");
   /* Broad mottling so the cork does not read as uniform noise. */
-  --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.16 0 0 0 0 0.06 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='2800' height='2800' filter='url(%23g)'/%3E%3C/svg%3E");
+  --tex-mottle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'%3E%3Cfilter id='g' x='0' y='0' width='2800' height='2800' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='5'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.16 0 0 0 0 0.06 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='2800' height='2800' filter='url(%23g)'/%3E%3C/svg%3E");
   /* Stretched noise reads as wood grain. */
-  --tex-wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1867' height='653'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00129 0.1071' numOctaves='4' stitchTiles='stitch' seed='3'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/%3E%3C/filter%3E%3Crect width='1867' height='653' filter='url(%23w)'/%3E%3C/svg%3E");
+  --tex-wood: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1867' height='653'%3E%3Cfilter id='w' x='0' y='0' width='1867' height='653' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00129 0.1071' numOctaves='4' stitchTiles='stitch' seed='3'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/%3E%3C/filter%3E%3Crect width='1867' height='653' filter='url(%23w)'/%3E%3C/svg%3E");
   /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
      it streaks sideways, the way a hand wipes. */
-  --tex-wipe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='300'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.09' numOctaves='2' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42 0 0 0 0 0.46 0 0 0 0 0.52 0.5 0.4 0.3 0 -0.58'/%3E%3C/filter%3E%3Crect width='420' height='300' filter='url(%23v)'/%3E%3C/svg%3E");
+  --tex-wipe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='300'%3E%3Cfilter id='v' x='0' y='0' width='420' height='300' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.09' numOctaves='2' stitchTiles='stitch' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.42 0 0 0 0 0.46 0 0 0 0 0.52 0.5 0.4 0.3 0 -0.58'/%3E%3C/filter%3E%3Crect width='420' height='300' filter='url(%23v)'/%3E%3C/svg%3E");
   /* A panel grid, for the sci-fi board. Cheaper than turbulence and it
      tiles exactly, which is the point of a grid. */
   --tex-grid:
@@ -25,24 +25,24 @@
    * relative to the grain on purpose: a smaller one showed its own edges as
    * a visible lattice across the board.
    */
-  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2987' height='2987'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0161' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.62'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.09 0 0.05 0.13 0 0.06'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='2987' height='2987' filter='url(%23r)'/%3E%3C/svg%3E");
+  --tex-rust: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2987' height='2987'%3E%3Cfilter id='r' x='0' y='0' width='2987' height='2987' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0161' numOctaves='5' stitchTiles='stitch' seed='13'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.44 0 0 0 0 0.21 0 0 0 0 0.07 0.8 0.55 0.3 0 -0.62'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.09 0 0.05 0.13 0 0.06'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='2987' height='2987' filter='url(%23r)'/%3E%3C/svg%3E");
   /* Grain running the length of a plank: fine across it, long along it. */
-  --tex-plank: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1493' height='2987'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='4'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/%3E%3C/filter%3E%3Crect width='1493' height='2987' filter='url(%23q)'/%3E%3C/svg%3E");
+  --tex-plank: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1493' height='2987'%3E%3Cfilter id='q' x='0' y='0' width='1493' height='2987' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='4'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/%3E%3C/filter%3E%3Crect width='1493' height='2987' filter='url(%23q)'/%3E%3C/svg%3E");
   /* Hide: a fine irregular grain with no direction to it. */
-  --tex-hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1960' height='1960'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0236' numOctaves='4' stitchTiles='stitch' seed='23'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0 0.13 0.5 0.4 0.28 0 -0.30'/%3E%3C/filter%3E%3Crect width='1960' height='1960' filter='url(%23d)'/%3E%3C/svg%3E");
+  --tex-hide: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1960' height='1960'%3E%3Cfilter id='d' x='0' y='0' width='1960' height='1960' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0236' numOctaves='4' stitchTiles='stitch' seed='23'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.34 0 0 0 0 0.24 0 0 0 0 0.13 0.5 0.4 0.28 0 -0.30'/%3E%3C/filter%3E%3Crect width='1960' height='1960' filter='url(%23d)'/%3E%3C/svg%3E");
   /* Grime, the same clouding as the mottle but cold: steel does not brown. */
-  --tex-grime: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='11'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0 0.22 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='2800' height='2800' filter='url(%23m)'/%3E%3C/svg%3E");
+  --tex-grime: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2800' height='2800'%3E%3Cfilter id='m' x='0' y='0' width='2800' height='2800' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.00257' numOctaves='3' stitchTiles='stitch' seed='11'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0 0.22 0.5 0.4 0.3 0 -0.42'/%3E%3C/filter%3E%3Crect width='2800' height='2800' filter='url(%23m)'/%3E%3C/svg%3E");
   /*
-   * Missing paint. Steel-coloured rather than dark, so where it falls on a
-   * painted stripe it reads as a chip and on bare frame it barely shows.
-   * Posterised, because a chip has an edge - and drawn at the size of the
-   * band it belongs to, so nothing has to stretch a square of noise into a
-   * strip and get streaks instead of flecks.
+   * Wear, as a mask rather than a texture. Painting grey flecks on top of a
+   * stripe reads as dirt on the paint; taking bites out of the paint so the
+   * frame shows through reads as paint that has come off, which is what it
+   * is. Every step is 0 or 1 and never in between: a partial step sits next
+   * to a hole in noise value, so it would draw a half-opacity collar around
+   * every chip - paint is on or off, and so is this.
    */
-  --tex-chip-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1500' height='100'%3E%3Cfilter id='ch'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06' numOctaves='3' stitchTiles='stitch' seed='17'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.38 0 0 0 0 0.37 0.9 0.7 0.4 0 -0.55'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.34 0 0.14 0.45 0 0.07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='1500' height='100' filter='url(%23ch)'/%3E%3C/svg%3E");
-  --tex-chip-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='1000'%3E%3Cfilter id='cv'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06' numOctaves='3' stitchTiles='stitch' seed='17'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.38 0 0 0 0 0.37 0.9 0.7 0.4 0 -0.55'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='0 0 0.34 0 0.14 0.45 0 0.07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100' height='1000' filter='url(%23cv)'/%3E%3C/svg%3E");
+  --tex-worn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='n' x='0' y='0' width='900' height='900' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.055' numOctaves='4' stitchTiles='stitch' seed='29'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.9 0.7 0.4 0 0.12'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='discrete' tableValues='1 1 0 1 1 1 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='900' height='900' filter='url(%23n)'/%3E%3C/svg%3E");
   /* Tooth for paper stock. */
-  --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
+  --tex-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p' x='0' y='0' width='180' height='180' filterUnits='userSpaceOnUse'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 
 .stage {
@@ -121,6 +121,10 @@
   inset: 0;
   border-radius: 13px;
   background: var(--frame-marks, none);
+  -webkit-mask-image: var(--frame-wear, none);
+  mask-image: var(--frame-wear, none);
+  -webkit-mask-size: 900px 900px;
+  mask-size: 900px 900px;
   pointer-events: none;
 }
 
@@ -500,17 +504,14 @@
    * corners: this is paint somebody put where a hand or a shin would meet the
    * frame, not a border.
    */
-  --hazard-h: repeating-linear-gradient(45deg, #c6a02b 0 34px, #24261f 34px 68px);
-  --hazard-v: repeating-linear-gradient(-45deg, #c6a02b 0 34px, #24261f 34px 68px);
+  --hazard-h: repeating-linear-gradient(45deg, #d2a91f 0 34px, transparent 34px 72px);
+  --hazard-v: repeating-linear-gradient(-45deg, #d2a91f 0 34px, transparent 34px 72px);
   --frame-marks:
-    var(--tex-chip-h) top center / 1500px 100px no-repeat,
     var(--hazard-h) top center / 1500px 100px no-repeat,
-    var(--tex-chip-h) bottom center / 1500px 100px no-repeat,
     var(--hazard-h) bottom center / 1500px 100px no-repeat,
-    var(--tex-chip-v) left center / 100px 1000px no-repeat,
     var(--hazard-v) left center / 100px 1000px no-repeat,
-    var(--tex-chip-v) right center / 100px 1000px no-repeat,
     var(--hazard-v) right center / 100px 1000px no-repeat;
+  --frame-wear: var(--tex-worn);
   --surface-sheen: linear-gradient(158deg, rgba(226, 236, 240, 0.08), transparent 50%);
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 44%, rgba(6, 8, 8, 0.58));
 }
