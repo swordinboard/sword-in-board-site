@@ -1,6 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BoardItem } from '../../shared/types';
-import { heightForContent } from '../lib/fit';
 import { Contents, Fastener } from './ItemFace';
 
 interface Props {
@@ -10,54 +9,115 @@ interface Props {
   onClose: () => void;
 }
 
-/** Wide enough to read on, narrow enough not to sprawl on a desk. */
-const MAX_WIDTH = 820;
+interface View {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/** How far past fitting the screen an item can be pushed. */
+const MAX_OVER_FIT = 8;
+/** Nothing is worth drawing at more than this, however small it started. */
+const MAX_ZOOM = 6;
 
 /**
- * One item, opened to be read.
+ * One item, opened to be looked at.
  *
- * Not a photograph of the item blown up: there is no size at which an eight
- * and a half inch page of twelve point fits a phone and can still be read,
- * and scaling it up only pushes the ends of the lines off the side. So it is
- * the same item, drawn with the same markup and the same stylesheet, given
- * the width of the screen instead of the width it has on the cork. The
- * writing is measured against the thing it is written on, so at that width it
- * comes out at the twelve point floor and the lines wrap to the screen.
- *
- * A picture keeps the shape it was cropped to and simply fills the width,
- * which is what looking at one closely has always meant here.
+ * Shown at the shape it was given when it went up and no other: an item that
+ * changed shape on being opened would be a different item, and what shape it
+ * is was a decision somebody made. So nothing here re-lays it out. It starts
+ * at whatever size fits the screen and can be pushed around and zoomed into
+ * from there, the way a page of a document is read rather than the way a
+ * picture is fitted to a frame.
  */
 export default function ItemDialog({ item, today, onClose }: Props) {
   const stage = useRef<HTMLDivElement>(null);
-  const drawn = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  const [view, setView] = useState<View | null>(null);
+  const [dragging, setDragging] = useState(false);
+
+  const viewRef = useRef<View | null>(view);
+  viewRef.current = view;
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const panFrom = useRef<{ x: number; y: number; view: View } | null>(null);
+  const pinchFrom = useRef<{ gap: number; z: number; mid: { x: number; y: number } } | null>(null);
+
+  /** The size at which the whole of it is on screen, with a little air. */
+  const fitZoom = useCallback(() => {
+    const box = stage.current;
+    if (!box) return 1;
+    const margin = 28;
+    return Math.min(
+      MAX_ZOOM,
+      Math.min((box.clientWidth - margin) / item.w, (box.clientHeight - margin) / item.h),
+    );
+  }, [item.w, item.h]);
+
+  const fit = useCallback(() => {
+    const box = stage.current;
+    if (!box) return;
+    const z = fitZoom();
+    setView({
+      x: (box.clientWidth - item.w * z) / 2,
+      y: (box.clientHeight - item.h * z) / 2,
+      z,
+    });
+  }, [fitZoom, item.w, item.h]);
 
   useLayoutEffect(() => {
-    const measure = () => {
-      const box = stage.current;
-      if (!box) return;
-      // clientWidth counts the padding, and the item has to sit inside it.
-      const pad = getComputedStyle(box);
-      const room = box.clientWidth - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight);
-      const w = Math.min(room, MAX_WIDTH);
-      setSize({ w, h: Math.round(w * (item.h / item.w)) });
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, [item.id, item.w, item.h]);
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [fit]);
 
-  /*
-   * Then as tall as its contents need at that width. Its own proportions are
-   * only a starting guess: text that filled a wide page fills several times
-   * the height of a narrow one, and a whiteboard reads its own height to work
-   * out how big a marker writes, so that one is left at the shape it has.
+  /**
+   * Keeps the item somewhere it can be reached. Smaller than the screen it
+   * sits in the middle; larger, its edges may not be dragged inside it, so
+   * there is never a blank screen with the thing you were reading off it.
    */
-  useLayoutEffect(() => {
-    if (!size || item.frame === 'whiteboard') return;
-    const needed = heightForContent(drawn.current);
-    if (needed !== null && Math.abs(needed - size.h) > 1) setSize({ w: size.w, h: needed });
-  }, [size, item.frame, item.id]);
+  const settle = useCallback(
+    (next: View): View => {
+      const box = stage.current;
+      if (!box) return next;
+      const hold = (offset: number, drawn: number, room: number) =>
+        drawn <= room ? (room - drawn) / 2 : Math.min(0, Math.max(room - drawn, offset));
+      return {
+        z: next.z,
+        x: hold(next.x, item.w * next.z, box.clientWidth),
+        y: hold(next.y, item.h * next.z, box.clientHeight),
+      };
+    },
+    [item.w, item.h],
+  );
+
+  /** Zooms about a point on the screen, so what is under it stays under it. */
+  const zoomAt = useCallback(
+    (factor: number, clientX: number, clientY: number) => {
+      const box = stage.current;
+      const now = viewRef.current;
+      if (!box || !now) return;
+      const rect = box.getBoundingClientRect();
+      const floor = fitZoom();
+      const z = Math.min(Math.max(now.z * factor, floor), Math.min(MAX_ZOOM, floor * MAX_OVER_FIT));
+      if (z === now.z) return;
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+      const k = z / now.z;
+      setView(settle({ x: px - (px - now.x) * k, y: py - (py - now.y) * k, z }));
+    },
+    [fitZoom, settle],
+  );
+
+  useEffect(() => {
+    const box = stage.current;
+    if (!box) return;
+    // Non-passive, or the page behind scrolls instead.
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      zoomAt(Math.exp(-event.deltaY * 0.0015), event.clientX, event.clientY);
+    };
+    box.addEventListener('wheel', onWheel, { passive: false });
+    return () => box.removeEventListener('wheel', onWheel);
+  }, [zoomAt]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -67,25 +127,104 @@ export default function ItemDialog({ item, today, onClose }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  const spread = () => {
+    const [a, b] = [...pointers.current.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  const midpoint = () => {
+    const [a, b] = [...pointers.current.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+
+  const onPointerDown = (event: React.PointerEvent) => {
+    // Or the browser starts a text selection or an image drag of its own.
+    event.preventDefault();
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    if (pointers.current.size === 2) {
+      panFrom.current = null;
+      pinchFrom.current = { gap: spread(), z: viewRef.current?.z ?? 1, mid: midpoint() };
+      return;
+    }
+    if (pointers.current.size !== 1 || !viewRef.current) return;
+    panFrom.current = { x: event.clientX, y: event.clientY, view: viewRef.current };
+    setDragging(true);
+  };
+
+  const onPointerMove = (event: React.PointerEvent) => {
+    if (!pointers.current.has(event.pointerId)) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    const pinch = pinchFrom.current;
+    if (pinch && pointers.current.size === 2) {
+      const now = viewRef.current;
+      if (!now || pinch.gap === 0) return;
+      zoomAt((pinch.z * (spread() / pinch.gap)) / now.z, pinch.mid.x, pinch.mid.y);
+      return;
+    }
+
+    const from = panFrom.current;
+    if (!from) return;
+    setView(
+      settle({
+        x: from.view.x + (event.clientX - from.x),
+        y: from.view.y + (event.clientY - from.y),
+        z: from.view.z,
+      }),
+    );
+  };
+
+  const endPointer = (event: React.PointerEvent) => {
+    pointers.current.delete(event.pointerId);
+    if (pointers.current.size < 2) pinchFrom.current = null;
+    if (pointers.current.size === 0) {
+      panFrom.current = null;
+      setDragging(false);
+    }
+  };
+
+  /** Zooms about the middle of the view, which is not the middle of the page. */
+  const zoomMiddle = (factor: number) => {
+    const box = stage.current;
+    if (!box) return;
+    const rect = box.getBoundingClientRect();
+    zoomAt(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  };
+
   const name = item.heading || item.body?.split('\n')[0] || 'On the board';
+  const atFit = view ? Math.abs(view.z - fitZoom()) < 0.001 : true;
 
   return (
     <div className="gallery" role="dialog" aria-modal="true" aria-label={name}>
       <header>
         <h2>{name}</h2>
+        <button
+          type="button"
+          onClick={() => (atFit ? zoomMiddle(2) : fit())}
+          aria-label={atFit ? 'Zoom in' : 'Fit on screen'}
+        >
+          {atFit ? '+' : '❑'}
+        </button>
         <button type="button" onClick={onClose} aria-label="Close">
           &times;
         </button>
       </header>
 
-      <div className="item-view" ref={stage}>
+      <div
+        className={`item-view${dragging ? ' moving' : ''}`}
+        ref={stage}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
+      >
         <div
-          ref={drawn}
           className={`item frame-${item.frame}${item.aspect ? ' shaped' : ''}`}
           style={{
-            width: size?.w,
-            height: size?.h,
-            visibility: size ? undefined : 'hidden',
+            width: item.w,
+            height: item.h,
+            visibility: view ? undefined : 'hidden',
+            transform: view ? `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.z})` : undefined,
             ...(item.aspect ? { ['--aspect' as string]: String(item.aspect) } : null),
             ...(item.typeSize ? { ['--type' as string]: `${item.typeSize * (117 / 72)}px` } : null),
           }}
