@@ -33,6 +33,14 @@ export interface FrameSpec {
    * whatever else is on the board, and a whiteboard is not.
    */
   inchesWide: number;
+  /**
+   * For a frame shown closed, how tall its face is against its own width.
+   *
+   * A folder and a magazine are objects in their own right: they hold
+   * pictures but they are not shaped by them, so the aspect of whatever
+   * happens to be on top has no business deciding how tall they are.
+   */
+  coverShape?: number;
   /** Chrome around the media, in board pixels, matching frames.css. */
   padX: number;
   padTop: number;
@@ -115,6 +123,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     blurb: 'A set of pictures, in a manila folder.',
     holds: 'gallery',
     inchesWide: 9.5,
+    coverShape: 0.76,
     padX: 47,
     // The tab stands above the folder body.
     padTop: 58,
@@ -127,6 +136,8 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     blurb: 'A set of pictures, with the first as the cover.',
     holds: 'gallery',
     inchesWide: 8.25,
+    // 8.25 by 10.75 overall, once the masthead and the foot are taken off.
+    coverShape: 1.272,
     padX: 18,
     padTop: 18,
     padBottom: 58,
@@ -210,9 +221,11 @@ export function sizeFor(
   const padTop = spec.padTop * k;
   const padBottom = spec.padBottom * k;
   const innerWidth = Math.max(20, outerWidth - padX * 2);
-  // A folder shows its contents closed, so it keeps a steady shape whatever
-  // is filed in it rather than taking the aspect of the top sheet.
-  const innerHeight = frame === 'folder' ? innerWidth * 0.76 : innerWidth / (aspect > 0 ? aspect : 1);
+  // Anything shown closed keeps its own shape whatever is filed in it, rather
+  // than taking the aspect of whichever picture happens to be on top.
+  const innerHeight = spec.coverShape
+    ? innerWidth * spec.coverShape
+    : innerWidth / (aspect > 0 ? aspect : 1);
   return {
     w: Math.round(outerWidth),
     h: Math.round(innerHeight + padTop + padBottom),
