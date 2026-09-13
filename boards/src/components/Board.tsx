@@ -21,7 +21,7 @@ const HANDLE_SIZE = 34;
 const TAP_SLOP = 7;
 const MAX_ZOOM = 3;
 /** Wood frame thickness from board.css, needed when fitting the board to view. */
-const FRAME_PAD = 45;
+const FRAME_PAD = 100;
 
 interface View {
   x: number;
