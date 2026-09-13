@@ -1273,3 +1273,32 @@ button {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.28);
 }
+
+/* ---------- one item, opened to be read ---------- */
+
+/*
+ * Scrolls, because fitting a thing on screen and being able to read it are
+ * not the same question. A letter is eight and a half inches of twelve point
+ * and there is no size a phone can show all of it at and still be read, so
+ * the writing wins and what does not fit can be scrolled to.
+ */
+.item-view {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  padding: 18px 16px 28px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.item-view .item {
+  position: relative;
+  flex: none;
+  /* Room above for the fastener, which hangs outside the item's own box, and
+     straight on, since it is being read rather than looked at on a wall. */
+  margin-top: 18px;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.7));
+}

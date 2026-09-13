@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
-import { MAX_BOARD_PICTURES } from '../shared/types';
+import { GALLERY_FRAMES, MAX_BOARD_PICTURES } from '../shared/types';
 import { SITE_NAME } from './lib/config';
 import * as api from './lib/api';
+import { useToday } from './lib/clock';
 import Board, { type BoardHandle } from './components/Board';
 import LoginGate from './components/LoginGate';
 import SidePanel from './components/SidePanel';
@@ -11,6 +12,7 @@ import AddItemDialog, { type ItemDraft } from './components/AddItemDialog';
 import InboxDialog from './components/InboxDialog';
 import ItemInspector from './components/ItemInspector';
 import GalleryDialog from './components/GalleryDialog';
+import ItemDialog from './components/ItemDialog';
 import EditorBar from './components/EditorBar';
 import StyleDialog from './components/StyleDialog';
 import BoardsDialog from './components/BoardsDialog';
@@ -75,6 +77,10 @@ export default function App() {
   // tap made an item impossible to drag without changing it by accident.
   const [inspectingId, setInspectingId] = useState<string | null>(null);
   const [galleryId, setGalleryId] = useState<string | null>(null);
+  /** One item, opened to be read rather than edited. */
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  /** The board's own day, so an item opened off it reads as it does on it. */
+  const boardToday = useToday(board?.timeZone);
   const [pendingCount, setPendingCount] = useState(0);
   const [openReports, setOpenReports] = useState(0);
   /**
@@ -387,6 +393,7 @@ export default function App() {
 
   const inspecting = board.items.find((item) => item.id === inspectingId) ?? null;
   const gallery = board.items.find((item) => item.id === galleryId) ?? null;
+  const viewing = board.items.find((item) => item.id === viewingId) ?? null;
   const canEdit = session.role === 'editor' && editMode;
 
   return (
@@ -396,7 +403,7 @@ export default function App() {
         board={board}
         editable={canEdit}
         grid={canEdit && grid}
-        selectedId={canEdit ? selectedId : null}
+        selectedId={selectedId}
         onSelect={(id) => {
           setSelectedId(id);
           if (id !== inspectingId) setInspectingId(null);
@@ -405,7 +412,13 @@ export default function App() {
           setSelectedId(id);
           setInspectingId(id);
         }}
-        onOpenGallery={setGalleryId}
+        onOpenItem={(id) => {
+          // Opening a folder or a magazine means opening what is filed in it;
+          // opening anything else means looking at the thing itself.
+          const item = board.items.find((candidate) => candidate.id === id);
+          if (item && GALLERY_FRAMES.includes(item.frame)) setGalleryId(id);
+          else setViewingId(id);
+        }}
         onMoveItem={moveItem}
         onCommit={commit}
         onZoomChange={setZoom}
@@ -451,6 +464,10 @@ export default function App() {
       ) : null}
 
       {gallery ? <GalleryDialog item={gallery} onClose={() => setGalleryId(null)} /> : null}
+
+      {viewing ? (
+        <ItemDialog item={viewing} today={boardToday} onClose={() => setViewingId(null)} />
+      ) : null}
 
       {dialog === 'style' && board ? (
         <StyleDialog board={board} onChange={patchBoard} onClose={() => setDialog(null)} />

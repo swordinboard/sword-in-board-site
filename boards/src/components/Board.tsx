@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { GALLERY_FRAMES, type BoardItem, type BoardState } from '../../shared/types';
+import type { BoardItem, BoardState } from '../../shared/types';
 import type { CSSProperties } from 'react';
 import BoardItemView from './BoardItemView';
 import { useToday } from '../lib/clock';
@@ -17,6 +17,8 @@ const MIN_ZOOM = 0.08;
 const DOUBLE_TAP_MS = 400;
 /** Diameter of the settings handle, matching board.css. */
 const HANDLE_SIZE = 34;
+/** How far a finger may wander and still count as a tap rather than a pan. */
+const TAP_SLOP = 7;
 const MAX_ZOOM = 3;
 /** Wood frame thickness from board.css, needed when fitting the board to view. */
 const FRAME_PAD = 30;
@@ -48,8 +50,8 @@ interface Props {
   onSelect: (id: string | null) => void;
   /** Asked for explicitly - a double tap, or the handle on the selected item. */
   onOpenSettings: (id: string) => void;
-  /** A folder or magazine tapped while not editing: show what is in it. */
-  onOpenGallery: (id: string) => void;
+  /** The magnifier on the selected item: look at it properly. */
+  onOpenItem: (id: string) => void;
   onMoveItem: (id: string, x: number, y: number) => void;
   onCommit: () => void;
   onZoomChange?: (zoom: number) => void;
@@ -65,7 +67,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     selectedId,
     onSelect,
     onOpenSettings,
-    onOpenGallery,
+    onOpenItem,
     onMoveItem,
     onCommit,
     onZoomChange,
@@ -91,6 +93,13 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   const dragStart = useRef<{ id: string; dx: number; dy: number; moved: boolean } | null>(null);
   /** Last tap on an item, for spotting the second half of a double tap. */
   const lastTap = useRef<{ id: string; at: number } | null>(null);
+  /**
+   * A press on an item while only looking, which becomes a selection if the
+   * pointer stays put. It cannot select on the press itself: most of a full
+   * board is items, and swallowing the press there would leave hardly
+   * anywhere to drag from to pan.
+   */
+  const tapStart = useRef<{ id: string; x: number; y: number } | null>(null);
 
   const fit = useCallback(() => {
     const stage = stageRef.current;
@@ -255,6 +264,16 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     if (pointers.current.size === 0) {
       panStart.current = null;
       setPanning(false);
+
+      const tap = tapStart.current;
+      tapStart.current = null;
+      if (tap && !dragStart.current) {
+        const travelled = Math.hypot(event.clientX - tap.x, event.clientY - tap.y);
+        // The press on the cork cleared the selection on the way down; a tap
+        // that went nowhere puts this item's back.
+        if (travelled <= TAP_SLOP) onSelect(tap.id);
+      }
+
       if (dragStart.current) {
         const { id, moved } = dragStart.current;
         dragStart.current = null;
@@ -280,12 +299,9 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
 
   const onItemPointerDown = (event: React.PointerEvent, item: BoardItem) => {
     if (!editable) {
-      // Nothing on a board is interactive while viewing except a gallery,
-      // which exists to be opened. Everything else falls through to panning.
-      if (GALLERY_FRAMES.includes(item.frame)) {
-        event.stopPropagation();
-        onOpenGallery(item.id);
-      }
+      // Noted, not acted on: the press still reaches the stage so a drag from
+      // here pans the board, and only a press that stays put selects.
+      tapStart.current = { id: item.id, x: event.clientX, y: event.clientY };
       return;
     }
     event.stopPropagation();
@@ -332,7 +348,9 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
    * they scale with the zoom: at 8% the ring is a hairline and a handle big
    * enough to tap covers the item it belongs to.
    */
-  const selectedItem = editable ? board.items.find((i) => i.id === selectedId) : undefined;
+  // Selecting works the same whether editing or only looking; what the handle
+  // beside the selection offers is what differs.
+  const selectedItem = board.items.find((i) => i.id === selectedId);
   const marks = (() => {
     const stage = stageRef.current;
     if (!selectedItem || !stage) return null;
@@ -445,14 +463,32 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
           type="button"
           className="item-settings"
           style={{ left: handle.x, top: handle.y }}
-          aria-label="Settings for this item"
+          aria-label={editable ? 'Settings for this item' : 'Look at this properly'}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => {
             event.stopPropagation();
-            onOpenSettings(handle.id);
+            if (editable) onOpenSettings(handle.id);
+            else onOpenItem(handle.id);
           }}
         >
-          <span aria-hidden>&hellip;</span>
+          {editable ? (
+            <span aria-hidden>&hellip;</span>
+          ) : (
+            /* A magnifier, so that opening something is always deliberate
+               rather than the price of touching it. */
+            <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden focusable="false">
+              <circle cx="8.5" cy="8.5" r="5.4" fill="none" stroke="currentColor" strokeWidth="2" />
+              <line
+                x1="12.6"
+                y1="12.6"
+                x2="17"
+                y2="17"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+            </svg>
+          )}
         </button>
       ) : null}
     </div>
