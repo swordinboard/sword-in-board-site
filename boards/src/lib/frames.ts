@@ -197,13 +197,25 @@ export function sizeFor(
 ): { w: number; h: number } {
   const spec = FRAME_SPECS[frame];
   outerWidth = outerWidth ?? inches(spec.inchesWide);
-  const innerWidth = Math.max(20, outerWidth - spec.padX * 2);
+  /*
+   * The chrome scales with the item rather than staying a fixed number of
+   * pixels, which is what makes resizing a true zoom of the whole object:
+   * the picture inside keeps the shape it was cropped to AND the item keeps
+   * the shape it had. With a fixed border only the first held, so a
+   * photograph pulled larger slowly became a different shape - a wide white
+   * mount turning into a thin one.
+   */
+  const k = outerWidth / inches(spec.inchesWide);
+  const padX = spec.padX * k;
+  const padTop = spec.padTop * k;
+  const padBottom = spec.padBottom * k;
+  const innerWidth = Math.max(20, outerWidth - padX * 2);
   // A folder shows its contents closed, so it keeps a steady shape whatever
   // is filed in it rather than taking the aspect of the top sheet.
   const innerHeight = frame === 'folder' ? innerWidth * 0.76 : innerWidth / (aspect > 0 ? aspect : 1);
   return {
     w: Math.round(outerWidth),
-    h: Math.round(innerHeight + spec.padTop + spec.padBottom),
+    h: Math.round(innerHeight + padTop + padBottom),
   };
 }
 

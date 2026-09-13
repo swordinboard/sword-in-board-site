@@ -44,10 +44,16 @@ export default function ItemInspector({
 }: Props) {
   const today = useToday(timeZone);
 
-  // A picture keeps the shape it was cropped to, so one slider settles it.
-  // Anything written has no shape of its own, and wanting a wide notice or a
-  // long narrow list is the ordinary case rather than the odd one.
-  const shaped = Boolean(item.aspect);
+  /**
+   * Anything holding a picture keeps the shape it was given, and one slider
+   * settles it: the crop was chosen when the item went up, and a height set
+   * on its own would quietly throw that away.
+   *
+   * Writing has no shape of its own, and wanting a wide notice or a long
+   * narrow list is the ordinary case rather than the odd one, so those get
+   * the two separately.
+   */
+  const shaped = Boolean(item.aspect || item.mediaId || item.mediaIds?.length);
 
   /** There is something on it whose height is worth fitting to. */
   const written = Boolean(item.body || item.heading || item.lines?.length);
@@ -232,29 +238,29 @@ export default function ItemInspector({
           />
         </div>
 
-        <div className="field">
-          <label>Height &mdash; {(item.h / PX_PER_INCH).toFixed(1)}&Prime;</label>
-          <input
-            type="range"
-            min={100}
-            max={2600}
-            value={item.h}
-            onChange={(e) => onChange({ h: Number(e.target.value) })}
-            onPointerUp={onCommit}
-            onKeyUp={onCommit}
-          />
-          {written ? (
-            <button className="btn ghost" type="button" onClick={fitToText}>
-              Fit to what is on it
-            </button>
-          ) : null}
-          {shaped ? (
-            <p className="hint-text">
-              Setting the height on its own crops the picture rather than stretching it. The
-              width slider puts it back to the shape it was cropped to.
-            </p>
-          ) : null}
-        </div>
+        {shaped ? (
+          <p className="hint-text">
+            The height follows the width, so it keeps the shape the picture was cropped to.
+          </p>
+        ) : (
+          <div className="field">
+            <label>Height &mdash; {(item.h / PX_PER_INCH).toFixed(1)}&Prime;</label>
+            <input
+              type="range"
+              min={100}
+              max={2600}
+              value={item.h}
+              onChange={(e) => onChange({ h: Number(e.target.value) })}
+              onPointerUp={onCommit}
+              onKeyUp={onCommit}
+            />
+            {written ? (
+              <button className="btn ghost" type="button" onClick={fitToText}>
+                Fit to what is on it
+              </button>
+            ) : null}
+          </div>
+        )}
 
         <div className="field">
           <label>Tilt &mdash; {item.rotation}&deg;</label>
