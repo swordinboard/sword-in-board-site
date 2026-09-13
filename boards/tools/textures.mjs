@@ -125,7 +125,46 @@ export const TEXTURES = [
     height: 180,
     scale: 1,
     svg: "<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p' x='0' y='0' width='180' height='180' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch' seed='2'/><feColorMatrix type='matrix' values='0 0 0 0 0.4 0 0 0 0 0.36 0 0 0 0 0.28 0.16 0.14 0.1 0 -0.09'/></filter><rect width='180' height='180' filter='url(#p)'/></svg>",
-  }
+  },
+
+  /*
+   * The frame, as four lengths of moulding rather than one sheet.
+   *
+   * A board is cut from a length with the grain running down it, so the grain
+   * on each side of a frame runs along that side. One texture over the whole
+   * frame gives all four sides the same direction, which is right on two of
+   * them and reads as veneer on the other two. These are the same filters as
+   * the wood and plank they belong to, with the two baseFrequency terms
+   * swapped for the uprights, and cropped to the depth of the frame.
+   */
+  {
+    name: "frame-wood-rail",
+    width: 1867,
+    height: 100,
+    scale: 0.4,
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='1867' height='100'><filter id='fa' x='0' y='0' width='1867' height='100' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00129 0.1071' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/></filter><rect width='1867' height='100' filter='url(#fa)'/></svg>",
+  },
+  {
+    name: "frame-wood-stile",
+    width: 100,
+    height: 1867,
+    scale: 0.4,
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='1867'><filter id='fb' x='0' y='0' width='100' height='1867' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.1071 0.00129' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.03 0.6 0.5 0.4 0 -0.32'/></filter><rect width='100' height='1867' filter='url(#fb)'/></svg>",
+  },
+  {
+    name: "frame-plank-rail",
+    width: 2240,
+    height: 100,
+    scale: 0.4,
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='2240' height='100'><filter id='fc' x='0' y='0' width='2240' height='100' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.00107 0.03' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/></filter><rect width='2240' height='100' filter='url(#fc)'/></svg>",
+  },
+  {
+    name: "frame-plank-stile",
+    width: 100,
+    height: 2240,
+    scale: 0.4,
+    svg: "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='2240'><filter id='fd' x='0' y='0' width='100' height='2240' filterUnits='userSpaceOnUse'><feTurbulence type='fractalNoise' baseFrequency='0.03 0.00107' numOctaves='4' stitchTiles='stitch' seed='3'/><feColorMatrix type='matrix' values='0 0 0 0 0.13 0 0 0 0 0.07 0 0 0 0 0.02 0.85 0.6 0.35 0 -0.30'/></filter><rect width='100' height='2240' filter='url(#fd)'/></svg>",
+  },
 ];
 
 /* Drawn from CSS rather than a filter, but baked for the same reason. */
@@ -147,7 +186,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const { fileURLToPath } = await import('node:url');
   const { dirname, join } = await import('node:path');
 
-  const out = join(dirname(dirname(fileURLToPath(import.meta.url))), 'public', 'tex');
+  const out = join(dirname(dirname(fileURLToPath(import.meta.url))), 'src', 'styles', 'tex');
   mkdirSync(out, { recursive: true });
   // PLAYWRIGHT_CHROMIUM lets a sandbox point at a browser it already has.
   const browser = await chromium.launch(

@@ -391,7 +391,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       onPointerCancel={endPointer}
     >
       <div
-        className={`board-wrap${panning || draggingId ? ' moving' : ''}`}
+        className="board-wrap"
         style={{ transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.z})` }}
       >
         {/*

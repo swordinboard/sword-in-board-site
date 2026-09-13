@@ -7,14 +7,14 @@
    * granule wide - a texture with anything larger in it reads as a repeating
    * pattern once it is tiled across four thousand pixels of board.
    */
-  --tex-cork: url('/tex/tex-cork.png') 0 0 / 1587px 1587px;
+  --tex-cork: url('./tex/tex-cork.png') 0 0 / 1587px 1587px;
   /* Broad mottling so the cork does not read as uniform noise. */
-  --tex-mottle: url('/tex/tex-mottle.png') 0 0 / 2800px 2800px;
+  --tex-mottle: url('./tex/tex-mottle.png') 0 0 / 2800px 2800px;
   /* Stretched noise reads as wood grain. */
-  --tex-wood: url('/tex/tex-wood.png') 0 0 / 1867px 653px;
+  --tex-wood: url('./tex/tex-wood.png') 0 0 / 1867px 653px;
   /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
      it streaks sideways, the way a hand wipes. */
-  --tex-wipe: url('/tex/tex-wipe.png') 0 0 / 420px 300px;
+  --tex-wipe: url('./tex/tex-wipe.png') 0 0 / 420px 300px;
   /* A panel grid, for the sci-fi board. Cheaper than turbulence and it
      tiles exactly, which is the point of a grid. */
   --tex-grid:
@@ -25,20 +25,20 @@
    * relative to the grain on purpose: a smaller one showed its own edges as
    * a visible lattice across the board.
    */
-  --tex-rust: url('/tex/tex-rust.png') 0 0 / 2987px 2987px;
+  --tex-rust: url('./tex/tex-rust.png') 0 0 / 2987px 2987px;
   /* Grain running the length of a plank: fine across it, long along it. */
-  --tex-plank: url('/tex/tex-plank.png') 0 0 / 1120px 2240px;
+  --tex-plank: url('./tex/tex-plank.png') 0 0 / 1120px 2240px;
   /* Hide: a fine irregular grain with no direction to it. */
-  --tex-hide: url('/tex/tex-hide.png') 0 0 / 980px 980px;
+  --tex-hide: url('./tex/tex-hide.png') 0 0 / 980px 980px;
   /* Grime, the same clouding as the mottle but cold: steel does not brown. */
-  --tex-grime: url('/tex/tex-grime.png') 0 0 / 2800px 2800px;
+  --tex-grime: url('./tex/tex-grime.png') 0 0 / 2800px 2800px;
   /*
    * A hand-forged nail head: not round, because nothing off an anvil is, and
    * matte, because iron that has been hammered does not shine.
    */
   --iron-nail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52'%3E%3Cdefs%3E%3CradialGradient id='i' cx='34%25' cy='26%25' r='78%25'%3E%3Cstop offset='0' stop-color='%238b857b'/%3E%3Cstop offset='38%25' stop-color='%233d3933'/%3E%3Cstop offset='100%25' stop-color='%230b0a09'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cg transform='rotate(9 26 26)'%3E%3Crect x='5' y='9' width='42' height='42' rx='13' fill='%23000' fill-opacity='0.5'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='url(%23i)'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='none' stroke='%23a39c90' stroke-opacity='0.3' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E");
   /* Tooth for paper stock. */
-  --tex-paper: url('/tex/tex-paper.png') 0 0 / 180px 180px;
+  --tex-paper: url('./tex/tex-paper.png') 0 0 / 180px 180px;
 }
 
 .stage {
@@ -67,15 +67,30 @@
 }
 
 /*
- * Promoting the layer keeps a drag smooth, but a promoted layer is rasterised
- * once and then scaled, which smears the cork grain. So it is only promoted
- * while something is actually moving.
+ * The layer is deliberately NOT promoted while the board is moved.
+ *
+ * Promoting it was the right trade when the surface was drawn by filters:
+ * rasterising cost hundreds of milliseconds, so it was worth rasterising once
+ * and letting the GPU scale that one copy. The cost was that the scaled copy
+ * smears - the texture goes soft while a finger is down and snaps sharp on
+ * release, which is the board visibly changing as it is moved.
+ *
+ * The textures are bitmaps now and a frame costs about the same either way:
+ * promoted, 16.7ms a frame but 520-680ms to build the layer at the start of
+ * every gesture; not promoted, 16.7ms median with a 33-50ms worst frame, and
+ * the surface never changes. So it stays unpromoted, and stays sharp.
  */
-.board-wrap.moving {
-  will-change: transform;
-}
 
 /* ---------- the frame ---------- */
+
+/*
+ * A frame is four lengths of moulding, and each length is cut with the grain
+ * running down it - so the grain on each side runs along that side. One
+ * texture stretched over the whole frame gives all four the same direction,
+ * which is right on two of them and reads as veneer on the other two. Each
+ * preset with a wooden frame therefore names four bands: uprights first, so
+ * they own the corners and the rails sit between them.
+ */
 
 .board {
   position: relative;
@@ -436,7 +451,11 @@
  */
 
 .stage {
-  --tex-frame: var(--tex-wood);
+  --tex-frame:
+    url('./tex/frame-wood-stile.png') left top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-stile.png') right top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-rail.png') left top / 1867px 100px repeat-x,
+    url('./tex/frame-wood-rail.png') left bottom / 1867px 100px repeat-x;
   --tex-surface: var(--tex-cork);
   --surface-sheen: radial-gradient(120% 90% at 30% 20%, rgba(255, 226, 178, 0.3), transparent 60%);
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 62%, rgba(48, 26, 8, 0.18));
@@ -461,7 +480,11 @@
   --surface-ink: rgba(226, 202, 160, 0.4);
   --wall-color: #14100c;
   --wall-glow: radial-gradient(circle at 50% 34%, #2a2014 0%, #0b0806 100%);
-  --tex-frame: var(--tex-plank);
+  --tex-frame:
+    url('./tex/frame-plank-stile.png') left top / 100px 2240px repeat-y,
+    url('./tex/frame-plank-stile.png') right top / 100px 2240px repeat-y,
+    url('./tex/frame-plank-rail.png') left top / 2240px 100px repeat-x,
+    url('./tex/frame-plank-rail.png') left bottom / 2240px 100px repeat-x;
   --tex-surface:
     /* The seams, and the shadow each plank casts into the next. A plank is
        a little over five inches across at PX_PER_INCH, so a board this wide
@@ -528,7 +551,11 @@
   --surface-ink: rgba(84, 58, 24, 0.6);
   --wall-color: #1b1610;
   --wall-glow: radial-gradient(circle at 50% 38%, #3b2c1a 0%, #120d08 100%);
-  --tex-frame: var(--tex-wood);
+  --tex-frame:
+    url('./tex/frame-wood-stile.png') left top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-stile.png') right top / 100px 1867px repeat-y,
+    url('./tex/frame-wood-rail.png') left top / 1867px 100px repeat-x,
+    url('./tex/frame-wood-rail.png') left bottom / 1867px 100px repeat-x;
   --tex-surface:
     var(--tex-hide),
     /* Where the hide is drawn tight over the frame it goes lighter. */
@@ -564,10 +591,10 @@
    * frame, not a border.
    */
   --frame-marks:
-    url('/tex/hazard-h.png') top center / 1500px 100px no-repeat,
-    url('/tex/hazard-h.png') bottom center / 1500px 100px no-repeat,
-    url('/tex/hazard-v.png') left center / 100px 1000px no-repeat,
-    url('/tex/hazard-v.png') right center / 100px 1000px no-repeat;
+    url('./tex/hazard-h.png') top center / 1500px 100px no-repeat,
+    url('./tex/hazard-h.png') bottom center / 1500px 100px no-repeat,
+    url('./tex/hazard-v.png') left center / 100px 1000px no-repeat,
+    url('./tex/hazard-v.png') right center / 100px 1000px no-repeat;
   --surface-sheen: linear-gradient(158deg, rgba(226, 236, 240, 0.08), transparent 50%);
   --surface-vignette: radial-gradient(130% 110% at 50% 40%, transparent 54%, rgba(6, 8, 8, 0.38));
 }
