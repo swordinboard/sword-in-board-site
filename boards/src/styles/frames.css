@@ -105,9 +105,10 @@
  */
 .frame-clipping .surface {
   /* Clear of the tear, which bites a percentage of the height out of the top
-     and bottom and so reaches further in on a taller clipping. The headline
-     sits right against the top, so the top needs the same room as the foot. */
-  padding: max(22px, 2.8cqw) 2.4cqw max(20px, 2.6cqw);
+     and bottom and so reaches further in on a taller clipping. The head has
+     more room than the foot: a pin or a nail is pushed down past the tear to
+     land on paper, and it has to land on paper rather than on the headline. */
+  padding: max(38px, 4.4cqw) 2.4cqw max(20px, 2.6cqw);
   background:
     var(--tex-paper),
     linear-gradient(168deg, #eeeade, var(--newsprint) 45%, #d9d3c2);
@@ -134,6 +135,21 @@
   border-right: 1px solid rgba(52, 46, 36, 0.42);
   border-left: 1px solid rgba(52, 46, 36, 0.42);
   pointer-events: none;
+}
+
+/*
+ * A pin goes through paper, and on a clipping the paper starts a little way
+ * down: the tear bites up to fourteen pixels out of the top edge, so a
+ * fastener set against that edge is holding air. These two come down past it.
+ * The magnets are left where they are - they already reach the text by about
+ * as much as they should, and dropping them further would only cover more.
+ */
+.frame-clipping .fastener.pin {
+  top: 4px;
+}
+
+.frame-clipping .fastener.nail {
+  top: 7px;
 }
 
 /* Newsprint runs a photograph grey, flat and contrasty. */
@@ -172,12 +188,6 @@
   text-align: justify;
   hyphens: auto;
   white-space: pre-wrap;
-  /* A measure rather than a count, so a wider clipping is more columns of
-     the same width instead of the same columns spread thin. */
-  column-width: calc(var(--text) * 12);
-  column-gap: calc(var(--text) * 0.8);
-  /* The rule between the columns, as the page had it. */
-  column-rule: 1px solid rgba(52, 46, 36, 0.3);
 }
 
 /* ---------- small framed piece ---------- */
