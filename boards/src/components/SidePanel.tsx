@@ -200,6 +200,25 @@ export default function SidePanel({
             onClick={onLogout}
           />
 
+          {/*
+            The notices. Last in the menu rather than first - nobody opens a
+            board to read them - but on every board, because the board is where
+            somebody is standing when they need one.
+          */}
+          <p className="nav-legal">
+            <a href="/legal/rules.html" target="_blank" rel="noopener noreferrer">
+              Site rules
+            </a>
+            {' · '}
+            <a href="/legal/privacy.html" target="_blank" rel="noopener noreferrer">
+              Privacy
+            </a>
+            {' · '}
+            <a href="/legal/copyright.html" target="_blank" rel="noopener noreferrer">
+              Copyright
+            </a>
+          </p>
+
           <p className="meta">
             {itemCount} {itemCount === 1 ? 'item' : 'items'} on the board.
             <br />

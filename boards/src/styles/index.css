@@ -684,6 +684,33 @@ button {
   text-underline-offset: 3px;
 }
 
+/*
+ * The notices, in the two places somebody might want them: under the sign-in
+ * form, and at the foot of the menu. Small and quiet - they are not a feature
+ * - but present on every screen rather than only on a page nobody links to.
+ */
+.gate-legal,
+.nav-legal {
+  margin: 16px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.gate-legal a,
+.nav-legal a {
+  color: var(--panel-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nav-legal {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .gate-card .fine {
   margin: 14px 0 0;
   color: var(--panel-muted);

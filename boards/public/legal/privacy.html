@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy — Pinhold</title>
+    <link rel="stylesheet" href="/legal/legal.css" />
+  </head>
+  <body>
+    <main>
+      <p class="crumb"><a href="/legal/">Notices</a> &nbsp;·&nbsp; <a href="/">Pinhold</a></p>
+
+      <h1>Privacy</h1>
+      <p class="dated">Last updated 14 September 2026</p>
+
+      <p>
+        Pinhold is run by <span class="todo">[YOUR LEGAL NAME]</span>. This page says what the site
+        keeps, why, who else sees it, and how long it lasts. It is short because the site does
+        little.
+      </p>
+
+      <div class="box">
+        <p>
+          <strong>There is no tracking here.</strong> No analytics, no advertising, no third-party
+          scripts, no fonts loaded from somebody else's server. Nobody is building a profile of you
+          from this site, me included.
+        </p>
+      </div>
+
+      <h2>What the site keeps</h2>
+
+      <p><strong>What you put on a board.</strong> Titles, writing, pictures, where things sit,
+        which strings connect what. Whatever you pin up is stored as you wrote it.</p>
+
+      <p><strong>Board passphrases.</strong> Stored encrypted, but reversibly — the owner of a board
+        can look up its keys to pass them on, and that only works if the site can decrypt them. So
+        they are not hashed the way a login password normally is, and in principle I can read them.
+        Do not reuse a password you use anywhere else.</p>
+
+      <p><strong>A recovery email address, only if you give one.</strong> Optional, stored
+        encrypted, and used for exactly one thing: emailing you a way back into your board if you
+        lose the passphrase. Never for anything else. You can leave it blank.</p>
+
+      <p><strong>Submissions.</strong> If you send something to a board, the site keeps the name you
+        typed, the note, any pictures, and a contact detail if you gave one, until the board's owner
+        accepts or discards it.</p>
+
+      <p><strong>Reports.</strong> If you report a board, the site keeps the reason, whatever you
+        typed in the box, which board it was, when, and which key you were holding at the time.</p>
+
+      <p><strong>A sign-in cookie.</strong> One cookie, set when you enter a passphrase. It is a
+        signed token saying which board you are allowed into and what you are allowed to do there.
+        It is not an identifier, it follows you nowhere, and the site does not work without it —
+        which is why there is no cookie banner to click.</p>
+
+      <p><strong>Counts of failed sign-in attempts.</strong> To stop somebody guessing their way
+        into a board, the site counts wrong answers. Your IP address is turned into an unreadable
+        hash first, and only that hash and a number are stored. The raw address is not written down
+        anywhere by Pinhold itself.</p>
+
+      <h2>What the site does not keep</h2>
+      <ul>
+        <li>Your name, unless you type it into something.</li>
+        <li>Your location.</li>
+        <li>Any advertising or cross-site identifier.</li>
+        <li>Anything at all from people who never sign in.</li>
+      </ul>
+
+      <h2>Who else sees it</h2>
+      <p>Two companies, and only because the site runs on them:</p>
+      <ul>
+        <li>
+          <strong>Netlify</strong> hosts the site and stores its data. Like every web host, their
+          servers log requests, and those logs include IP addresses. That is Netlify's logging, not
+          mine, and it is governed by their policies.
+        </li>
+        <li>
+          <strong>Resend</strong> sends the site's email — the recovery message to you, and notices
+          to me when something is reported. The message contents pass through them.
+        </li>
+      </ul>
+      <p>
+        Both are US companies and the data sits in the US. Nobody else gets anything. I do not sell
+        data, share it, or hand it to advertisers. I will hand something over if a valid legal
+        order requires it, or if I believe it is needed to stop someone being seriously hurt.
+      </p>
+
+      <h2>How long it lasts</h2>
+      <ul>
+        <li>
+          <strong>Boards: 180 days after the last time anyone looked.</strong> Then the board, its
+          items and its pictures are deleted automatically, with no warning and no undo. Opening a
+          board resets its clock.
+        </li>
+        <li><strong>Submissions:</strong> until the board's owner accepts or discards them.</li>
+        <li><strong>Reports:</strong> kept while I look into them, and afterwards as a record.</li>
+        <li><strong>Sign-in attempt counts:</strong> minutes, and cleared within a day.</li>
+        <li><strong>The sign-in cookie:</strong> until it expires or you sign out.</li>
+      </ul>
+
+      <h2>Children</h2>
+      <p>
+        Pinhold is not for children under 13 and I do not knowingly collect anything from them. If
+        you believe a child under 13 has put something on this site, write to me at
+        <a href="mailto:[CONTACT EMAIL]"><span class="todo">[CONTACT EMAIL]</span></a> and I will
+        delete it.
+      </p>
+
+      <h2>What you can ask for</h2>
+      <p>
+        Write to <a href="mailto:[CONTACT EMAIL]"><span class="todo">[CONTACT EMAIL]</span></a> and
+        I will, within 30 days:
+      </p>
+      <ul>
+        <li>Tell you what the site holds about you.</li>
+        <li>Send you a copy of it.</li>
+        <li>Correct it.</li>
+        <li>Delete it, including the whole board if it is yours.</li>
+      </ul>
+      <p>
+        You can also do most of this yourself: you can delete items, revoke keys and delete a board
+        from inside Pinhold, and that takes effect immediately.
+      </p>
+      <p>
+        I will ask you to prove you control the board or the address in question before I act, since
+        otherwise anybody could ask me to delete anybody's board.
+      </p>
+      <p>
+        I will not treat you any differently for asking. There is nothing to withhold — the site is
+        free.
+      </p>
+
+      <h2>How safe is it, honestly</h2>
+      <p>
+        The site is served over HTTPS, passphrases are never shown in a URL, failed guesses are
+        counted and refused, and sessions are signed so they cannot be forged.
+      </p>
+      <p>
+        What that does not add up to is secrecy. Boards are not end-to-end encrypted. Anyone with
+        the passphrase reads the board, passphrases are shared freely by design, and I can open any
+        board on the site. Please read the first section of the
+        <a href="/legal/rules.html">site rules</a> before deciding what to put on one.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        If this page changes, the date at the top changes with it. If the change is significant, I
+        will put a notice on the sign-in screen.
+      </p>
+
+      <h2>Getting hold of me</h2>
+      <p>
+        <a href="mailto:[CONTACT EMAIL]"><span class="todo">[CONTACT EMAIL]</span></a>
+      </p>
+      <p class="address"><span class="todo">[YOUR LEGAL NAME]
+[POSTAL ADDRESS]
+[CITY, STATE, ZIP]</span></p>
+
+      <footer>
+        <a href="/legal/">All notices</a> &nbsp;·&nbsp;
+        <a href="/legal/rules.html">Site rules</a> &nbsp;·&nbsp;
+        <a href="/legal/copyright.html">Copyright</a> &nbsp;·&nbsp;
+        <a href="/legal/reporting.html">Reporting</a>
+      </footer>
+    </main>
+  </body>
+</html>

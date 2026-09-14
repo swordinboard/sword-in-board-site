@@ -296,6 +296,20 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
             ) : null}
           </div>
         ) : null}
+
+        {/*
+          The notices, where somebody can read them before they are in rather
+          than only after. The first line of the site rules is the one that
+          matters - a board is as private as a corkboard in a hallway - and it
+          is no use to anyone buried behind a sign-in.
+        */}
+        <p className="fine gate-legal">
+          <a href="/legal/rules.html">Site rules</a>
+          {' · '}
+          <a href="/legal/privacy.html">Privacy</a>
+          {' · '}
+          <a href="/legal/reporting.html">Reporting</a>
+        </p>
       </form>
     </div>
   );
