@@ -156,6 +156,64 @@
   clip-path: none;
 }
 
+/*
+ * The sci-fi panel is notched: still mitred at the corners, but an eighth of
+ * a side in from each one it angles away and runs at half depth across the
+ * middle, leaving the channel behind it showing. The run equals the depth it
+ * gives up, so the angle is 45 like the mitre it shares the corner with.
+ */
+.stage[data-board-style='scifi'] .moulding.top {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--moulding-depth)) 100%,
+    87.5% 100%,
+    calc(87.5% - var(--notch-run)) var(--notch-depth),
+    calc(12.5% + var(--notch-run)) var(--notch-depth),
+    12.5% 100%,
+    var(--moulding-depth) 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.bottom {
+  clip-path: polygon(
+    var(--moulding-depth) 0,
+    12.5% 0,
+    calc(12.5% + var(--notch-run)) calc(100% - var(--notch-depth)),
+    calc(87.5% - var(--notch-run)) calc(100% - var(--notch-depth)),
+    87.5% 0,
+    calc(100% - var(--moulding-depth)) 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.left {
+  clip-path: polygon(
+    0 0,
+    100% var(--moulding-depth),
+    100% 12.5%,
+    var(--notch-depth) calc(12.5% + var(--notch-run)),
+    var(--notch-depth) calc(87.5% - var(--notch-run)),
+    100% 87.5%,
+    100% calc(100% - var(--moulding-depth)),
+    0 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.right {
+  clip-path: polygon(
+    100% 0,
+    100% 100%,
+    0 calc(100% - var(--moulding-depth)),
+    0 87.5%,
+    calc(100% - var(--notch-depth)) calc(87.5% - var(--notch-run)),
+    calc(100% - var(--notch-depth)) calc(12.5% + var(--notch-run)),
+    0 12.5%,
+    0 var(--moulding-depth)
+  );
+}
+
 
 .board {
   position: relative;
@@ -514,7 +572,7 @@
 .stage[data-board-style='medieval'] {
   --frame-light: #3c2a15;
   --frame-mid: #24180b;
-  --frame-dark: #100a04;
+  --frame-dark: #181007;
   --surface-base: #3a2814;
   --surface-shadow: rgba(12, 7, 2, 0.72);
   --surface-ink: rgba(226, 202, 160, 0.4);
@@ -534,17 +592,29 @@
 
 /* Brushed graphite and a backlit panel. */
 .stage[data-board-style='scifi'] {
-  --frame-light: #525b66;
-  --frame-mid: #2f353d;
-  --frame-dark: #14181d;
+  /* The channel the panel is set into; what a notch leaves showing. */
+  --frame-light: #2b323b;
+  --frame-mid: #1c222a;
+  --frame-dark: #12171c;
   --surface-base: #1e2c36;
   --surface-shadow: rgba(0, 14, 24, 0.65);
   --surface-ink: rgba(150, 205, 225, 0.55);
   --wall-color: #06090c;
   --wall-glow: radial-gradient(circle at 50% 30%, #101d28 0%, #04070a 100%);
-  /* A machined panel edge: no grain to run anywhere. */
-  --moulding-rail: none;
-  --moulding-stile: none;
+  /*
+   * A machined panel edge: no grain to run anywhere, so the moulding is the
+   * panel itself rather than a texture over one. It sits proud of the channel
+   * behind it, which is what makes a notch read as a notch.
+   */
+  --moulding-rail: linear-gradient(180deg, #626d7c, #47515d 55%, #2e3640);
+  --moulding-stile: linear-gradient(90deg, #626d7c, #47515d 55%, #2e3640);
+  /* The notch: the panel angles away an eighth of a side in from each corner
+     and runs half depth across the middle. The run equals the depth it gives
+     up, which is what makes the angle 45. */
+  --notch-depth: 50px;
+  --notch-run: 50px;
+  /* Nothing to bevel: the notch is the only line the frame needs. */
+  --frame-bevel: none;
   --tex-surface: url('./tex/surface-scifi.jpg') center / cover no-repeat;
 }
 
@@ -558,7 +628,7 @@
 .stage[data-board-style='western'] {
   --frame-light: #9d7b4e;
   --frame-mid: #6f5330;
-  --frame-dark: #3c2b17;
+  --frame-dark: #503b21;
   --surface-base: #c9a978;
   --surface-shadow: rgba(72, 48, 18, 0.52);
   --surface-ink: rgba(84, 58, 24, 0.6);
@@ -576,7 +646,7 @@
   /* Steel underneath; the rust texture over it is what makes it rust. */
   --frame-light: #5e6160;
   --frame-mid: #3a3d3c;
-  --frame-dark: #1e2120;
+  --frame-dark: #292c2b;
   --surface-base: #515553;
   --surface-shadow: rgba(14, 17, 17, 0.7);
   --surface-ink: rgba(226, 230, 228, 0.5);
