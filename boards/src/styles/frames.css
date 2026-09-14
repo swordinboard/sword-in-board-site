@@ -904,3 +904,93 @@
   white-space: nowrap;
   text-shadow: 0 0 1px rgba(156, 43, 32, 0.28);
 }
+
+/* ---------- written in a little Markdown ---------- */
+
+/*
+ * Everything here inherits: the frame has already said what ink, what type,
+ * what measure and what line spacing its writing is set in, and a list or a
+ * link written on that frame has to look like that frame. So these rules set
+ * only what the shape of a list needs and nothing about how it reads.
+ */
+.md {
+  /* The run-in a paragraph or a list leaves after it, in units of the
+     writing, so the gaps hold at whatever size the frame set the type. */
+  --md-gap: 0.62em;
+}
+
+.md-p,
+.md-list {
+  margin: 0;
+}
+
+/*
+ * A list starting under the line that introduces it is a break but not a
+ * gap, so it gets a little air and no more.
+ */
+.md > * + * {
+  margin-top: var(--md-gap);
+}
+
+/*
+ * A blank line somebody typed, though, stays a blank line. It was one before
+ * any of this was parsed - the writing was simply shown as typed - and a note
+ * that closed those up on the day lists arrived would have rewritten itself.
+ * One line of this writing, at whatever size the frame set it.
+ */
+.md > .md-air {
+  margin-top: 1em;
+  margin-top: 1lh;
+}
+
+.md-list {
+  /* Room for the marker, again in units of the writing, so the hanging
+     indent stays the same shape as the sheet is pulled larger or smaller. */
+  padding-left: 1.5em;
+  /* A justified list pulls its items apart to reach a right edge it has no
+     business reaching, so a list is left-set even where the page is not. */
+  text-align: left;
+}
+
+.md-list .md-list {
+  margin-top: calc(var(--md-gap) * 0.35);
+  padding-left: 1.3em;
+}
+
+.md-list li + li {
+  margin-top: calc(var(--md-gap) * 0.35);
+}
+
+/* Marked, whether or not it can be followed from here. */
+.md-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.16em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+a.md-link {
+  cursor: pointer;
+}
+
+.md-code {
+  padding: 0 0.25em;
+  border-radius: 0.2em;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  /* Monospace runs large against a serif at the same nominal size. */
+  font-size: 0.88em;
+}
+
+/*
+ * A whiteboard is written in marker, and a marker has no bold, no italic and
+ * no monospace. What it has is one nib, so the marks all come out the same
+ * weight and only the list shapes survive.
+ */
+.wb-body .md-code {
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 1em;
+}

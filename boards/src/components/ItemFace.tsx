@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { BoardLine, FrameStyle, HangerStyle, MagnetFinish } from '../../shared/types';
 import { lineValue, todayIn } from '../../shared/clock';
 import { mediaUrl } from '../lib/api';
+import Markup from './Markup';
 
 /**
  * How a pinned item is drawn: the fastener holding it, and what it holds.
@@ -16,7 +17,13 @@ export interface FaceItem {
   hanger: HangerStyle;
   pinColor?: string;
   finish?: MagnetFinish;
-  /** What a note says, or the name on a folder tab or magazine cover. */
+  /**
+   * What a note says, or the name on a folder tab or magazine cover.
+   *
+   * On the frames that give it room to be read it is written in the small
+   * amount of Markdown `lib/markup` understands, so a notice can carry a list
+   * or a link. On a folder tab it is a name and stays a name.
+   */
   body?: string;
   /** The line across the top of a written item. */
   heading?: string;
@@ -72,6 +79,11 @@ interface ContentsProps {
    * each, and so a test can put the board on any day it likes.
    */
   today?: string;
+  /**
+   * Whether a link in the writing can be followed. Only the opened item says
+   * yes: on the board a press belongs to the board.
+   */
+  links?: boolean;
 }
 
 /**
@@ -90,7 +102,7 @@ export function Moulding() {
   );
 }
 
-export function Contents({ item, media, today }: ContentsProps) {
+export function Contents({ item, media, today, links }: ContentsProps) {
   const gallery = item.mediaIds ?? [];
   const cover = gallery[0] ?? item.mediaId;
 
@@ -117,7 +129,7 @@ export function Contents({ item, media, today }: ContentsProps) {
       <>
         <div className="wb-face">
           {heading ? <div className="wb-title">{heading}</div> : null}
-          {written ? <div className="wb-body">{written}</div> : null}
+          {written ? <Markup className="wb-body" text={written} links={links} /> : null}
           {lines.length ? (
             <div className={`wb-lines${labelled ? ' labelled' : ''}`}>
               {lines.map((line) => (
@@ -187,7 +199,7 @@ export function Contents({ item, media, today }: ContentsProps) {
         {item.frame === 'lined' ? <div className="tear" aria-hidden /> : null}
         {item.heading ? <div className="title-text">{item.heading}</div> : null}
         {image ? <div className="media">{image}</div> : null}
-        {item.body ? <div className="body-text">{item.body}</div> : null}
+        {item.body ? <Markup className="body-text" text={item.body} links={links} /> : null}
       </div>
       {/*
         The caption sits in the white below the picture rather than in the

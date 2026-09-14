@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BoardItem } from '../../shared/types';
 import { Contents, Fastener } from './ItemFace';
+import { plainText } from '../lib/markup';
 
 interface Props {
   item: BoardItem;
@@ -137,6 +138,13 @@ export default function ItemDialog({ item, today, onClose }: Props) {
   };
 
   const onPointerDown = (event: React.PointerEvent) => {
+    /*
+     * A press that starts on a link belongs to the link. Out on the board a
+     * press is for the board and a link cannot have it, but in here the item
+     * is already open and there is nothing else the press could have meant -
+     * so the link keeps it, and the pan gives up the few characters it covers.
+     */
+    if ((event.target as HTMLElement).closest('a[data-link]')) return;
     // Or the browser starts a text selection or an image drag of its own.
     event.preventDefault();
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -191,7 +199,9 @@ export default function ItemDialog({ item, today, onClose }: Props) {
     zoomAt(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
   };
 
-  const name = item.heading || item.body?.split('\n')[0] || 'On the board';
+  // The title bar is one line at one weight, so the body goes up there with
+  // its marks taken out rather than with its asterisks showing.
+  const name = item.heading || plainText(item.body ?? '').slice(0, 120) || 'On the board';
   const atFit = view ? Math.abs(view.z - fitZoom()) < 0.001 : true;
 
   return (
@@ -231,7 +241,7 @@ export default function ItemDialog({ item, today, onClose }: Props) {
         >
           <Fastener item={item} />
           <div className="surface">
-            <Contents item={item} today={today} />
+            <Contents item={item} today={today} links />
           </div>
         </div>
       </div>

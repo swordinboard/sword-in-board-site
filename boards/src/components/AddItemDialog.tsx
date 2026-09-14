@@ -426,6 +426,12 @@ export default function AddItemDialog({ boardId, timeZone, initialSrc, onPlace, 
                 onChange={(e) => setBody(e.target.value)}
                 placeholder={isWhiteboard ? 'Anything else on the board...' : 'Write the notice...'}
               />
+              <p className="hint-text">
+                A little Markdown: <code>- </code> for a bullet, <code>1. </code> for a number,
+                <code>**bold**</code>, <code>*italic*</code>, and{' '}
+                <code>[what it says](where it goes)</code> for a link. Links open from the item,
+                not from the board.
+              </p>
             </div>
           </>
         )}

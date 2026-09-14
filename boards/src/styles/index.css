@@ -1170,6 +1170,17 @@ button {
   line-height: 1.45;
 }
 
+/* The marks themselves, shown as marks rather than as more prose. */
+.hint-text code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--panel-text);
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: 11px;
+  white-space: pre;
+}
+
 /* ---------- editing the pictures inside a gallery ---------- */
 
 .gallery-editor {
