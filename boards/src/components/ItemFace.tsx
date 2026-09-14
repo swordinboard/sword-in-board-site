@@ -74,6 +74,22 @@ interface ContentsProps {
   today?: string;
 }
 
+/**
+ * The four lengths a frame is made of. They carry the moulding so it can be
+ * mitred: a single background cannot be cut at 45 at its own corners, and
+ * four bands laid over each other paint every corner twice.
+ */
+export function Moulding() {
+  return (
+    <>
+      <span className="moulding top" aria-hidden />
+      <span className="moulding bottom" aria-hidden />
+      <span className="moulding left" aria-hidden />
+      <span className="moulding right" aria-hidden />
+    </>
+  );
+}
+
 export function Contents({ item, media, today }: ContentsProps) {
   const gallery = item.mediaIds ?? [];
   const cover = gallery[0] ?? item.mediaId;
@@ -157,7 +173,12 @@ export function Contents({ item, media, today }: ContentsProps) {
   // The framed style layers a mat and glass over the media, so it nests
   // differently from the flat styles.
   if (item.frame === 'framed') {
-    return <div className="mat">{image}</div>;
+    return (
+      <>
+        <Moulding />
+        <div className="mat">{image}</div>
+      </>
+    );
   }
 
   return (

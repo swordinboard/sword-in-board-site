@@ -79,19 +79,91 @@
  * A frame is four lengths of moulding, and each length is cut with the grain
  * running down it - so the grain on each side runs along that side. One
  * texture stretched over the whole frame gives all four the same direction,
- * which is right on two of them and reads as veneer on the other two. Each
- * preset with a wooden frame therefore names four bands: uprights first, so
- * they own the corners and the rails sit between them.
+ * which is right on two of them and reads as veneer on the other two.
+ *
+ * So each length is its own piece, and the pieces are mitred: cut at 45 from
+ * the outer corner, meeting without overlapping. Four bands laid over each
+ * other instead would each paint the same corner square, and two of these
+ * textures stacked is darker than one - a block of colour change at every
+ * corner, which is the thing a mitre exists to avoid.
  */
+.moulding {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.moulding.top,
+.moulding.bottom {
+  left: 0;
+  right: 0;
+  height: var(--moulding-depth);
+  background: var(--moulding-rail, none) 0 0 / 100% 100px no-repeat;
+}
+
+.moulding.left,
+.moulding.right {
+  top: 0;
+  bottom: 0;
+  width: var(--moulding-depth);
+  background: var(--moulding-stile, none) 0 0 / 100px 100% no-repeat;
+}
+
+.moulding.top {
+  top: 0;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--moulding-depth)) 100%,
+    var(--moulding-depth) 100%
+  );
+}
+
+.moulding.bottom {
+  bottom: 0;
+  background-position: left bottom;
+  clip-path: polygon(
+    var(--moulding-depth) 0,
+    calc(100% - var(--moulding-depth)) 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.moulding.left {
+  left: 0;
+  clip-path: polygon(
+    0 0,
+    100% var(--moulding-depth),
+    100% calc(100% - var(--moulding-depth)),
+    0 100%
+  );
+}
+
+.moulding.right {
+  right: 0;
+  background-position: right top;
+  clip-path: polygon(
+    100% 0,
+    100% 100%,
+    0 calc(100% - var(--moulding-depth)),
+    0 var(--moulding-depth)
+  );
+}
+
+/* Nailed together out of rough stock; nobody mitred that. */
+.stage[data-board-style='medieval'] .moulding {
+  clip-path: none;
+}
+
 
 .board {
   position: relative;
   /* Matches FRAME_PAD in Board.tsx, which places everything against it. */
   padding: 100px;
   border-radius: 13px;
-  background:
-    var(--tex-frame),
-    linear-gradient(180deg, var(--frame-light), var(--frame-mid) 45%, var(--frame-dark));
+  --moulding-depth: 100px;
+  background: linear-gradient(180deg, var(--frame-light), var(--frame-mid) 45%, var(--frame-dark));
   box-shadow:
     0 2px 0 rgba(255, 255, 255, 0.14) inset,
     0 -3px 6px rgba(0, 0, 0, 0.5) inset,
@@ -121,6 +193,8 @@
   position: absolute;
   inset: 0;
   border-radius: 13px;
+  /* Above the moulding: paint and nails go on after the frame is built. */
+  z-index: 1;
   background: var(--frame-marks, none);
   pointer-events: none;
 }
@@ -424,11 +498,8 @@
  */
 
 .stage {
-  --tex-frame:
-    url('./tex/frame-wood-stile.png') left top / 100px 100% no-repeat,
-    url('./tex/frame-wood-stile.png') right top / 100px 100% no-repeat,
-    url('./tex/frame-wood-rail.png') left top / 100% 100px no-repeat,
-    url('./tex/frame-wood-rail.png') left bottom / 100% 100px no-repeat;
+  --moulding-rail: url('./tex/frame-wood-rail.png');
+  --moulding-stile: url('./tex/frame-wood-stile.png');
   --tex-surface: url('./tex/surface-cork.jpg') center / cover no-repeat;
 }
 
@@ -449,11 +520,8 @@
   --surface-ink: rgba(226, 202, 160, 0.4);
   --wall-color: #14100c;
   --wall-glow: radial-gradient(circle at 50% 34%, #2a2014 0%, #0b0806 100%);
-  --tex-frame:
-    url('./tex/frame-plank-stile.png') left top / 100px 100% no-repeat,
-    url('./tex/frame-plank-stile.png') right top / 100px 100% no-repeat,
-    url('./tex/frame-plank-rail.png') left top / 100% 100px no-repeat,
-    url('./tex/frame-plank-rail.png') left bottom / 100% 100px no-repeat;
+  --moulding-rail: url('./tex/frame-plank-rail.png');
+  --moulding-stile: url('./tex/frame-plank-stile.png');
   --tex-surface: url('./tex/surface-medieval.jpg') center / cover no-repeat;
   /* A sign this rough was never trimmed out; it was nailed together. */
   --frame-bevel: none;
@@ -474,7 +542,9 @@
   --surface-ink: rgba(150, 205, 225, 0.55);
   --wall-color: #06090c;
   --wall-glow: radial-gradient(circle at 50% 30%, #101d28 0%, #04070a 100%);
-  --tex-frame: none;
+  /* A machined panel edge: no grain to run anywhere. */
+  --moulding-rail: none;
+  --moulding-stile: none;
   --tex-surface: url('./tex/surface-scifi.jpg') center / cover no-repeat;
 }
 
@@ -494,11 +564,8 @@
   --surface-ink: rgba(84, 58, 24, 0.6);
   --wall-color: #1b1610;
   --wall-glow: radial-gradient(circle at 50% 38%, #3b2c1a 0%, #120d08 100%);
-  --tex-frame:
-    url('./tex/frame-wood-stile.png') left top / 100px 100% no-repeat,
-    url('./tex/frame-wood-stile.png') right top / 100px 100% no-repeat,
-    url('./tex/frame-wood-rail.png') left top / 100% 100px no-repeat,
-    url('./tex/frame-wood-rail.png') left bottom / 100% 100px no-repeat;
+  --moulding-rail: url('./tex/frame-wood-rail.png');
+  --moulding-stile: url('./tex/frame-wood-stile.png');
   --tex-surface: url('./tex/surface-western.jpg') center / cover no-repeat;
   /* Rustic materials, well put together - but not trimmed out either. */
   --frame-bevel: none;
@@ -515,11 +582,8 @@
   --surface-ink: rgba(226, 230, 228, 0.5);
   --wall-color: #0e1010;
   --wall-glow: radial-gradient(circle at 50% 36%, #23262a 0%, #070808 100%);
-  --tex-frame:
-    url('./tex/frame-steel-stile.png') left top / 100px 100% no-repeat,
-    url('./tex/frame-steel-stile.png') right top / 100px 100% no-repeat,
-    url('./tex/frame-steel-rail.png') left top / 100% 100px no-repeat,
-    url('./tex/frame-steel-rail.png') left bottom / 100% 100px no-repeat;
+  --moulding-rail: url('./tex/frame-steel-rail.png');
+  --moulding-stile: url('./tex/frame-steel-stile.png');
   /* Rust where it has taken, and steel everywhere it has not. */
   --tex-surface: url('./tex/surface-industrial.jpg') center / cover no-repeat;
   /*

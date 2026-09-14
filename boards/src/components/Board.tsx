@@ -10,6 +10,7 @@ import {
 import type { BoardItem, BoardState } from '../../shared/types';
 import type { CSSProperties } from 'react';
 import BoardItemView from './BoardItemView';
+import { Moulding } from './ItemFace';
 import { useToday } from '../lib/clock';
 
 const MIN_ZOOM = 0.08;
@@ -407,6 +408,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
           {board.title}
         </div>
         <div className="board">
+          <Moulding />
           <div
             className={`cork${grid ? ' gridded' : ''}`}
             style={{ width: board.width, height: board.height }}
