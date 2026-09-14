@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
-import { GALLERY_FRAMES, MAX_BOARD_PICTURES } from '../shared/types';
+import { GALLERY_FRAMES, MAX_BOARD_PICTURES, takesSubmissions } from '../shared/types';
 import { SITE_NAME } from './lib/config';
 import * as api from './lib/api';
 import { useToday } from './lib/clock';
@@ -437,6 +437,15 @@ export default function App() {
           {pendingCount > 0 ? <span className="badge">{pendingCount}</span> : null}
         </button>
 
+        {!canEdit && takesSubmissions(board) ? (
+          <button className="submit-tab" type="button" onClick={() => setDialog('submit')}>
+            <span className="glyph" aria-hidden>
+              &#9998;
+            </span>
+            Make a submission
+          </button>
+        ) : null}
+
         <div className="zoom-bar">
           <input
             type="range"
@@ -502,6 +511,7 @@ export default function App() {
           itemCount={board.items.length}
           pendingCount={pendingCount}
           editMode={editMode}
+          submissionsOpen={takesSubmissions(board)}
           onClose={() => setPanelOpen(false)}
           onShare={() => {
             setPanelOpen(false);
@@ -552,10 +562,6 @@ export default function App() {
             if (turningOn) setPanelOpen(false);
             setSelectedId(null);
             setInspectingId(null);
-          }}
-          onFit={() => {
-            setPanelOpen(false);
-            boardHandle.current?.fit();
           }}
           onLogout={async () => {
             await api.logout().catch(() => undefined);
@@ -648,7 +654,8 @@ export default function App() {
 
       {dialog === 'inbox' ? (
         <InboxDialog
-          boardId={board.id}
+          board={board}
+          onBoardChange={patchBoard}
           onClose={() => setDialog(null)}
           onChanged={refreshPending}
           onPlaceMedia={(src) => {

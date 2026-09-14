@@ -186,6 +186,7 @@ export default async (req: Request): Promise<Response> => {
       // so a whiteboard can never be left counting against nothing.
       timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
       style: boardStyle(body.style) ?? current.style,
+      submissions: typeof body.submissions === 'boolean' ? body.submissions : current.submissions,
       // Only a plain hex colour: this ends up in a style attribute, and
       // anything else there is somebody else's CSS running on the page.
       wall: /^#[0-9a-f]{6}$/i.test(String(body.wall)) ? String(body.wall) : current.wall,

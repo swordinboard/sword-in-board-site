@@ -4,6 +4,7 @@ import { KEY_MIN_LENGTH } from '../../shared/types';
 import { strengthOf } from '../lib/strength';
 import * as api from '../lib/api';
 import { copyText } from '../lib/share';
+import { suggestPassphrase } from '../lib/passphrase';
 import Scrim from './Scrim';
 
 interface Props {
@@ -202,7 +203,7 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
             <button type="button" onClick={() => setPassword(boardTitle)}>
               Use the board's name
             </button>
-            <button type="button" onClick={() => setPassword('')}>
+            <button type="button" onClick={() => setPassword(suggestPassphrase())}>
               Generate one instead
             </button>
           </div>
@@ -231,8 +232,8 @@ export default function KeysDialog({ boardId, boardTitle, onClose, onChanged }: 
           <p className="note">
             At least {KEY_MIN_LENGTH} characters, and it cannot already open another board.
             Anything easy to guess is allowed once you confirm it &mdash; a password opens only
-            this board, so a simple one risks nothing else. Leave it blank for a generated
-            passphrase like <code>thistle-copper-lantern-4827</code>, about 42 bits.
+            this board, so a simple one risks nothing else. Generate one to fill the box, and
+            again for another, until one reads well; leave it blank and one is drawn for you.
           </p>
         </div>
 

@@ -9,6 +9,8 @@ interface Props {
   itemCount: number;
   pendingCount: number;
   editMode: boolean;
+  /** A board can close submissions, and then there is nothing to offer. */
+  submissionsOpen: boolean;
   onClose: () => void;
   onShare: () => void;
   onSubmit: () => void;
@@ -23,7 +25,6 @@ interface Props {
   expiresAt?: string;
   official?: boolean;
   onToggleEdit: () => void;
-  onFit: () => void;
   onLogout: () => void;
 }
 
@@ -58,6 +59,7 @@ export default function SidePanel({
   itemCount,
   pendingCount,
   editMode,
+  submissionsOpen,
   onClose,
   onShare,
   onSubmit,
@@ -72,7 +74,6 @@ export default function SidePanel({
   expiresAt,
   official,
   onToggleEdit,
-  onFit,
   onLogout,
 }: Props) {
   return (
@@ -107,18 +108,14 @@ export default function SidePanel({
             hint="Sends the link only — tell them the password yourself"
             onClick={onShare}
           />
-          <NavItem
-            glyph="&#9998;"
-            label="Make a submission"
-            hint="Send media and a note for review"
-            onClick={onSubmit}
-          />
-          <NavItem
-            glyph="&#9635;"
-            label="Fit the whole board"
-            hint="Zoom out to see everything"
-            onClick={onFit}
-          />
+          {submissionsOpen ? (
+            <NavItem
+              glyph="&#9998;"
+              label="Make a submission"
+              hint="Send media and a note for review"
+              onClick={onSubmit}
+            />
+          ) : null}
 
           {role === 'editor' ? (
             <>

@@ -6,7 +6,8 @@ import {
   randomBytes,
 } from 'node:crypto';
 import { getStore } from '@netlify/blobs';
-import { WORDS } from './wordlist';
+import { WORDS } from '../../../shared/wordlist';
+import { makePassphrase } from '../../../shared/passphrase';
 
 /**
  * One long-lived secret underpins three things: signing session cookies,
@@ -104,22 +105,12 @@ function randomBelow(bound: number): number {
   }
 }
 
-/**
- * A passphrase that survives being read aloud down a phone line: three words
- * and a four-digit number, roughly 42 bits. The word list size is what carries
- * this — the same shape drawn from a thirty-word list is barely a PIN.
- */
+/** A passphrase, drawn with node's randomness. Shape lives in shared/. */
 export function generatePassphrase(): string {
-  const picks: string[] = [];
-  while (picks.length < 3) {
-    const word = WORDS[randomBelow(WORDS.length)];
-    if (!picks.includes(word)) picks.push(word);
-  }
-  return `${picks.join('-')}-${1000 + randomBelow(9000)}`;
+  return makePassphrase(randomBelow);
 }
 
-/** Entropy of a passphrase this generator produced, for documentation and tests. */
-export const GENERATED_BITS = Math.log2(WORDS.length * (WORDS.length - 1) * (WORDS.length - 2) * 9000);
+export { GENERATED_BITS } from '../../../shared/passphrase';
 
 const WORD_SET = new Set(WORDS);
 

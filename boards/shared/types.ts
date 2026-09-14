@@ -181,6 +181,12 @@ export interface BoardState {
    */
   timeZone?: string;
   /**
+   * Whether anyone may send this board a submission. Absent means yes: every
+   * board made before there was a switch had one, and taking it away from them
+   * on a deploy would be a change nobody asked for.
+   */
+  submissions?: boolean;
+  /**
    * Last time anyone looked at or changed this board. Viewing counts, so a
    * board only ever expires if it is genuinely abandoned.
    */
@@ -224,6 +230,9 @@ export function boardStyle(raw: unknown): BoardStyle | undefined {
   if (BOARD_STYLES.includes(raw as BoardStyle)) return raw as BoardStyle;
   return RENAMED_STYLES[raw];
 }
+
+/** Whether this board is taking submissions. Absent means it is. */
+export const takesSubmissions = (board: { submissions?: boolean }) => board.submissions !== false;
 
 export type SubmissionStatus = 'new' | 'reviewed' | 'placed' | 'archived';
 

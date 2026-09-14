@@ -10,6 +10,7 @@ import {
   submissionStore,
 } from './_lib/store';
 import { notifySubmission } from './_lib/email';
+import { takesSubmissions } from '../../shared/types';
 import type { Submission, SubmissionStatus } from '../../shared/types';
 
 const STATUSES: SubmissionStatus[] = ['new', 'reviewed', 'placed', 'archived'];
@@ -32,6 +33,16 @@ export default async (req: Request, context: Context): Promise<Response> => {
   }
 
   if (req.method === 'POST') {
+    /*
+     * Checked here rather than only in the client. A board that has closed
+     * submissions has closed them to anyone who can reach the endpoint, not
+     * just to anyone the button is hidden from.
+     */
+    const board = await loadBoard(boardId);
+    if (!board || !takesSubmissions(board)) {
+      return json({ error: 'This board is not taking submissions.' }, { status: 403 });
+    }
+
     const ip = req.headers.get('x-nf-client-connection-ip') ?? 'unknown';
     if (!(await allowAttempt(`submit:${ip}`, SUBMIT_LIMIT, SUBMIT_WINDOW_MS))) {
       return json({ error: 'That is a lot of submissions at once. Try again later.' }, { status: 429 });

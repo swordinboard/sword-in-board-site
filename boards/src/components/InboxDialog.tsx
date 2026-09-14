@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import type { Submission, SubmissionStatus } from '../../shared/types';
+import type { BoardState, Submission, SubmissionStatus } from '../../shared/types';
+import { takesSubmissions } from '../../shared/types';
 import { deleteSubmission, getSubmissions, mediaUrl, setSubmissionStatus } from '../lib/api';
 import Scrim from './Scrim';
 
 interface Props {
-  boardId: string;
+  board: BoardState;
+  /** Turning submissions off is a board setting, so it saves like one. */
+  onBoardChange: (patch: Partial<BoardState>) => void;
   onClose: () => void;
   onPlaceMedia: (src: string) => void;
   onChanged: () => void;
@@ -18,7 +21,9 @@ const formatDate = (iso: string) =>
     minute: '2-digit',
   });
 
-export default function InboxDialog({ boardId, onClose, onPlaceMedia, onChanged }: Props) {
+export default function InboxDialog({ board, onBoardChange, onClose, onPlaceMedia, onChanged }: Props) {
+  const boardId = board.id;
+  const open = takesSubmissions(board);
   const [items, setItems] = useState<Submission[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -61,6 +66,32 @@ export default function InboxDialog({ boardId, onClose, onPlaceMedia, onChanged 
         <p className="lede">
           Everything sent in, waiting on you. Click any image to crop and pin it up.
         </p>
+
+        <div className="field">
+          <label>Taking submissions</label>
+          <div className="chooser">
+            <button
+              type="button"
+              className={open ? 'on' : ''}
+              onClick={() => onBoardChange({ submissions: true })}
+            >
+              Open
+              <span className="sub">Anyone who can see the board can send something</span>
+            </button>
+            <button
+              type="button"
+              className={open ? '' : 'on'}
+              onClick={() => onBoardChange({ submissions: false })}
+            >
+              Closed
+              <span className="sub">Nobody can send anything in</span>
+            </button>
+          </div>
+          <p className="note">
+            Closing it hides the button and refuses anything sent anyway. What is already
+            here stays here.
+          </p>
+        </div>
 
         <div className="chooser" style={{ marginBottom: 18 }}>
           <button
