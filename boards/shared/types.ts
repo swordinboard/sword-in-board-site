@@ -494,3 +494,54 @@ export const PIN_COLORS = [
   '#7d3c98',
   '#f4f1ea',
 ] as const;
+
+/* ------------------------------------------------------- agreeing to it --- */
+
+/**
+ * The date the notices last changed in a way people should see.
+ *
+ * Bumping this makes everybody agree again, on every board. So bump it when
+ * what somebody agreed to has actually changed - a new rule, a new use of
+ * their data - and not when a typo is fixed.
+ */
+export const RULES_VERSION = '2026-09-14';
+
+/**
+ * Where an agreement is remembered.
+ *
+ * Deliberately not HttpOnly, unlike the session: it is a record of a choice,
+ * not a credential, and the sign-in screen has to read it to know whether to
+ * ask. Nothing in it is worth stealing.
+ */
+export const AGREED_COOKIE = 'pinhold_agreed';
+
+/** How many boards one device remembers agreeing for. Oldest falls off. */
+export const AGREED_BOARDS = 20;
+
+/**
+ * An agreement is per board, because the passphrase is what picks the board
+ * and one person may hold keys to several. The site cannot know which board
+ * somebody is opening until their passphrase resolves, so the ask lands at
+ * sign-in rather than before it.
+ *
+ * Shape: `2026-09-14|board-one|board-two`. A version that is not the current
+ * one throws the whole record away rather than being migrated - the point of
+ * a version is that the old agreement no longer covers what the site does.
+ */
+export function parseAgreed(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  const [version, ...boards] = raw.split('|');
+  if (version !== RULES_VERSION) return [];
+  return boards.filter(Boolean);
+}
+
+/** The record to write back, with this board added and the oldest dropped. */
+export function withAgreed(raw: string | null | undefined, boardId: string): string {
+  const boards = parseAgreed(raw).filter((id) => id !== boardId);
+  boards.push(boardId);
+  return [RULES_VERSION, ...boards.slice(-AGREED_BOARDS)].join('|');
+}
+
+/** Whether this device has already agreed, for this board, at this version. */
+export const hasAgreed = (raw: string | null | undefined, boardId: string | null) =>
+  parseAgreed(raw).includes(boardId ?? 'site');

@@ -1,5 +1,14 @@
 import type { Config } from '@netlify/functions';
-import { issueToken, json, masterPassword, misconfigured, sessionCookie } from './_lib/auth';
+import {
+  agreedCookie,
+  issueToken,
+  json,
+  masterPassword,
+  misconfigured,
+  readAgreed,
+  sessionCookie,
+} from './_lib/auth';
+import { withAgreed } from '../../shared/types';
 import {
   allowAttempt,
   consumeInvite,
@@ -55,6 +64,23 @@ export default async (req: Request): Promise<Response> => {
     return json({ error: 'bad request' }, { status: 400 });
   }
 
+  /*
+   * Putting up a board is a way in like any other, and it sets a session
+   * cookie of its own - so it has to ask the same question, or agreeing is
+   * something anybody can walk around by making a board instead of opening
+   * one. There is no board id to have agreed for yet, so the tick is always
+   * required here and the new board is what gets remembered.
+   */
+  if (body.agreed !== true) {
+    return json(
+      {
+        needsAgreement: true,
+        error: 'Please read the site rules and confirm before putting up a board.',
+      },
+      { status: 409 },
+    );
+  }
+
   const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
   if (!title) return json({ error: 'Give the board a name.' }, { status: 400 });
   // Anyone but the master, which is to say everyone reaching this endpoint.
@@ -94,7 +120,13 @@ export default async (req: Request): Promise<Response> => {
   // Sign them straight in, so they land on their board rather than being asked
   // for the passphrase they were handed a second ago.
   const token = await issueToken({ r: 'editor', m: false, b: board.id, k: key.id });
-  return json(result, { status: 201, headers: { 'set-cookie': sessionCookie(token) } });
+  return json(result, {
+    status: 201,
+    headers: [
+      ['set-cookie', sessionCookie(token)],
+      ['set-cookie', agreedCookie(withAgreed(readAgreed(req), board.id))],
+    ],
+  });
 };
 
 export const config: Config = { path: '/api/create' };

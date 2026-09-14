@@ -1,5 +1,6 @@
 import { createHmac, createHash, timingSafeEqual, randomUUID } from 'node:crypto';
 import type { Role } from '../../../shared/types';
+import { AGREED_COOKIE } from '../../../shared/types';
 import { signingKey } from './secrets';
 import { ensureBoard, keyById } from './store';
 
@@ -83,6 +84,21 @@ export function sessionCookie(token: string): string {
 
 export function clearCookie(): string {
   return `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`;
+}
+
+/** What this device has already agreed to, exactly as it was written. */
+export const readAgreed = (req: Request): string | null => readCookie(req, AGREED_COOKIE);
+
+/**
+ * The record of an agreement, set beside the session cookie so the two live
+ * and die together on a device.
+ *
+ * Not HttpOnly, so the sign-in screen can read it and know whether to ask. It
+ * is a note of a choice somebody made, not a way into anything, and a record
+ * the screen cannot read is a record that makes the screen ask twice.
+ */
+export function agreedCookie(value: string): string {
+  return `${AGREED_COOKIE}=${encodeURIComponent(value)}; Path=/; Max-Age=${MAX_AGE_SECONDS}; Secure; SameSite=Lax`;
 }
 
 /**

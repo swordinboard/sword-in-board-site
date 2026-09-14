@@ -1,7 +1,28 @@
 import { useState } from 'react';
 import type { NewBoardResult, SessionInfo, SiteInfo } from '../../shared/types';
+import { AGREED_COOKIE, parseAgreed } from '../../shared/types';
 import * as api from '../lib/api';
+import { ApiError } from '../lib/api';
 import { copyText } from '../lib/share';
+
+/**
+ * Whether this device has ever agreed, at the notices' current version.
+ *
+ * The cookie is not HttpOnly precisely so this can be asked. Somebody who has
+ * agreed before is not asked again on the way in - only when the password
+ * turns out to open a board they have not agreed for, which the server is the
+ * first to know.
+ */
+function agreedBefore(): boolean {
+  if (typeof document === 'undefined') return false;
+  for (const part of document.cookie.split(';')) {
+    const eq = part.indexOf('=');
+    if (eq < 0) continue;
+    if (part.slice(0, eq).trim() !== AGREED_COOKIE) continue;
+    return parseAgreed(decodeURIComponent(part.slice(eq + 1).trim())).length > 0;
+  }
+  return false;
+}
 
 interface Props {
   title: string;
@@ -31,6 +52,17 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
   const [recoverEmail, setRecoverEmail] = useState('');
   const [recoverNote, setRecoverNote] = useState<string | null>(null);
 
+  /*
+   * Agreeing. Asked up front the first time somebody uses the site on this
+   * device, and after that only when the server says the password opened a
+   * board this device has not agreed for - which it cannot know any earlier,
+   * because the password is what picks the board.
+   */
+  const [agree, setAgree] = useState(false);
+  const [askAgain, setAskAgain] = useState<string | null>(null);
+  const [firstTime] = useState(() => !agreedBefore());
+  const asking = firstTime || askAgain !== null;
+
   const go = async (run: () => Promise<void>) => {
     setBusy(true);
     setError(null);
@@ -46,18 +78,33 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
   const enter = (event: React.FormEvent) => {
     event.preventDefault();
     if (!password) return;
-    void go(async () => onEntered(await api.login(password)));
+    if (asking && !agree) return;
+    void go(async () => {
+      try {
+        onEntered(await api.login(password, agree || undefined));
+      } catch (e) {
+        // 409 is not a wrong password. It is the right one, for a board this
+        // device has not agreed for yet.
+        if (e instanceof ApiError && e.status === 409) {
+          setAskAgain('a board you have not been on before');
+          setAgree(false);
+          return;
+        }
+        throw e;
+      }
+    });
   };
 
   const create = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!boardName.trim()) return;
+    if (!boardName.trim() || !agree) return;
     void go(async () => {
       setMade(
         await api.createOwnBoard({
           title: boardName.trim(),
           invite: invite.trim() || undefined,
           email: email.trim() || undefined,
+          agreed: true,
         }),
       );
     });
@@ -203,6 +250,25 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
             anything private off it.
           </p>
 
+          <label className="confirm agree">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+            />
+            <span>
+              I am 13 or older, and I have read the{' '}
+              <a href="/legal/rules.html" target="_blank" rel="noopener noreferrer">
+                site rules
+              </a>{' '}
+              and{' '}
+              <a href="/legal/privacy.html" target="_blank" rel="noopener noreferrer">
+                privacy notice
+              </a>
+              . I am responsible for what goes on this board.
+            </span>
+          </label>
+
           {error ? <p className="error-text">{error}</p> : null}
 
           <button
@@ -210,13 +276,21 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
             type="submit"
             disabled={
               busy ||
+              !agree ||
               !boardName.trim() ||
               (!email.trim() && Boolean(site?.recoveryAvailable) && !noEmail)
             }
           >
             {busy ? 'Putting it up...' : 'Put it up'}
           </button>
-          <button className="btn ghost wide-btn" type="button" onClick={() => setPanel('enter')}>
+          <button
+            className="btn ghost wide-btn"
+            type="button"
+            onClick={() => {
+              setAgree(false);
+              setPanel('enter');
+            }}
+          >
             Back
           </button>
         </form>
@@ -277,7 +351,42 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
             autoFocus
           />
         </div>
-        <button className="btn" type="submit" disabled={busy || !password}>
+        {/*
+          One tick covering both: how old they are, and that they have been
+          shown the rules. Two boxes would be a stronger record and a worse
+          door - and since neither is verification, what matters is that the
+          words are plain enough that ticking it means something.
+        */}
+        {asking ? (
+          <label className="confirm agree">
+            <input
+              type="checkbox"
+              checked={agree}
+              onChange={(e) => setAgree(e.target.checked)}
+            />
+            <span>
+              I am 13 or older, and I have read the{' '}
+              <a href="/legal/rules.html" target="_blank" rel="noopener noreferrer">
+                site rules
+              </a>{' '}
+              and{' '}
+              <a href="/legal/privacy.html" target="_blank" rel="noopener noreferrer">
+                privacy notice
+              </a>
+              . I understand a board is only as private as its password, and that anyone holding
+              it can read the whole thing.
+            </span>
+          </label>
+        ) : null}
+
+        {askAgain ? (
+          <p className="fine">
+            That password is right. It opens {askAgain}, so the agreement is asked once more for
+            this one.
+          </p>
+        ) : null}
+
+        <button className="btn" type="submit" disabled={busy || !password || (asking && !agree)}>
           {busy ? 'Checking...' : 'Come in'}
         </button>
         {error ? <p className="error-text">{error}</p> : null}

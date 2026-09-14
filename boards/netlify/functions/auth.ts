@@ -1,14 +1,17 @@
 import type { Config } from '@netlify/functions';
 import {
+  agreedCookie,
   clearCookie,
   issueToken,
   json,
   masterPassword,
   misconfigured,
+  readAgreed,
   safeEqual,
   sessionCookie,
   sessionFor,
 } from './_lib/auth';
+import { hasAgreed, withAgreed } from '../../shared/types';
 import {
   allowAttempt,
   clearAttempts,
@@ -19,6 +22,23 @@ import {
   touchKey,
 } from './_lib/store';
 import { IP_LIMIT, IP_WINDOW_MS, noteFailure } from './_lib/guard';
+
+/**
+ * The password was right but this device has not agreed for this board yet.
+ *
+ * A status of its own rather than an error: the screen needs to tell the two
+ * apart, because one means try a different password and the other means read
+ * this and tick the box.
+ */
+const mustAgree = (boardTitle?: string) =>
+  json(
+    {
+      needsAgreement: true,
+      boardTitle,
+      error: 'Please read the site rules and confirm before coming in.',
+    },
+    { status: 409 },
+  );
 
 async function describe(session: Awaited<ReturnType<typeof sessionFor>>) {
   if (!session) return { authenticated: false, role: null, master: false, boardId: null };
@@ -77,23 +97,44 @@ export default async (req: Request): Promise<Response> => {
   }
 
   let password = '';
+  let agreeing = false;
   try {
-    const body = (await req.json()) as { password?: unknown };
+    const body = (await req.json()) as { password?: unknown; agreed?: unknown };
     if (typeof body.password === 'string') password = body.password;
+    agreeing = body.agreed === true;
   } catch {
     return json({ error: 'bad request' }, { status: 400 });
   }
   if (!password) return json({ error: 'A password is required.' }, { status: 400 });
 
+  const agreedSoFar = readAgreed(req);
+
+  /*
+   * Whether this person still has to say yes, for the board they are opening.
+   *
+   * The passphrase is what picks the board, so until it resolves the site has
+   * no idea which board this is - which is why the ask cannot live on the
+   * screen before the password. It lands here instead, once, per board, and
+   * the cookie beside the session remembers it.
+   */
+  const needsAgreement = (boardId: string | null) =>
+    !hasAgreed(agreedSoFar, boardId) && !agreeing;
+
   // The master password is checked first: it opens everything, and must keep
   // working even before any access key has been made.
   if (safeEqual(password, master)) {
     await clearAttempts(`login:${ip}`);
+    if (needsAgreement(null)) return mustAgree();
     await ensureBoard();
     const token = await issueToken({ r: 'editor', m: true, b: null, k: null });
     return json(
       { authenticated: true, role: 'editor', master: true, boardId: null },
-      { headers: { 'set-cookie': sessionCookie(token) } },
+      {
+        headers: [
+          ['set-cookie', sessionCookie(token)],
+          ['set-cookie', agreedCookie(withAgreed(agreedSoFar, 'site'))],
+        ],
+      },
     );
   }
 
@@ -124,6 +165,11 @@ export default async (req: Request): Promise<Response> => {
   }
 
   await clearAttempts(`login:${ip}`);
+  // The password was right, so nothing here is a guess any more. Asking them
+  // to agree happens before the key is marked used and before a session
+  // exists: somebody who closes the panel has not been let in.
+  if (needsAgreement(key.boardId)) return mustAgree(board.title);
+
   await touchKey(key);
   const token = await issueToken({ r: key.role, m: false, b: key.boardId, k: key.id });
   return json(
@@ -134,7 +180,12 @@ export default async (req: Request): Promise<Response> => {
       boardId: key.boardId,
       boardTitle: board.title,
     },
-    { headers: { 'set-cookie': sessionCookie(token) } },
+    {
+      headers: [
+        ['set-cookie', sessionCookie(token)],
+        ['set-cookie', agreedCookie(withAgreed(agreedSoFar, key.boardId))],
+      ],
+    },
   );
 };
 

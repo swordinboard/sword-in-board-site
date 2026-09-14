@@ -57,7 +57,13 @@ export const getSite = () => request<SiteInfo>('/api/site');
 
 export const getSession = () => request<SessionInfo>('/api/auth');
 
-export const createOwnBoard = (input: { title: string; invite?: string; email?: string }) =>
+export const createOwnBoard = (input: {
+  title: string;
+  invite?: string;
+  email?: string;
+  /** Putting up a board is a way in, so it asks the same question as signing in. */
+  agreed: true;
+}) =>
   request<NewBoardResult>('/api/create', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -71,11 +77,16 @@ export const recoverByEmail = (email: string) =>
     body: JSON.stringify({ email }),
   });
 
-export const login = (password: string) =>
+/**
+ * `agreed` is sent only when somebody has just ticked the box. The server
+ * answers 409 when this device has not yet agreed for the board the password
+ * opens, which it cannot know until the password resolves.
+ */
+export const login = (password: string, agreed?: boolean) =>
   request<SessionInfo>('/api/auth', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify(agreed ? { password, agreed } : { password }),
   });
 
 export const logout = () => request<SessionInfo>('/api/auth', { method: 'DELETE' });
