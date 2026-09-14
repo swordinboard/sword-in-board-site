@@ -7,9 +7,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { BoardItem, BoardState } from '../../shared/types';
+import type { BoardItem, BoardState, StringView } from '../../shared/types';
 import type { CSSProperties } from 'react';
 import BoardItemView from './BoardItemView';
+import Strings from './Strings';
+import Hangers from './Hangers';
 import { Moulding } from './ItemFace';
 import { useToday } from '../lib/clock';
 
@@ -56,6 +58,11 @@ interface Props {
   onMoveItem: (id: string, x: number, y: number) => void;
   onCommit: () => void;
   onZoomChange?: (zoom: number) => void;
+  /** How much of the strings this reader wants to see. Theirs, not the board's. */
+  stringView: StringView;
+  /** An editor is tying strings: taps pick ends rather than selecting. */
+  stringing?: boolean;
+  onCutString?: (id: string) => void;
 }
 
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
@@ -72,6 +79,9 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     onMoveItem,
     onCommit,
     onZoomChange,
+    stringView,
+    stringing,
+    onCutString,
   },
   ref,
 ) {
@@ -299,6 +309,16 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   };
 
   const onItemPointerDown = (event: React.PointerEvent, item: BoardItem) => {
+    /*
+     * While stringing, a tap picks an end rather than selecting or dragging.
+     * Tying a string and moving an item are different jobs and a press cannot
+     * be both, so the mode decides which this one is.
+     */
+    if (stringing && editable) {
+      event.stopPropagation();
+      onSelect(item.id);
+      return;
+    }
     if (!editable) {
       // Noted, not acted on: the press still reaches the stage so a drag from
       // here pans the board, and only a press that stays put selects.
@@ -434,6 +454,13 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
                 onPointerDown={onItemPointerDown}
               />
             ))}
+            <Strings
+              strings={board.strings ?? []}
+              items={board.items}
+              view={stringView}
+              onCut={stringing ? onCutString : undefined}
+            />
+            <Hangers items={ordered} />
           </div>
         </div>
       </div>

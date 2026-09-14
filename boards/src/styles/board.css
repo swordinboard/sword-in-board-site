@@ -350,6 +350,61 @@
   -webkit-user-drag: none;
 }
 
+/* ---------- strings ---------- */
+
+/*
+ * Drawn over the items, under the hangers. Over, because a web shown in
+ * pieces is not a web; under the hangers, because a string passes beneath the
+ * pin holding it. Items carry z-index from their own stacking order, which is
+ * a small integer, so these two sit well clear of the top of it.
+ */
+.strings {
+  position: absolute;
+  inset: 0;
+  z-index: 100000;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.string {
+  fill: none;
+  stroke-width: 9px;
+  stroke-linecap: round;
+  filter: drop-shadow(1px 2px 2px rgba(20, 12, 4, 0.45));
+}
+
+/* A five pixel line is not a tap target; this one is, and is invisible. */
+.string-grab {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 46px;
+  stroke-linecap: round;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.hangers {
+  position: absolute;
+  inset: 0;
+  z-index: 100001;
+  pointer-events: none;
+}
+
+/*
+ * An empty copy of an item, carrying nothing but its hanger. It keeps the
+ * item's box, its tilt and its frame class, which is all the fastener rules
+ * ask for - but not the item class itself, or every `.cork .item` anywhere
+ * would quietly have started matching two elements instead of one.
+ */
+.hanger-ghost {
+  position: absolute;
+  /* The same pivot as .item, or a tilted hanger lands away from its item. */
+  transform-origin: 50% 8%;
+}
+
 /* ---------- fasteners ---------- */
 
 .fastener {

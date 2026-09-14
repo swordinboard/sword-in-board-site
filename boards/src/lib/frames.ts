@@ -48,6 +48,12 @@ export interface FrameSpec {
   defaultHanger: HangerStyle;
   /** Some frames read better with a stronger tilt than others. */
   tiltRange: number;
+  /**
+   * How far below the item's top edge the hanger actually sits, for the two
+   * frames that do not hang from their own top: a folder hangs below its tab
+   * and a clipping below its tear. Everything else is nought.
+   */
+  hangerDrop?: number;
 }
 
 export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
@@ -83,6 +89,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 10,
     defaultHanger: 'tape',
     tiltRange: 4,
+    hangerDrop: 15,
   },
   framed: {
     label: 'Framed',
@@ -130,6 +137,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 41,
     defaultHanger: 'pin',
     tiltRange: 2,
+    hangerDrop: 62,
   },
   magazine: {
     label: 'Magazine',
@@ -238,4 +246,33 @@ export function sizeFor(
 export function randomTilt(frame: FrameStyle): number {
   const range = FRAME_SPECS[frame].tiltRange;
   return Math.round((Math.random() * 2 - 1) * range * 10) / 10;
+}
+
+/**
+ * Where a string ties on: the hanging point of an item, in board coordinates.
+ *
+ * The top centre of the item, dropped by whatever its frame hangs below, and
+ * then turned with the item. An item is tilted about 50% 8% rather than its
+ * middle - it swings from its pin, near enough - so that is the point this
+ * turns around. Turning around the middle instead put the tie a few pixels
+ * off on anything tilted, which on a string is a kink at the knot.
+ */
+export function hangerAt(item: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation: number;
+  frame: FrameStyle;
+}): { x: number; y: number } {
+  const drop = FRAME_SPECS[item.frame]?.hangerDrop ?? 0;
+  /* Matches transform-origin on .item in board.css. */
+  const pivotX = item.x + item.w / 2;
+  const pivotY = item.y + item.h * 0.08;
+  const dy = drop - item.h * 0.08;
+  const turn = (item.rotation * Math.PI) / 180;
+  return {
+    x: pivotX - dy * Math.sin(turn),
+    y: pivotY + dy * Math.cos(turn),
+  };
 }

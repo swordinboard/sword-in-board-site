@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { BoardItem } from '../../shared/types';
-import { Contents, Fastener } from './ItemFace';
+import { Contents } from './ItemFace';
 
 interface Props {
   item: BoardItem;
@@ -42,7 +42,6 @@ function BoardItemView({ item, editable, selected, dragging, today, onPointerDow
       data-item={item.id}
       onPointerDown={(event) => onPointerDown(event, item)}
     >
-      <Fastener item={item} />
       <div className="surface">
         <Contents item={item} today={today} />
       </div>

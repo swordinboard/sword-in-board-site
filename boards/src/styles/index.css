@@ -1251,6 +1251,59 @@ button {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
+/* The colours a string can be, shown only while one is being tied. */
+.string-colors {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 0 8px 0 4px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.string-colors .swatch {
+  width: 20px;
+  height: 20px;
+  min-width: 0;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.string-colors .swatch.on {
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+.swatch.string-red {
+  background: #b02a22;
+}
+
+.swatch.string-twine {
+  background: #c3a367;
+}
+
+.swatch.string-blue {
+  background: #35629c;
+}
+
+.swatch.string-green {
+  background: #417a49;
+}
+
+.swatch.string-black {
+  background: #1f1d1a;
+}
+
+/* The dimmer, on the zoom bar where the rest of the view controls are. */
+.zoom-bar .strings-view.faint {
+  opacity: 0.55;
+}
+
+.zoom-bar .strings-view.hidden {
+  opacity: 0.28;
+  text-decoration: line-through;
+}
+
 .editor-bar button {
   display: grid;
   gap: 1px;

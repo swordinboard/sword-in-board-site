@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { BoardItem, BoardState, SessionInfo, SiteInfo } from '../shared/types';
-import { GALLERY_FRAMES, MAX_BOARD_PICTURES, takesSubmissions } from '../shared/types';
+import type {
+  BoardItem,
+  BoardState,
+  BoardString,
+  SessionInfo,
+  SiteInfo,
+  StringColor,
+  StringView,
+} from '../shared/types';
+import { GALLERY_FRAMES, MAX_BOARD_PICTURES, MAX_STRINGS, STRING_VIEWS, takesSubmissions } from '../shared/types';
 import { SITE_NAME } from './lib/config';
 import * as api from './lib/api';
 import { useToday } from './lib/clock';
@@ -71,6 +79,16 @@ export default function App() {
   const [editMode, setEditMode] = useState(false);
   /** The alignment grid. A view setting, so it is nobody else's business. */
   const [grid, setGrid] = useState(false);
+  /*
+   * How much of the strings this reader wants. A reading aid like zoom, kept
+   * per person and never saved: one person squinting past a dense web should
+   * not be changing what everybody else sees.
+   */
+  const [stringView, setStringView] = useState<StringView>('full');
+  /** An editor tying strings, and the end they have picked so far. */
+  const [stringing, setStringing] = useState(false);
+  const [stringColor, setStringColor] = useState<StringColor>('red');
+  const [stringFrom, setStringFrom] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Picking an item and opening its settings are separate on purpose. On a
   // phone the settings panel comes up under the thumb, so opening it on every
@@ -325,6 +343,53 @@ export default function App() {
     [say],
   );
 
+  /*
+   * Tying a string. The first tap picks an end and the second ties it; tapping
+   * the same item twice just lets go of it, which is what somebody who changed
+   * their mind will try.
+   */
+  const pickStringEnd = useCallback(
+    (id: string | null) => {
+      const current = boardRef.current;
+      if (!id || !current) {
+        setStringFrom(null);
+        setSelectedId(null);
+        return;
+      }
+      // Nothing picked yet: this is the first end. The ring shows which.
+      if (!stringFrom) {
+        setStringFrom(id);
+        setSelectedId(id);
+        return;
+      }
+      setStringFrom(null);
+      setSelectedId(null);
+      // The same one twice is somebody changing their mind, not a knot.
+      if (stringFrom === id) return;
+      const already = current.strings ?? [];
+      const pair = [stringFrom, id].sort().join('~');
+      // One string to a pair: a second between the same two is the same string.
+      if (already.some((tie) => [tie.from, tie.to].sort().join('~') === pair)) return;
+      if (already.length >= MAX_STRINGS) {
+        say(`That is ${MAX_STRINGS} strings, which is all this board will hold.`);
+        return;
+      }
+      const tie: BoardString = { id: pair, from: stringFrom, to: id, color: stringColor };
+      patchBoard({ strings: [...already, tie] });
+    },
+    [patchBoard, stringColor, stringFrom],
+  );
+
+  const cutString = useCallback(
+    (id: string) => {
+      const current = boardRef.current;
+      if (!current?.strings) return;
+      patchBoard({ strings: current.strings.filter((s) => s.id !== id) });
+    },
+    [patchBoard],
+  );
+
+
   const rename = useCallback(() => {
     const current = boardRef.current;
     if (!current) return;
@@ -404,7 +469,15 @@ export default function App() {
         editable={canEdit}
         grid={canEdit && grid}
         selectedId={selectedId}
+        stringView={stringView}
+        stringing={canEdit && stringing}
+        onCutString={cutString}
         onSelect={(id) => {
+          // While stringing, a tap is picking an end rather than selecting.
+          if (canEdit && stringing) {
+            pickStringEnd(id);
+            return;
+          }
           setSelectedId(id);
           if (id !== inspectingId) setInspectingId(null);
         }}
@@ -456,6 +529,32 @@ export default function App() {
             onChange={(e) => boardHandle.current?.zoomTo(sliderToZoom(Number(e.target.value)))}
           />
           <span className="level">{Math.round(zoom * 100)}%</span>
+          {/*
+            The strings dimmer sits with the zoom, because it is the same kind
+            of thing: a way of seeing this board, belonging to whoever is
+            looking, changing nothing for anybody else. Only there when there
+            is something to dim.
+          */}
+          {(board.strings?.length ?? 0) > 0 ? (
+            <button
+              type="button"
+              className={`strings-view ${stringView}`}
+              onClick={() =>
+                setStringView(
+                  (now) => STRING_VIEWS[(STRING_VIEWS.indexOf(now) + 1) % STRING_VIEWS.length],
+                )
+              }
+              aria-label={
+                stringView === 'full'
+                  ? 'Strings shown; tap to fade them'
+                  : stringView === 'faint'
+                    ? 'Strings faded; tap to hide them'
+                    : 'Strings hidden; tap to show them'
+              }
+            >
+              &#8942;&#8260;
+            </button>
+          ) : null}
           <button type="button" onClick={() => boardHandle.current?.fit()} aria-label="Fit board">
             &#9635;
           </button>
@@ -469,6 +568,15 @@ export default function App() {
           onToggleGrid={() => setGrid((on) => !on)}
           onRename={rename}
           onStyle={() => setDialog('style')}
+          stringing={stringing}
+          onToggleStringing={() => {
+            setStringing((on) => !on);
+            // Whichever way it just went, nothing is half-tied any more.
+            setStringFrom(null);
+            setSelectedId(null);
+          }}
+          stringColor={stringColor}
+          onStringColor={setStringColor}
         />
       ) : null}
 

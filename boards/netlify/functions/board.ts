@@ -12,8 +12,12 @@ import {
   MIN_TYPE_PT,
   MAX_GALLERY,
   MAX_LINES,
+  MAX_STRINGS,
+  STRING_COLORS,
   MAGNET_FINISHES,
   type BoardItem,
+  type BoardString,
+  type StringColor,
   type BoardLine,
   type BoardLineKind,
   type BoardState,
@@ -59,6 +63,40 @@ function sanitizeLine(raw: unknown, index: number): BoardLine | null {
     label: str(line.label, 60),
     date: isCalendarDate(line.date) ? line.date : undefined,
   };
+}
+
+/**
+ * The strings, kept only where both ends still exist.
+ *
+ * An item can be taken down while somebody else is looking at the board, and a
+ * string to nothing would be drawn from a corner of the cork. Dropping them
+ * here rather than asking every client to remember means it is true of what is
+ * stored, not just of what one client happened to send.
+ */
+function sanitizeStrings(raw: unknown, items: BoardItem[]): BoardString[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const live = new Set(items.map((item) => item.id));
+  const seen = new Set<string>();
+  const kept: BoardString[] = [];
+  for (const value of raw) {
+    if (kept.length >= MAX_STRINGS) break;
+    if (!value || typeof value !== 'object') continue;
+    const it = value as Record<string, unknown>;
+    const from = typeof it.from === 'string' ? it.from.slice(0, 64) : '';
+    const to = typeof it.to === 'string' ? it.to.slice(0, 64) : '';
+    // A string to itself is a knot, and one drawn twice is drawn twice.
+    if (!live.has(from) || !live.has(to) || from === to) continue;
+    const pair = [from, to].sort().join('~');
+    if (seen.has(pair)) continue;
+    seen.add(pair);
+    kept.push({
+      id: typeof it.id === 'string' && it.id ? it.id.slice(0, 64) : pair,
+      from,
+      to,
+      color: STRING_COLORS.includes(it.color as StringColor) ? (it.color as StringColor) : 'red',
+    });
+  }
+  return kept.length ? kept : undefined;
 }
 
 /**
@@ -187,6 +225,7 @@ export default async (req: Request): Promise<Response> => {
       timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
       style: boardStyle(body.style) ?? current.style,
       submissions: typeof body.submissions === 'boolean' ? body.submissions : current.submissions,
+      strings: sanitizeStrings(body.strings, items),
       // Only a plain hex colour: this ends up in a style attribute, and
       // anything else there is somebody else's CSS running on the page.
       wall: /^#[0-9a-f]{6}$/i.test(String(body.wall)) ? String(body.wall) : current.wall,

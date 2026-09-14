@@ -186,6 +186,8 @@ export interface BoardState {
    * on a deploy would be a change nobody asked for.
    */
   submissions?: boolean;
+  /** Strings run between items on this board. Absent means none. */
+  strings?: BoardString[];
   /**
    * Last time anyone looked at or changed this board. Viewing counts, so a
    * board only ever expires if it is genuinely abandoned.
@@ -230,6 +232,39 @@ export function boardStyle(raw: unknown): BoardStyle | undefined {
   if (BOARD_STYLES.includes(raw as BoardStyle)) return raw as BoardStyle;
   return RENAMED_STYLES[raw];
 }
+
+/**
+ * A string run between two items, tied at the hanger on each.
+ *
+ * It is a board-level thing rather than a field on either item: a string
+ * belongs to neither end, and putting it on one would mean deciding which,
+ * then remembering to look at both when drawing.
+ */
+export interface BoardString {
+  id: string;
+  /** The two items it runs between. Order carries no meaning. */
+  from: string;
+  to: string;
+  color: StringColor;
+}
+
+export type StringColor = 'red' | 'twine' | 'blue' | 'green' | 'black';
+
+export const STRING_COLORS: StringColor[] = ['red', 'twine', 'blue', 'green', 'black'];
+
+/**
+ * Enough to map a board without being able to bury it. Each string is drawn
+ * every frame, and past a few hundred the cost stops being free.
+ */
+export const MAX_STRINGS = 400;
+
+/**
+ * How much of the strings a reader wants to see. Kept per person and never
+ * saved: it is a reading aid like zoom, not a property of the board.
+ */
+export type StringView = 'full' | 'faint' | 'hidden';
+
+export const STRING_VIEWS: StringView[] = ['full', 'faint', 'hidden'];
 
 /** Whether this board is taking submissions. Absent means it is. */
 export const takesSubmissions = (board: { submissions?: boolean }) => board.submissions !== false;
