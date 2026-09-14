@@ -544,7 +544,12 @@ export default function App() {
           }}
           openReports={openReports}
           onToggleEdit={() => {
-            setEditMode((on) => !on);
+            const turningOn = !editMode;
+            setEditMode(turningOn);
+            // Turning it on, the board is what you wanted; the panel is in
+            // the way of it. Turning it off, you are more often on your way
+            // to something else in here, so it stays where it is.
+            if (turningOn) setPanelOpen(false);
             setSelectedId(null);
             setInspectingId(null);
           }}

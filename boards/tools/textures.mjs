@@ -255,9 +255,34 @@ export const SURFACES = [
   {
     name: 'surface-scifi',
     base: '#1e2c36',
+    /*
+     * A grid, and it has to be an even one, which means surviving two things
+     * that eat thin lines: the bake halves everything, and jpeg is a lossy
+     * codec that rings around a hard edge and drops it between blocks.
+     *
+     * A one pixel rule survived neither - half a pixel lands on one row and
+     * misses the next, so some rules came through at half strength and the
+     * horizontals vanished altogether. So the rule is six pixels here, three
+     * in the bake, which is a feature a codec keeps; it is spaced twice as
+     * far apart, so there is less of it to keep; and it carries a glow either
+     * side, which puts most of its weight at low frequencies where jpeg is
+     * at its best and hides the ringing that is left.
+     */
     layers: `
-      repeating-linear-gradient(0deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px),
-      repeating-linear-gradient(90deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px)`,
+      repeating-linear-gradient(0deg,
+        transparent 0 30px,
+        rgba(120, 200, 225, 0.04) 36px,
+        rgba(120, 200, 225, 0.2) 39px,
+        rgba(120, 200, 225, 0.2) 45px,
+        rgba(120, 200, 225, 0.04) 48px,
+        transparent 54px 84px),
+      repeating-linear-gradient(90deg,
+        transparent 0 30px,
+        rgba(120, 200, 225, 0.04) 36px,
+        rgba(120, 200, 225, 0.2) 39px,
+        rgba(120, 200, 225, 0.2) 45px,
+        rgba(120, 200, 225, 0.04) 48px,
+        transparent 54px 84px)`,
   },
 ];
 
