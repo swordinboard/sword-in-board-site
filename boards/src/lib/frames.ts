@@ -49,11 +49,23 @@ export interface FrameSpec {
   /** Some frames read better with a stronger tilt than others. */
   tiltRange: number;
   /**
-   * How far below the item's top edge the hanger actually sits, for the two
-   * frames that do not hang from their own top: a folder hangs below its tab
-   * and a clipping below its tear. Everything else is nought.
+   * How far below the item's top edge a pin, nail or strip of tape sits.
+   *
+   * The same measurement as `--hang` in frames.css, and the two have to stay
+   * in step: that one decides where the fastener is drawn and this one
+   * decides where a string ties to it. Far enough in that there is item under
+   * the pin, never so far that it sits on the writing.
    */
   hangerDrop?: number;
+  /**
+   * The same for a magnet, where it differs.
+   *
+   * A magnet is big enough to hold a thing from its edge, so it straddles
+   * that edge rather than coming down into the item and covering a line of
+   * it. Only a folder moves them down, because above a folder's body there is
+   * nothing but tab.
+   */
+  magnetDrop?: number;
 }
 
 export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
@@ -67,6 +79,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 12,
     defaultHanger: 'pin',
     tiltRange: 3,
+    hangerDrop: 24,
   },
   polaroid: {
     label: 'Instant photo',
@@ -78,6 +91,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 94,
     defaultHanger: 'pin',
     tiltRange: 5,
+    hangerDrop: 14,
   },
   clipping: {
     label: 'Clipping',
@@ -101,6 +115,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 70,
     defaultHanger: 'nail',
     tiltRange: 1,
+    hangerDrop: 32,
   },
   note: {
     label: 'Sticky note',
@@ -112,6 +127,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 20,
     defaultHanger: 'pin',
     tiltRange: 6,
+    hangerDrop: 22,
   },
   lined: {
     label: 'Notebook page',
@@ -124,6 +140,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 20,
     defaultHanger: 'tape',
     tiltRange: 4,
+    hangerDrop: 20,
   },
   folder: {
     label: 'Folder',
@@ -138,6 +155,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     defaultHanger: 'pin',
     tiltRange: 2,
     hangerDrop: 62,
+    magnetDrop: 62,
   },
   magazine: {
     label: 'Magazine',
@@ -151,6 +169,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     padBottom: 58,
     defaultHanger: 'none',
     tiltRange: 2,
+    hangerDrop: 20,
   },
   whiteboard: {
     label: 'Whiteboard',
@@ -164,6 +183,7 @@ export const FRAME_SPECS: Record<FrameStyle, FrameSpec> = {
     defaultHanger: 'nail',
     // A board screwed to the wall hangs straight.
     tiltRange: 0.6,
+    hangerDrop: 26,
   },
 };
 
@@ -264,8 +284,13 @@ export function hangerAt(item: {
   h: number;
   rotation: number;
   frame: FrameStyle;
+  hanger?: HangerStyle;
 }): { x: number; y: number } {
-  const drop = FRAME_SPECS[item.frame]?.hangerDrop ?? 0;
+  const spec = FRAME_SPECS[item.frame];
+  // A magnet holds from the edge where a pin goes through the sheet, so the
+  // two do not tie in the same place and a string has to know which it is on.
+  const magnet = item.hanger === 'magnetBar' || item.hanger === 'magnetDisc';
+  const drop = (magnet ? spec?.magnetDrop : spec?.hangerDrop) ?? 0;
   /* Matches transform-origin on .item in board.css. */
   const pivotX = item.x + item.w / 2;
   const pivotY = item.y + item.h * 0.08;

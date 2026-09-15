@@ -407,6 +407,21 @@
 
 /* ---------- fasteners ---------- */
 
+/*
+ * Where an item hangs from: the centre of its pin, nail or tape, measured
+ * down from its own top edge.
+ *
+ * One number per frame, and every fastener centres itself on it, because a
+ * pin, a nail and a strip of tape holding the same sheet all go through the
+ * same part of it. Set per frame in frames.css; anything that does not say
+ * hangs from its very edge.
+ *
+ * It matters that this is one number rather than a top for each fastener on
+ * each frame: `hangerDrop` in lib/frames.ts is the same measurement, and a
+ * string ties to that. Two lists to keep in step would drift, and a drifted
+ * knot is a string tied to thin air beside the pin.
+ */
+
 .fastener {
   position: absolute;
   z-index: 3;
@@ -415,7 +430,8 @@
 
 /* Pushpin: a lit sphere with a small collar and a cast shadow. */
 .fastener.pin {
-  top: -11px;
+  /* Centred on the frame's hanging point: half the pin's height back up. */
+  top: calc(var(--hang, 0px) - 11px);
   left: 50%;
   width: 22px;
   height: 22px;
@@ -432,7 +448,7 @@
 
 /* Nail head for framed pieces. */
 .fastener.nail {
-  top: -7px;
+  top: calc(var(--hang, 0px) - 6px);
   left: 50%;
   width: 12px;
   height: 12px;
@@ -445,7 +461,7 @@
 
 /* Two strips of translucent tape across the top corners. */
 .fastener.tape {
-  top: -12px;
+  top: calc(var(--hang, 0px) - 13px);
   width: 62px;
   height: 26px;
   background: linear-gradient(
@@ -464,7 +480,10 @@
  * and a quarter, and a three-quarter-inch disc, at the board's 117px to the
  * inch. Each straddles the item's top edge rather than sitting down on it -
  * a magnet put square in the middle of a note covers the first line of it,
- * which is not where anybody puts one.
+ * which is not where anybody puts one. So where a pin or a nail moves down
+ * into the item far enough to look like it is holding it, a magnet does not:
+ * it is already big enough to be holding the thing from the edge, and moving
+ * it in would only cost a line of writing.
  */
 .fastener.magnet {
   left: 50%;
@@ -474,7 +493,7 @@
 }
 
 .fastener.magnet.bar {
-  top: -30px;
+  top: calc(var(--hang-magnet, 0px) - 29.5px);
   width: 146px;
   height: 59px;
   margin-left: -73px;
@@ -482,7 +501,7 @@
 }
 
 .fastener.magnet.disc {
-  top: -48px;
+  top: calc(var(--hang-magnet, 0px) - 44px);
   width: 88px;
   height: 88px;
   margin-left: -44px;

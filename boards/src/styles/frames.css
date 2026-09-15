@@ -140,16 +140,11 @@
 /*
  * A pin goes through paper, and on a clipping the paper starts a little way
  * down: the tear bites up to fourteen pixels out of the top edge, so a
- * fastener set against that edge is holding air. These two come down past it.
- * The magnets are left where they are - they already reach the text by about
- * as much as they should, and dropping them further would only cover more.
+ * fastener set against that edge is holding air, so it comes down past it.
  */
-.frame-clipping .fastener.pin {
-  top: 4px;
-}
-
-.frame-clipping .fastener.nail {
-  top: 7px;
+.item.frame-clipping,
+.hanger-ghost.frame-clipping {
+  --hang: 15px;
 }
 
 /* Newsprint runs a photograph grey, flat and contrasty. */
@@ -462,28 +457,15 @@
 }
 
 /*
- * A folder's body starts below the tab, so a fastener placed against the top
- * of the item like every other frame's ends up pinned to the cork above it.
- * Dropped far enough to bite into the folder itself.
+ * A folder's body starts below the tab, so a fastener against the item's top
+ * edge is pinned to the tab's corner and holding nothing. The magnets come
+ * down with it here, unlike on other frames: above the body there is only
+ * tab, and a magnet stuck to a tab is not holding the folder.
  */
-.frame-folder .fastener.pin {
-  top: 51.6px;
-}
-
-.frame-folder .fastener.nail {
-  top: 67.5px;
-}
-
-.frame-folder .fastener.tape {
-  top: 47.7px;
-}
-
-.frame-folder .fastener.magnet.bar {
-  top: 33px;
-}
-
-.frame-folder .fastener.magnet.disc {
-  top: 19px;
+.item.frame-folder,
+.hanger-ghost.frame-folder {
+  --hang: 62px;
+  --hang-magnet: 62px;
 }
 
 .frame-folder .folder-tab {
@@ -993,4 +975,60 @@ a.md-link {
   background: none;
   font-family: inherit;
   font-size: 1em;
+}
+
+/* ---------- where each frame hangs from ---------- */
+
+/*
+ * How far into an item its pin, nail or tape actually sits.
+ *
+ * Every one of these was nought, which put a pin's centre exactly on the top
+ * edge: half of it over the item, half over the cork, and nothing between the
+ * two. A real pin goes through the paper, so each of these is far enough in
+ * to have something under it, and no further than the frame's own margin -
+ * a pin should never be sitting on the writing.
+ *
+ * Kept in step with hangerDrop in lib/frames.ts, which is where a string ties.
+ */
+
+/* A pin through a sheet, a fifth of an inch down. */
+.item.frame-paper,
+.hanger-ghost.frame-paper {
+  --hang: 24px;
+}
+
+/* The square of a sticky note, above its first line. */
+.item.frame-note,
+.hanger-ghost.frame-note {
+  --hang: 22px;
+}
+
+/* In the white margin above the photograph, which is 23px of room. */
+.item.frame-polaroid,
+.hanger-ghost.frame-polaroid {
+  --hang: 14px;
+}
+
+/* On the page above the ruling, where a strip of tape would go. */
+.item.frame-lined,
+.hanger-ghost.frame-lined {
+  --hang: 20px;
+}
+
+/* Into the moulding, which is 70px of wood, rather than on the wall above. */
+.item.frame-framed,
+.hanger-ghost.frame-framed {
+  --hang: 32px;
+}
+
+/* Through the masthead. */
+.item.frame-magazine,
+.hanger-ghost.frame-magazine {
+  --hang: 20px;
+}
+
+/* Into the board's own frame, not the writing surface inside it. */
+.item.frame-whiteboard,
+.hanger-ghost.frame-whiteboard {
+  --hang: 26px;
 }
