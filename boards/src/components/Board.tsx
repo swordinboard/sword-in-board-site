@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { BoardItem, BoardState, StringView } from '../../shared/types';
+import type { BoardItem, BoardState, StringView, WallTexture } from '../../shared/types';
 import type { CSSProperties } from 'react';
 import BoardItemView from './BoardItemView';
 import Strings from './Strings';
@@ -69,13 +69,29 @@ interface Props {
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 /**
- * How wide one copy of an uploaded wall is drawn, in boards.
+ * The walls that are one picture rather than a pattern, measured in boards.
  *
- * Wider than the board, so at the zoom a board opens on you are looking at
- * one picture rather than a patchwork of them, and it only reads as a repeat
- * once you pull back.
+ * Most walls are made of something with a size of its own - a brick is seven
+ * inches whatever it is behind - and the stylesheet says so. These two have
+ * no such size. A door is drawn as one door against the board it is behind,
+ * and a picture somebody uploaded is whatever they uploaded. Both need the
+ * board's measurements, so both are worked out here.
+ *
+ * `across` is how many boards wide one copy is drawn, and `above` is how far
+ * over the top of the board its own top edge starts, in boards. The door gets
+ * a rise so its head casing and the wall above it land clear of the board,
+ * instead of the top of the door being hidden behind it.
  */
-const OWN_WALL_WIDTH = 2;
+const BY_BOARD: Partial<Record<WallTexture, { across: number; above: number }>> = {
+  /*
+   * A board and a half across, and starting a board and two thirds over the
+   * top of it - which puts the head casing a little above the board with the
+   * picture's own deep run of wall above that, and the door below this one
+   * off the top of the screen at any zoom a phone can reach.
+   */
+  door: { across: 1.5, above: 1.69 },
+};
+const OWN_WALL = { across: 2, above: 0 };
 
 /**
  * The wall, as inline variables on the stage.
@@ -86,18 +102,22 @@ const OWN_WALL_WIDTH = 2;
  * write a rule for.
  *
  * The second is where the wall is, which is the board's business rather than
- * the screen's. Handing the view down as variables puts the tile grid on the
+ * the screen's. Handing the view down as variables puts the paper on the
  * board's own corner and sizes it by the board's zoom, so a wall behaves like
  * a wall: it slides under the board when the board is dragged and the bricks
  * get bigger when it is pinched, instead of sitting still like a backdrop
  * painted on the window.
  *
- * Everything on a wall repeats, an uploaded picture included. A picture that
- * covered instead would have an edge, and in board space there is no size
- * that edge could be: pinch out far enough and you would find it, with bare
- * colour beyond. Repeating it also means nothing here has to know how tall
- * the picture is - `auto` keeps its proportions, whatever they turn out to
- * be.
+ * Everything on a wall repeats, the door and an uploaded picture included. A
+ * picture that covered instead would have an edge, and in board space there
+ * is no size that edge could be: pinch out far enough and you would find it,
+ * with bare colour past it. Drawn this big the repeat is out of reach - the
+ * door is three and a half boards long - so what anybody actually sees is one
+ * door, running off the bottom of the screen.
+ *
+ * Only the width is ever set. `auto` for the height keeps a picture in its
+ * own proportions, which is what stops a door from being stretched and means
+ * nothing here has to go and measure a wall somebody uploaded a minute ago.
  */
 function wallStyle(board: BoardState, view: View): CSSProperties {
   const style: Record<string, string> = {
@@ -106,10 +126,16 @@ function wallStyle(board: BoardState, view: View): CSSProperties {
     '--wall-y': `${view.y}px`,
   };
   if (board.wall) style['--wall-color'] = board.wall;
-  if (board.wallImage) {
-    const across = (board.width + FRAME_PAD * 2) * OWN_WALL_WIDTH;
-    style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
+  if (board.wallImage) style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
+
+  const hung = board.wallImage ? OWN_WALL : board.wallTex && BY_BOARD[board.wallTex];
+  if (hung) {
+    const outerW = board.width + FRAME_PAD * 2;
+    const outerH = board.height + FRAME_PAD * 2;
+    const across = outerW * hung.across;
     style['--wall-tex-size'] = `${across * view.z}px auto`;
+    style['--wall-tex-at'] =
+      `${view.x + ((outerW - across) / 2) * view.z}px ${view.y - outerH * hung.above * view.z}px`;
   }
   return style as CSSProperties;
 }

@@ -1770,9 +1770,15 @@ button {
   background: url('./tex/wall-floral.png') center / 75px 75px repeat;
 }
 
-/* Tall, so it is fitted by height and repeated across: a row of doors. */
+/*
+ * The door's head, fitted to the width of the button. The picture is three
+ * and a half times as tall as it is wide, so fitting it by height leaves a
+ * sliver nobody could read - and its actual top is the deep run of wall above
+ * the casing, which on a button is a grey rectangle. 22% down is the casing
+ * and the first row of panels, which is the part that says door.
+ */
 .wall-swatch.wall-door {
-  background: url('./tex/wall-door.jpg') center / auto 100% repeat;
+  background: url('./tex/wall-door.jpg') center 22% / 100% auto no-repeat;
 }
 
 /* Until there is one, the slot for an uploaded wall reads as empty. */

@@ -471,32 +471,45 @@ export const WALLS = [
   },
   {
     name: 'wall-door',
-    tile: [1100, 1900],
-    /* Flat grey and a lot of it: jpeg holds this in a fifth of png's bytes. */
-    photo: true,
+    tile: [1100, 3850],
     /*
-     * A six-panel door in grey primer, in its casing, with wall around it.
-     *
-     * It used to be a wide crop that covered the screen and never repeated,
-     * because the wall was painted on the window rather than behind the
-     * board. Now that the wall sits in the board's own space, a covering
-     * picture has no size to be: pinch out far enough and you find its edge.
-     * So it is a tile like the rest, and it has to wrap.
-     *
-     * Wrapping is why there is no shading over the whole tile. The old one
-     * had a top-to-bottom gradient across everything, which is invisible in
-     * one copy and a bright line across the wall in a grid of them. The only
-     * gradients left are inside the panels, where they cannot reach an edge.
-     *
-     * The leaf is 668 units of the 1100 unit tile, and board.css draws the
-     * tile one board wide - which makes the leaf 23 inches rather than the 36
-     * a door really is. That is deliberate and it is the only wall drawn
-     * smaller than life: at its own size a door is as wide as the board, the
-     * board covers it, and all anybody ever sees is casing.
+     * Flat grey and a lot of it, so jpeg holds it in a fraction of png's
+     * bytes - and low quality holds it in a fraction of those. 72 rather than
+     * the usual 86 costs 143KB of the 225 and cannot be told from it at the
+     * size a phone draws this, where a board and a half is about 530px.
      */
-    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='1100' height='1900'>
+    photo: true,
+    quality: 72,
+    /*
+     * A tall panelled door in grey primer, in its casing, with wall around it.
+     *
+     * Three and a half times as tall as it is wide, which is longer than a
+     * door really is. That is the point: board.css draws it half again the
+     * board's width, and from there it runs a long way past the bottom of any
+     * screen, so what you see is one door going down rather than a stack of
+     * them. It is panelled the whole way down instead of stretched - a six
+     * panel door pulled to this length would have panels five times longer
+     * than they are wide and an oval doorknob.
+     *
+     * The wall above the casing is deep on purpose, deeper than the strip
+     * below the threshold. It is the headroom that keeps the door above this
+     * one off the top of the screen: 700 units is 4200 board pixels, and with
+     * the casing set a little over the board there is nothing to find above
+     * it until a screen a good deal taller than a phone's at the furthest
+     * zoom out.
+     *
+     * It still wraps, in both directions. Nothing here covers, because a
+     * covering picture in board space has no size its edge could be: pinch
+     * out far enough and you find it, with bare colour past it. Wrapping is
+     * also why there is no shading over the whole tile - an earlier one had a
+     * top-to-bottom gradient across everything, invisible in one copy and a
+     * bright line across the wall in a grid of them. The only gradients left
+     * are inside the panels, where they cannot reach an edge, and both the
+     * top and bottom edges are plain wall, so the join is wall meeting wall.
+     */
+    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='1100' height='3850'>
       <defs>
-        <filter id='roll' x='0' y='0' width='1100' height='1900' filterUnits='userSpaceOnUse'>
+        <filter id='roll' x='0' y='0' width='1100' height='3850' filterUnits='userSpaceOnUse'>
           <feTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='4' stitchTiles='stitch' seed='23'/>
           <feColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.52 0.18 0.15 0.1 0 -0.04'/>
         </filter>
@@ -510,42 +523,58 @@ export const WALLS = [
       </defs>
 
       <!-- The wall the door is in. -->
-      <rect width='1100' height='1900' fill='#8d8b86'/>
+      <rect width='1100' height='3850' fill='#8d8b86'/>
 
       <!-- Casing, the reveal behind it, then the leaf. -->
-      <rect x='160' y='184' width='780' height='1596' fill='#a3a19b'/>
-      <rect x='160' y='184' width='780' height='1596' fill='none'
+      <rect x='160' y='700' width='780' height='3000' fill='#a3a19b'/>
+      <rect x='160' y='700' width='780' height='3000' fill='none'
             stroke='rgba(0,0,0,0.20)' stroke-width='3'/>
-      <rect x='160' y='184' width='780' height='7' fill='rgba(255,255,255,0.20)'/>
-      <rect x='204' y='228' width='692' height='1552' fill='#5f5e5b'/>
-      <rect x='216' y='240' width='668' height='1484' fill='#9a9893'/>
+      <rect x='160' y='700' width='780' height='7' fill='rgba(255,255,255,0.20)'/>
+      <rect x='204' y='744' width='692' height='2956' fill='#5f5e5b'/>
+      <rect x='216' y='756' width='668' height='2930' fill='#9a9893'/>
 
-      <!-- Six panels: two stiles, a muntin, and rails between the rows. -->
+      <!-- Seven rows of panels between two stiles and a muntin. -->
       <g fill='#8f8d88' stroke='rgba(0,0,0,0.30)' stroke-width='3'>
-        <rect x='304' y='340' width='222' height='330' rx='4'/>
-        <rect x='574' y='340' width='222' height='330' rx='4'/>
-        <rect x='304' y='766' width='222' height='330' rx='4'/>
-        <rect x='574' y='766' width='222' height='330' rx='4'/>
-        <rect x='304' y='1192' width='222' height='424' rx='4'/>
-        <rect x='574' y='1192' width='222' height='424' rx='4'/>
+        <rect x='304' y='856' width='222' height='306' rx='4'/>
+        <rect x='574' y='856' width='222' height='306' rx='4'/>
+        <rect x='304' y='1258' width='222' height='306' rx='4'/>
+        <rect x='574' y='1258' width='222' height='306' rx='4'/>
+        <rect x='304' y='1660' width='222' height='306' rx='4'/>
+        <rect x='574' y='1660' width='222' height='306' rx='4'/>
+        <rect x='304' y='2062' width='222' height='306' rx='4'/>
+        <rect x='574' y='2062' width='222' height='306' rx='4'/>
+        <rect x='304' y='2464' width='222' height='306' rx='4'/>
+        <rect x='574' y='2464' width='222' height='306' rx='4'/>
+        <rect x='304' y='2866' width='222' height='306' rx='4'/>
+        <rect x='574' y='2866' width='222' height='306' rx='4'/>
+        <rect x='304' y='3268' width='222' height='310' rx='4'/>
+        <rect x='574' y='3268' width='222' height='310' rx='4'/>
       </g>
       <g fill='url(#sunk)'>
-        <rect x='304' y='340' width='222' height='330' rx='4'/>
-        <rect x='574' y='340' width='222' height='330' rx='4'/>
-        <rect x='304' y='766' width='222' height='330' rx='4'/>
-        <rect x='574' y='766' width='222' height='330' rx='4'/>
-        <rect x='304' y='1192' width='222' height='424' rx='4'/>
-        <rect x='574' y='1192' width='222' height='424' rx='4'/>
+        <rect x='304' y='856' width='222' height='306' rx='4'/>
+        <rect x='574' y='856' width='222' height='306' rx='4'/>
+        <rect x='304' y='1258' width='222' height='306' rx='4'/>
+        <rect x='574' y='1258' width='222' height='306' rx='4'/>
+        <rect x='304' y='1660' width='222' height='306' rx='4'/>
+        <rect x='574' y='1660' width='222' height='306' rx='4'/>
+        <rect x='304' y='2062' width='222' height='306' rx='4'/>
+        <rect x='574' y='2062' width='222' height='306' rx='4'/>
+        <rect x='304' y='2464' width='222' height='306' rx='4'/>
+        <rect x='574' y='2464' width='222' height='306' rx='4'/>
+        <rect x='304' y='2866' width='222' height='306' rx='4'/>
+        <rect x='574' y='2866' width='222' height='306' rx='4'/>
+        <rect x='304' y='3268' width='222' height='310' rx='4'/>
+        <rect x='574' y='3268' width='222' height='310' rx='4'/>
       </g>
 
-      <!-- Knob on a backplate, on the lock stile at handle height. -->
-      <rect x='822' y='848' width='36' height='120' rx='6' fill='#a8a291'/>
-      <circle cx='840' cy='908' r='25' fill='#a29c8a'/>
-      <circle cx='840' cy='903' r='20' fill='#cfc9b4'/>
-      <circle cx='834' cy='898' r='7' fill='rgba(255,255,255,0.45)'/>
+      <!-- Knob on a backplate, on the lock stile, high up where a hand is. -->
+      <rect x='822' y='1552' width='36' height='120' rx='6' fill='#a8a291'/>
+      <circle cx='840' cy='1612' r='25' fill='#a29c8a'/>
+      <circle cx='840' cy='1607' r='20' fill='#cfc9b4'/>
+      <circle cx='834' cy='1602' r='7' fill='rgba(255,255,255,0.45)'/>
 
       <!-- Roller stipple, stitched so it crosses the join. -->
-      <rect width='1100' height='1900' filter='url(#roll)'/>
+      <rect width='1100' height='3850' filter='url(#roll)'/>
     </svg>`,
   },
 ];
@@ -629,7 +658,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     // Flat expanses of grey compress; hard-edged geometry does not, and png
     // keeps that sharp for fewer bytes than a jpeg that does it badly.
     const buf = w.photo
-      ? await page.screenshot({ type: 'jpeg', quality: 86 })
+      ? await page.screenshot({ type: 'jpeg', quality: w.quality ?? 86 })
       : await page.screenshot({ type: 'png' });
     await page.close();
     const file = `${w.name}.${w.photo ? 'jpg' : 'png'}`;

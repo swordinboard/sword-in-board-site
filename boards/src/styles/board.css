@@ -849,13 +849,14 @@
 /* ---------- what the wall is papered with ---------- */
 
 /*
- * Over the wall colour, under the light. Three of these are tiles drawn to
- * wrap at their own edges; the door is one picture, hung.
+ * Over the wall colour, under the light. All four wrap at their own edges.
  *
- * A wall somebody uploaded is not here - it goes on as an inline variable,
- * because its address is a media id rather than anything a stylesheet knows.
+ * Three of them are made of something with a size of its own and are sized
+ * here. The door is not - it is drawn against the board it is behind - so
+ * Board.tsx sizes and places that one, the same way it does a wall somebody
+ * uploaded, whose address is a media id no stylesheet could name anyway.
  *
- * The sizes are board pixels, not screen pixels, and that is a different unit
+ * The sizes here are board pixels, not screen pixels, and that is a different unit
  * from the one these tiles were first drawn against. 117px is an inch here,
  * and the board is 4200 x 3000 - a three foot corkboard - so a brick tile of
  * 480px used to be a comfortable brick on screen and is a four inch pebble
@@ -880,17 +881,11 @@
 }
 
 /*
- * One door to a board: the tile is drawn exactly as wide as the board and its
- * frame, which puts a whole door below the board at the zoom a board opens
- * on, knob and all. It wraps in both directions, so a wall of them is a wall
- * of doors.
- *
- * That makes the leaf 23 inches rather than the 36 a door really is - a door
- * at its own size is as wide as the board, so the board covers it and all you
- * see is casing. This is the one place the wall is drawn smaller than life,
- * and it is drawn smaller than life so that it can be seen at all.
+ * One door, as wide as a board and a half and three and a half times that
+ * long, so it runs off the bottom of any screen rather than stacking. Its
+ * size and its place need the board's measurements, so Board.tsx sets them
+ * and all the stylesheet owns is which file.
  */
 .stage[data-wall='door'] {
   --wall-tex: url('./tex/wall-door.jpg');
-  --wall-tex-size: calc(4400px * var(--wall-zoom)) calc(7600px * var(--wall-zoom));
 }
