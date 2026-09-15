@@ -50,10 +50,29 @@
   background-image: var(--wall-glow), var(--wall-tex, none);
   background-repeat: no-repeat, var(--wall-tex-repeat, repeat);
   background-size: auto, var(--wall-tex-size, auto);
-  background-position: center, center;
+  background-position: center, var(--wall-tex-at, center);
   cursor: grab;
   touch-action: none;
   overscroll-behavior: none;
+
+  /*
+   * Where the board is, so the wall can be behind it rather than beside it.
+   *
+   * The light belongs to the room and stays put in the middle of the screen.
+   * What the wall is papered with belongs to the wall: pan the board and the
+   * bricks pan with it, pinch and they grow. So the tile grid is anchored to
+   * the board's own top-left corner and sized by the board's zoom.
+   *
+   * Board.tsx rewrites these on every frame of a gesture. It is already
+   * rewriting the board's transform on those frames, so this costs nothing
+   * extra - and the painting stays inside the viewport, rather than on a
+   * layer the size of everything visible at the furthest zoom out, which at
+   * 0.08 is some 48000px across.
+   */
+  --wall-zoom: 1;
+  --wall-x: 0px;
+  --wall-y: 0px;
+  --wall-tex-at: var(--wall-x) var(--wall-y);
 }
 
 .stage.panning {
@@ -831,28 +850,47 @@
 
 /*
  * Over the wall colour, under the light. Three of these are tiles drawn to
- * wrap at their own edges; the door is one picture and covers instead.
+ * wrap at their own edges; the door is one picture, hung.
  *
  * A wall somebody uploaded is not here - it goes on as an inline variable,
  * because its address is a media id rather than anything a stylesheet knows.
+ *
+ * The sizes are board pixels, not screen pixels, and that is a different unit
+ * from the one these tiles were first drawn against. 117px is an inch here,
+ * and the board is 4200 x 3000 - a three foot corkboard - so a brick tile of
+ * 480px used to be a comfortable brick on screen and is a four inch pebble
+ * against the board. Each is set to about the size the real thing is: a brick
+ * roughly seven inches across, a tread on the plate an inch and a half, a
+ * flower every six inches or so of paper. They stay that size relative to the
+ * board however far it is zoomed, which is the point.
  */
 .stage[data-wall='brick'] {
   --wall-tex: url('./tex/wall-brick.png');
-  --wall-tex-size: 480px 320px;
+  --wall-tex-size: calc(1680px * var(--wall-zoom)) calc(1120px * var(--wall-zoom));
 }
 
 .stage[data-wall='plate'] {
   --wall-tex: url('./tex/wall-plate.png');
-  --wall-tex-size: 240px 240px;
+  --wall-tex-size: calc(840px * var(--wall-zoom)) calc(840px * var(--wall-zoom));
 }
 
 .stage[data-wall='floral'] {
   --wall-tex: url('./tex/wall-floral.png');
-  --wall-tex-size: 300px 300px;
+  --wall-tex-size: calc(1500px * var(--wall-zoom)) calc(1500px * var(--wall-zoom));
 }
 
+/*
+ * One door to a board: the tile is drawn exactly as wide as the board and its
+ * frame, which puts a whole door below the board at the zoom a board opens
+ * on, knob and all. It wraps in both directions, so a wall of them is a wall
+ * of doors.
+ *
+ * That makes the leaf 23 inches rather than the 36 a door really is - a door
+ * at its own size is as wide as the board, so the board covers it and all you
+ * see is casing. This is the one place the wall is drawn smaller than life,
+ * and it is drawn smaller than life so that it can be seen at all.
+ */
 .stage[data-wall='door'] {
   --wall-tex: url('./tex/wall-door.jpg');
-  --wall-tex-size: cover;
-  --wall-tex-repeat: no-repeat;
+  --wall-tex-size: calc(4400px * var(--wall-zoom)) calc(7600px * var(--wall-zoom));
 }

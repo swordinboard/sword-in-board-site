@@ -1737,9 +1737,12 @@ button {
 }
 
 /*
- * A scrap of the actual paper, at the size it is really drawn, so the button
- * shows the thing rather than a name for it. The tiles use their own repeat;
- * the door and an uploaded wall are pictures and are shown covering.
+ * A scrap of the actual paper, so the button shows the thing rather than a
+ * name for it. Each repeats the way it does on the wall, at whatever size
+ * reads in 34px of button - which is not the size it is drawn on the wall,
+ * where a brick is seven inches and a door is a door. The uploaded one is the
+ * exception: it is shown covering, because one look at the picture is more
+ * use on a button than a grid of it.
  */
 .wall-swatch {
   display: block;
@@ -1767,8 +1770,9 @@ button {
   background: url('./tex/wall-floral.png') center / 75px 75px repeat;
 }
 
+/* Tall, so it is fitted by height and repeated across: a row of doors. */
 .wall-swatch.wall-door {
-  background: url('./tex/wall-door.jpg') center / cover no-repeat;
+  background: url('./tex/wall-door.jpg') center / auto 100% repeat;
 }
 
 /* Until there is one, the slot for an uploaded wall reads as empty. */

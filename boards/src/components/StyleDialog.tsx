@@ -230,8 +230,8 @@ export default function StyleDialog({ board, onChange, onClose }: Props) {
         />
         {wallError ? <p className="error-text">{wallError}</p> : null}
         <p className="hint-text">
-          A wall of your own covers the screen, so a wide picture suits it best. It is stored with
-          the board and goes when the board does.
+          A wall of your own repeats behind the board, about two boards wide, so something that
+          tiles suits it best. It is stored with the board and goes when the board does.
         </p>
       </div>
 

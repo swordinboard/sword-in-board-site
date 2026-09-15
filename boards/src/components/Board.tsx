@@ -69,23 +69,49 @@ interface Props {
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 /**
+ * How wide one copy of an uploaded wall is drawn, in boards.
+ *
+ * Wider than the board, so at the zoom a board opens on you are looking at
+ * one picture rather than a patchwork of them, and it only reads as a repeat
+ * once you pull back.
+ */
+const OWN_WALL_WIDTH = 2;
+
+/**
  * The wall, as inline variables on the stage.
  *
- * An uploaded picture wins over a named paper, which wins over the colour
- * alone - and the picture has to be set here rather than in the stylesheet
- * because its address is a media id nobody can write a rule for. It covers
- * rather than tiles: somebody who uploads a wall means that picture, not a
- * grid of it.
+ * Two jobs. The first is which wall: an uploaded picture wins over a named
+ * paper, which wins over the colour alone, and the picture has to be set here
+ * rather than in the stylesheet because its address is a media id nobody can
+ * write a rule for.
+ *
+ * The second is where the wall is, which is the board's business rather than
+ * the screen's. Handing the view down as variables puts the tile grid on the
+ * board's own corner and sizes it by the board's zoom, so a wall behaves like
+ * a wall: it slides under the board when the board is dragged and the bricks
+ * get bigger when it is pinched, instead of sitting still like a backdrop
+ * painted on the window.
+ *
+ * Everything on a wall repeats, an uploaded picture included. A picture that
+ * covered instead would have an edge, and in board space there is no size
+ * that edge could be: pinch out far enough and you would find it, with bare
+ * colour beyond. Repeating it also means nothing here has to know how tall
+ * the picture is - `auto` keeps its proportions, whatever they turn out to
+ * be.
  */
-function wallStyle(board: BoardState): CSSProperties | undefined {
-  const style: Record<string, string> = {};
+function wallStyle(board: BoardState, view: View): CSSProperties {
+  const style: Record<string, string> = {
+    '--wall-zoom': String(view.z),
+    '--wall-x': `${view.x}px`,
+    '--wall-y': `${view.y}px`,
+  };
   if (board.wall) style['--wall-color'] = board.wall;
   if (board.wallImage) {
+    const across = (board.width + FRAME_PAD * 2) * OWN_WALL_WIDTH;
     style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
-    style['--wall-tex-size'] = 'cover';
-    style['--wall-tex-repeat'] = 'no-repeat';
+    style['--wall-tex-size'] = `${across * view.z}px auto`;
   }
-  return Object.keys(style).length ? (style as CSSProperties) : undefined;
+  return style as CSSProperties;
 }
 
 const Board = forwardRef<BoardHandle, Props>(function Board(
@@ -429,7 +455,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       /* A named paper is a stylesheet's business; an uploaded one is not, so
          only the first reaches the attribute. */
       data-wall={board.wallImage ? undefined : board.wallTex}
-      style={wallStyle(board)}
+      style={wallStyle(board, view)}
       onPointerDown={onStagePointerDown}
       onPointerMove={onStagePointerMove}
       onPointerUp={endPointer}
