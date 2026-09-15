@@ -14,6 +14,7 @@ import Strings from './Strings';
 import Hangers from './Hangers';
 import { Moulding } from './ItemFace';
 import { useToday } from '../lib/clock';
+import { mediaUrl } from '../lib/api';
 
 const MIN_ZOOM = 0.08;
 /** Gap allowed between the two taps of a double tap. */
@@ -66,6 +67,26 @@ interface Props {
 }
 
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+
+/**
+ * The wall, as inline variables on the stage.
+ *
+ * An uploaded picture wins over a named paper, which wins over the colour
+ * alone - and the picture has to be set here rather than in the stylesheet
+ * because its address is a media id nobody can write a rule for. It covers
+ * rather than tiles: somebody who uploads a wall means that picture, not a
+ * grid of it.
+ */
+function wallStyle(board: BoardState): CSSProperties | undefined {
+  const style: Record<string, string> = {};
+  if (board.wall) style['--wall-color'] = board.wall;
+  if (board.wallImage) {
+    style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
+    style['--wall-tex-size'] = 'cover';
+    style['--wall-tex-repeat'] = 'no-repeat';
+  }
+  return Object.keys(style).length ? (style as CSSProperties) : undefined;
+}
 
 const Board = forwardRef<BoardHandle, Props>(function Board(
   {
@@ -405,7 +426,10 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       ref={stageRef}
       className={`stage${panning ? ' panning' : ''}`}
       data-board-style={board.style ?? 'cork'}
-      style={board.wall ? ({ ['--wall-color' as string]: board.wall } as CSSProperties) : undefined}
+      /* A named paper is a stylesheet's business; an uploaded one is not, so
+         only the first reaches the attribute. */
+      data-wall={board.wallImage ? undefined : board.wallTex}
+      style={wallStyle(board)}
       onPointerDown={onStagePointerDown}
       onPointerMove={onStagePointerMove}
       onPointerUp={endPointer}

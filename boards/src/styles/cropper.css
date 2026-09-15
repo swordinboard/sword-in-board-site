@@ -138,7 +138,26 @@
 
 .swatches {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Darks on one line, lights on the next, so neither row has to be read
+   against the other to be told apart. */
+.swatch-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * A pale swatch on a pale-ish panel needs an edge of its own, or the ones at
+ * the light end of the row lose their shape against the dialog.
+ */
+.swatch-rows .swatches button {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .swatches button {

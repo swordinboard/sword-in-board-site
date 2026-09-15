@@ -134,7 +134,11 @@
   --surface-inner: rgba(60, 33, 10, 0.18);
   --surface-ink: rgba(70, 42, 16, 0.6);
   --wall-color: #17140f;
-  --wall-glow: radial-gradient(circle at 50% 40%, #2a241b 0%, #100e0a 100%);
+  --wall-glow: radial-gradient(
+    circle at 50% 40%,
+    rgba(255, 244, 222, 0.09) 0%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
 
   --paper: #f6f1e3;
   --paper-edge: #d9d0ba;
@@ -1717,4 +1721,59 @@ button {
 .title-stencil .sample {
   font-family: var(--title-stencil);
   font-size: 21px;
+}
+
+/* ---------- what the wall is papered with ---------- */
+
+.chooser.walls {
+  flex-wrap: wrap;
+}
+
+.chooser.walls button {
+  flex: 0 0 auto;
+  gap: 7px;
+  min-width: 96px;
+  font-size: 12px;
+}
+
+/*
+ * A scrap of the actual paper, at the size it is really drawn, so the button
+ * shows the thing rather than a name for it. The tiles use their own repeat;
+ * the door and an uploaded wall are pictures and are shown covering.
+ */
+.wall-swatch {
+  display: block;
+  width: 100%;
+  height: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 5px;
+  background: #1b1712 center / cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.wall-swatch.bare {
+  background: radial-gradient(circle at 50% 30%, #2f2820, #12100b);
+}
+
+.wall-swatch.wall-brick {
+  background: url('./tex/wall-brick.png') center / 96px 64px repeat;
+}
+
+.wall-swatch.wall-plate {
+  background: url('./tex/wall-plate.png') center / 60px 60px repeat;
+}
+
+.wall-swatch.wall-floral {
+  background: url('./tex/wall-floral.png') center / 75px 75px repeat;
+}
+
+.wall-swatch.wall-door {
+  background: url('./tex/wall-door.jpg') center / cover no-repeat;
+}
+
+/* Until there is one, the slot for an uploaded wall reads as empty. */
+.wall-swatch.uploaded {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: none;
+  border-style: dashed;
 }

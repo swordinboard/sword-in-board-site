@@ -37,7 +37,20 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: var(--wall-color) var(--wall-glow);
+  /*
+   * Three layers, not one. The light sits on top, whatever the wall is
+   * papered with sits under it, and the colour is the bottom.
+   *
+   * It was one shorthand, `var(--wall-color) var(--wall-glow)`, and the glow
+   * was a gradient between two opaque colours - so it painted straight over
+   * the colour and the wall picker did nothing at all. A style still worked
+   * because a style set both.
+   */
+  background-color: var(--wall-color);
+  background-image: var(--wall-glow), var(--wall-tex, none);
+  background-repeat: no-repeat, var(--wall-tex-repeat, repeat);
+  background-size: auto, var(--wall-tex-size, auto);
+  background-position: center, center;
   cursor: grab;
   touch-action: none;
   overscroll-behavior: none;
@@ -557,10 +570,20 @@
   left: 50%;
   transform-origin: bottom center;
   max-width: 90vw;
-  padding: 6px 18px;
+  padding: 7px 20px;
   border-radius: 999px;
-  background: rgba(20, 16, 11, 0.72);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+  /*
+   * The name has to stay readable against whatever the wall turns out to be,
+   * including a pale one and including a picture somebody uploaded. So the
+   * bubble is nearly opaque and carries a rim and a soft spread of its own -
+   * at 0.72 over a busy wallpaper the letters had the wall running through
+   * them.
+   */
+  background: rgba(18, 15, 11, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 18px rgba(0, 0, 0, 0.55),
+    0 0 0 6px rgba(12, 10, 7, 0.28);
   color: #f4ecdc;
   /*
    * Whatever hand the board was given, falling back to the serif it was
@@ -656,7 +679,11 @@
   --surface-shadow: rgba(12, 7, 2, 0.72);
   --surface-ink: rgba(226, 202, 160, 0.4);
   --wall-color: #14100c;
-  --wall-glow: radial-gradient(circle at 50% 34%, #2a2014 0%, #0b0806 100%);
+  --wall-glow: radial-gradient(
+    circle at 50% 34%,
+    rgba(255, 226, 170, 0.11) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
   --moulding-rail: url('./tex/frame-plank-rail.png');
   --moulding-stile: url('./tex/frame-plank-stile.png');
   --tex-surface: url('./tex/surface-medieval.jpg') center / cover no-repeat;
@@ -679,7 +706,11 @@
   --surface-shadow: rgba(0, 14, 24, 0.65);
   --surface-ink: rgba(150, 205, 225, 0.55);
   --wall-color: #06090c;
-  --wall-glow: radial-gradient(circle at 50% 30%, #101d28 0%, #04070a 100%);
+  --wall-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(122, 192, 255, 0.13) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
   /*
    * A machined panel edge: no grain to run anywhere, so the moulding is the
    * panel itself rather than a texture over one. It sits proud of the channel
@@ -712,7 +743,11 @@
   --surface-shadow: rgba(72, 48, 18, 0.52);
   --surface-ink: rgba(84, 58, 24, 0.6);
   --wall-color: #1b1610;
-  --wall-glow: radial-gradient(circle at 50% 38%, #3b2c1a 0%, #120d08 100%);
+  --wall-glow: radial-gradient(
+    circle at 50% 38%,
+    rgba(255, 219, 158, 0.14) 0%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
   --moulding-rail: url('./tex/frame-wood-rail.png');
   --moulding-stile: url('./tex/frame-wood-stile.png');
   --tex-surface: url('./tex/surface-western.jpg') center / cover no-repeat;
@@ -730,7 +765,11 @@
   --surface-shadow: rgba(14, 17, 17, 0.7);
   --surface-ink: rgba(226, 230, 228, 0.5);
   --wall-color: #0e1010;
-  --wall-glow: radial-gradient(circle at 50% 36%, #23262a 0%, #070808 100%);
+  --wall-glow: radial-gradient(
+    circle at 50% 36%,
+    rgba(203, 222, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
   --moulding-rail: url('./tex/frame-steel-rail.png');
   --moulding-stile: url('./tex/frame-steel-stile.png');
   /* Rust where it has taken, and steel everywhere it has not. */
@@ -786,4 +825,34 @@
   --title-face: var(--title-stencil);
   --title-scale: 0.92;
   letter-spacing: 0.01em;
+}
+
+/* ---------- what the wall is papered with ---------- */
+
+/*
+ * Over the wall colour, under the light. Three of these are tiles drawn to
+ * wrap at their own edges; the door is one picture and covers instead.
+ *
+ * A wall somebody uploaded is not here - it goes on as an inline variable,
+ * because its address is a media id rather than anything a stylesheet knows.
+ */
+.stage[data-wall='brick'] {
+  --wall-tex: url('./tex/wall-brick.png');
+  --wall-tex-size: 480px 320px;
+}
+
+.stage[data-wall='plate'] {
+  --wall-tex: url('./tex/wall-plate.png');
+  --wall-tex-size: 240px 240px;
+}
+
+.stage[data-wall='floral'] {
+  --wall-tex: url('./tex/wall-floral.png');
+  --wall-tex-size: 300px 300px;
+}
+
+.stage[data-wall='door'] {
+  --wall-tex: url('./tex/wall-door.jpg');
+  --wall-tex-size: cover;
+  --wall-tex-repeat: no-repeat;
 }

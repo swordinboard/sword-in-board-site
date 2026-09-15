@@ -199,6 +199,14 @@ export interface BoardState {
   style?: BoardStyle;
   /** The hand the board's name is written in. Unset is the marker. */
   titleFont?: TitleFont;
+  /** What the wall is papered with, over the colour. Unset is bare. */
+  wallTex?: WallTexture;
+  /**
+   * A picture somebody uploaded to use as the wall, which beats both the
+   * texture and the colour. Stored as a media id like any other picture, so
+   * it is cleared with the board.
+   */
+  wallImage?: string;
   /**
    * The wall behind the board, as a hex colour, overriding whatever the
    * style would have used.
@@ -269,6 +277,34 @@ export const TITLE_FONT_LABELS: Record<TitleFont, string> = {
   saloon: 'Saloon',
   stencil: 'Stencil',
 };
+
+/* ------------------------------------------------------- what it hangs on --- */
+
+/**
+ * What the wall is papered with.
+ *
+ * Over the wall colour rather than instead of it: three of these tile and
+ * carry their own ground, and the fourth is a picture that covers. An
+ * uploaded wall beats all of them.
+ *
+ * Drawn for this site rather than photographed, like the board surfaces, so
+ * nothing here is owed to anybody.
+ */
+export type WallTexture = 'brick' | 'plate' | 'floral' | 'door';
+
+export const WALL_TEXTURES: WallTexture[] = ['brick', 'plate', 'floral', 'door'];
+
+export const WALL_TEXTURE_LABELS: Record<WallTexture, string> = {
+  brick: 'Brick',
+  plate: 'Diamond plate',
+  floral: 'Floral paper',
+  door: 'Primer door',
+};
+
+export const wallTexture = (raw: unknown): WallTexture | undefined =>
+  typeof raw === 'string' && WALL_TEXTURES.includes(raw as WallTexture)
+    ? (raw as WallTexture)
+    : undefined;
 
 export const titleFont = (raw: unknown): TitleFont | undefined =>
   typeof raw === 'string' && TITLE_FONTS.includes(raw as TitleFont)

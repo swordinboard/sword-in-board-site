@@ -287,6 +287,225 @@ export const SURFACES = [
 ];
 
 /* Everything below only runs when this file is run directly. */
+/* ------------------------------------------------------------------ walls */
+
+/**
+ * What the board hangs on.
+ *
+ * Different from a board surface in one way that decides everything else:
+ * a wall repeats. The stage is whatever size the screen is, so three of these
+ * are tiles that have to wrap seamlessly at their own edges, and every motif
+ * that touches an edge is drawn again on the opposite one.
+ *
+ * The door is the exception and is one picture, wide enough to include the
+ * casing and some wall either side so that covering a landscape screen does
+ * not crop it down to a band of panel edges.
+ *
+ * Drawn here rather than photographed, like everything else on this site:
+ * nothing is owed to anyone for them, and they answer to the same bake.
+ */
+export const WALLS = [
+  {
+    name: 'wall-brick',
+    tile: [480, 320],
+    /*
+     * Running bond: each course steps half a brick, so the tile is two
+     * courses tall and one brick wide. The half bricks at the ends of the
+     * offset course are the same brick split, which is what makes it wrap.
+     */
+    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='480' height='320'>
+      <defs>
+        <filter id='grit' x='0' y='0' width='480' height='320' filterUnits='userSpaceOnUse'>
+          <feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch' seed='11'/>
+          <feColorMatrix type='matrix' values='0 0 0 0 0.1 0 0 0 0 0.07 0 0 0 0 0.05 0.22 0.18 0.12 0 -0.05'/>
+        </filter>
+        <filter id='mottle' x='0' y='0' width='480' height='320' filterUnits='userSpaceOnUse'>
+          <feTurbulence type='fractalNoise' baseFrequency='0.014' numOctaves='3' stitchTiles='stitch' seed='5'/>
+          <feColorMatrix type='matrix' values='0 0 0 0 0.35 0 0 0 0 0.16 0 0 0 0 0.1 0.5 0.35 0.2 0 -0.22'/>
+        </filter>
+      </defs>
+      <rect width='480' height='320' fill='#6e625a'/>
+      <g fill='#9c5540'>
+        <rect x='6' y='6' width='228' height='148' rx='3'/>
+        <rect x='246' y='6' width='228' height='148' rx='3'/>
+        <rect x='-114' y='166' width='228' height='148' rx='3'/>
+        <rect x='126' y='166' width='228' height='148' rx='3'/>
+        <rect x='366' y='166' width='228' height='148' rx='3'/>
+      </g>
+      <g fill='rgba(255,255,255,0.10)'>
+        <rect x='6' y='6' width='228' height='5'/>
+        <rect x='246' y='6' width='228' height='5'/>
+        <rect x='-114' y='166' width='228' height='5'/>
+        <rect x='126' y='166' width='228' height='5'/>
+        <rect x='366' y='166' width='228' height='5'/>
+      </g>
+      <g fill='rgba(0,0,0,0.26)'>
+        <rect x='6' y='148' width='228' height='6'/>
+        <rect x='246' y='148' width='228' height='6'/>
+        <rect x='-114' y='308' width='228' height='6'/>
+        <rect x='126' y='308' width='228' height='6'/>
+        <rect x='366' y='308' width='228' height='6'/>
+      </g>
+      <rect width='480' height='320' filter='url(#mottle)'/>
+      <rect width='480' height='320' filter='url(#grit)'/>
+    </svg>`,
+  },
+  {
+    name: 'wall-plate',
+    tile: [240, 240],
+    /*
+     * Diamond plate: pairs of raised treads, each pair turned the other way
+     * from its neighbours, which is how the real stuff is rolled. Every tread
+     * is drawn twice where it crosses an edge.
+     */
+    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>
+      <defs>
+        <linearGradient id='tread' x1='0' y1='0' x2='0' y2='1'>
+          <stop offset='0' stop-color='#b9bfc4'/>
+          <stop offset='0.45' stop-color='#8d949a'/>
+          <stop offset='1' stop-color='#5b6166'/>
+        </linearGradient>
+        <filter id='brush' x='0' y='0' width='240' height='240' filterUnits='userSpaceOnUse'>
+          <feTurbulence type='fractalNoise' baseFrequency='0.006 0.75' numOctaves='3' stitchTiles='stitch' seed='17'/>
+          <feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.14 0.12 0.08 0 -0.02'/>
+        </filter>
+        <g id='bar'>
+          <rect x='-36' y='-7' width='72' height='14' rx='6' fill='url(#tread)'/>
+          <rect x='-36' y='-7' width='72' height='4' rx='2' fill='rgba(255,255,255,0.42)'/>
+          <rect x='-36' y='3' width='72' height='4' rx='2' fill='rgba(0,0,0,0.36)'/>
+        </g>
+        <!-- Two treads side by side, not crossed: a pair of parallel bars is
+             what is actually rolled into the plate. Crossing them makes an X,
+             which is a different floor entirely. -->
+        <g id='pair'>
+          <use href='#bar' transform='translate(0 -13)'/>
+          <use href='#bar' transform='translate(0 13)'/>
+        </g>
+      </defs>
+      <rect width='240' height='240' fill='#7b8288'/>
+      <rect width='240' height='240' filter='url(#brush)'/>
+      <!-- A checkerboard of pairs, each turned the opposite way from its
+           neighbours. That alternation is the whole pattern. -->
+      <g>
+        <use href='#pair' transform='translate(60 60) rotate(45)'/>
+        <use href='#pair' transform='translate(180 60) rotate(-45)'/>
+        <use href='#pair' transform='translate(60 180) rotate(-45)'/>
+        <use href='#pair' transform='translate(180 180) rotate(45)'/>
+      </g>
+      <rect width='240' height='240' fill='url(#tread)' opacity='0.07'/>
+    </svg>`,
+  },
+  {
+    name: 'wall-floral',
+    tile: [300, 300],
+    /*
+     * A small repeating sprig on a papered ground, with a faint vertical
+     * stripe under it the way old paper was printed. The motif sits at the
+     * quarter points and is repeated at every edge and corner so it wraps.
+     */
+    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'>
+      <defs>
+        <filter id='paper' x='0' y='0' width='300' height='300' filterUnits='userSpaceOnUse'>
+          <feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch' seed='3'/>
+          <feColorMatrix type='matrix' values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.24 0.1 0.08 0.06 0 -0.02'/>
+        </filter>
+        <g id='sprig'>
+          <g fill='#9a7c92' opacity='0.85'>
+            <ellipse cx='0' cy='-11' rx='5.5' ry='9'/>
+            <ellipse cx='0' cy='11' rx='5.5' ry='9'/>
+            <ellipse cx='-11' cy='0' rx='9' ry='5.5'/>
+            <ellipse cx='11' cy='0' rx='9' ry='5.5'/>
+          </g>
+          <circle cx='0' cy='0' r='4.4' fill='#c8a44e'/>
+          <g stroke='#6f8566' stroke-width='2.4' fill='none' opacity='0.8'>
+            <path d='M -20 16 Q -9 21 0 17'/>
+            <path d='M 20 -16 Q 9 -21 0 -17'/>
+          </g>
+        </g>
+      </defs>
+      <rect width='300' height='300' fill='#e7ded0'/>
+      <g fill='rgba(146,122,96,0.16)'>
+        <rect x='-5' width='11' height='300'/>
+        <rect x='70' width='11' height='300'/>
+        <rect x='145' width='11' height='300'/>
+        <rect x='220' width='11' height='300'/>
+        <rect x='295' width='11' height='300'/>
+      </g>
+      <!-- A smaller bud between the sprigs, so the paper is not mostly ground. -->
+      <g fill='#a98aa0' opacity='0.5'>
+        <circle cx='150' cy='38' r='6'/>
+        <circle cx='38' cy='150' r='6'/>
+        <circle cx='262' cy='150' r='6'/>
+        <circle cx='150' cy='262' r='6'/>
+        <circle cx='38' cy='38' r='5'/>
+        <circle cx='262' cy='262' r='5'/>
+        <circle cx='262' cy='38' r='5'/>
+        <circle cx='38' cy='262' r='5'/>
+      </g>
+      <g>
+        <use href='#sprig' transform='translate(75 75)'/>
+        <use href='#sprig' transform='translate(225 225)'/>
+        <use href='#sprig' transform='translate(225 75) rotate(90)'/>
+        <use href='#sprig' transform='translate(75 225) rotate(90)'/>
+        <use href='#sprig' transform='translate(0 0) rotate(45)'/>
+        <use href='#sprig' transform='translate(300 0) rotate(45)'/>
+        <use href='#sprig' transform='translate(0 300) rotate(45)'/>
+        <use href='#sprig' transform='translate(300 300) rotate(45)'/>
+        <use href='#sprig' transform='translate(150 150) rotate(45)'/>
+      </g>
+      <rect width='300' height='300' filter='url(#paper)'/>
+    </svg>`,
+  },
+  {
+    name: 'wall-door',
+    tile: [1600, 1100],
+    once: true,
+    /*
+     * A six-panel door in grey primer, with its casing and a little wall
+     * either side. Wide rather than door-shaped on purpose: this one covers
+     * the screen instead of repeating, and a 3:7 door stretched across a
+     * landscape screen crops down to a band of panel edges.
+     */
+    svg: `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='1100'>
+      <defs>
+        <filter id='roll' x='0' y='0' width='1600' height='1100' filterUnits='userSpaceOnUse'>
+          <feTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='4' stitchTiles='stitch' seed='23'/>
+          <feColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.52 0.18 0.15 0.1 0 -0.04'/>
+        </filter>
+        <linearGradient id='sunk' x1='0' y1='0' x2='0' y2='1'>
+          <stop offset='0' stop-color='rgba(0,0,0,0.22)'/>
+          <stop offset='0.18' stop-color='rgba(0,0,0,0.04)'/>
+          <stop offset='0.85' stop-color='rgba(255,255,255,0.06)'/>
+          <stop offset='1' stop-color='rgba(255,255,255,0.13)'/>
+        </linearGradient>
+      </defs>
+      <rect width='1600' height='1100' fill='#8d8b86'/>
+      <rect x='300' y='0' width='1000' height='1100' fill='#6f6e6b'/>
+      <rect x='330' y='0' width='940' height='1100' fill='#9a9893'/>
+      <g fill='#8f8d88' stroke='rgba(0,0,0,0.30)' stroke-width='3'>
+        <rect x='408' y='74' width='306' height='268' rx='4'/>
+        <rect x='886' y='74' width='306' height='268' rx='4'/>
+        <rect x='408' y='432' width='306' height='214' rx='4'/>
+        <rect x='886' y='432' width='306' height='214' rx='4'/>
+        <rect x='408' y='736' width='306' height='290' rx='4'/>
+        <rect x='886' y='736' width='306' height='290' rx='4'/>
+      </g>
+      <g fill='url(#sunk)'>
+        <rect x='408' y='74' width='306' height='268' rx='4'/>
+        <rect x='886' y='74' width='306' height='268' rx='4'/>
+        <rect x='408' y='432' width='306' height='214' rx='4'/>
+        <rect x='886' y='432' width='306' height='214' rx='4'/>
+        <rect x='408' y='736' width='306' height='290' rx='4'/>
+        <rect x='886' y='736' width='306' height='290' rx='4'/>
+      </g>
+      <circle cx='1232' cy='560' r='17' fill='#b9b39f'/>
+      <circle cx='1232' cy='554' r='12' fill='#d6d0ba'/>
+      <rect width='1600' height='1100' filter='url(#roll)'/>
+      <rect width='1600' height='1100' fill='url(#sunk)' opacity='0.5'/>
+    </svg>`,
+  },
+];
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   let chromium;
   try {
@@ -351,5 +570,28 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     writeFileSync(join(out, `${s.name}.jpg`), buf);
     console.log(`${s.name.padEnd(18)} drawn ${BOARD}x${BOARD}  baked ${size}x${size}  ${kb(buf.length)}`);
   }
+  /*
+   * And the walls. These are tiles rather than one picture, so each is baked
+   * at its own size and the seam is the thing that matters: a wall that does
+   * not wrap shows a grid of joins across the whole screen.
+   */
+  for (const w of WALLS) {
+    const [tw, th] = w.tile;
+    const page = await browser.newPage({ viewport: { width: tw, height: th } });
+    await page.setContent(
+      `<style>html,body{margin:0}svg{display:block;width:${tw}px;height:${th}px}</style>${w.svg}`,
+    );
+    await page.waitForTimeout(160);
+    // The door is a photograph-sized thing and compresses; the tiles are flat
+    // colour and geometry, which png keeps sharp and small.
+    const buf = w.once
+      ? await page.screenshot({ type: 'jpeg', quality: 86 })
+      : await page.screenshot({ type: 'png' });
+    await page.close();
+    const file = `${w.name}.${w.once ? 'jpg' : 'png'}`;
+    writeFileSync(join(out, file), buf);
+    console.log(`${w.name.padEnd(18)} ${w.once ? 'cover ' : 'tile  '} ${tw}x${th}  ${kb(buf.length)}`);
+  }
+
   await browser.close();
 }

@@ -16,6 +16,7 @@ import {
   MIN_TYPE_PT,
   STRING_COLORS,
   titleFont,
+  wallTexture,
   type BoardItem,
   type BoardLine,
   type BoardLineKind,
@@ -228,6 +229,16 @@ export default async (req: Request): Promise<Response> => {
       // A hand the app does not have is not a hand: anything unrecognised
       // leaves the board with whatever it was already written in.
       titleFont: titleFont(body.titleFont) ?? current.titleFont,
+      wallTex: wallTexture(body.wallTex) ?? current.wallTex,
+      /*
+       * A media id and nothing else: hex, the shape this store hands out. A
+       * wall is set as a CSS url() on the page, so anything looser here is
+       * somebody else's stylesheet - or somebody else's server - reached from
+       * a board's background.
+       */
+      wallImage: /^[0-9a-f]{8,64}$/i.test(String(body.wallImage))
+        ? String(body.wallImage)
+        : current.wallImage,
       submissions: typeof body.submissions === 'boolean' ? body.submissions : current.submissions,
       strings: sanitizeStrings(body.strings, items),
       // Only a plain hex colour: this ends up in a style attribute, and
