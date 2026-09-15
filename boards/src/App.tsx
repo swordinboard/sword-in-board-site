@@ -449,7 +449,9 @@ export default function App() {
     return (
       <div className="gate">
         <div className="gate-card">
-          <h1>{SITE_NAME}</h1>
+          <h1>
+            <span className="wordmark">{SITE_NAME}</span>
+          </h1>
           <p>Putting the board up...</p>
         </div>
       </div>

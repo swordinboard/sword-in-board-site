@@ -29,7 +29,13 @@ export default async (req: Request): Promise<Response> => {
     // sender refuses. Offering it while it cannot deliver is worse than not
     // offering it: the reply is identical either way, so nobody finds out.
     recoveryAvailable: mail.hasKey && mail.hasSender,
-    title: process.env.SITE_NAME || SITE_DEFAULT_NAME,
+    /*
+     * PINHOLD_NAME rather than SITE_NAME: Netlify sets SITE_NAME itself, to
+     * the site's own slug, so reading it put "pinhold-swordinboard" on the
+     * sign-in screen of every deployment that had never set it. A variable
+     * the host already owns is not a variable this app can have.
+     */
+    title: process.env.PINHOLD_NAME?.trim() || SITE_DEFAULT_NAME,
   };
 
   const session = await sessionFor(req);

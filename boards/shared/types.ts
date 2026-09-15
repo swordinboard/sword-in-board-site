@@ -429,7 +429,11 @@ export const BOARD_DEFAULTS = {
   title: 'Untitled Board',
 } as const;
 
-/** What the app itself is called. Override per instance with SITE_NAME. */
+/**
+ * What the app itself is called. Override per instance with PINHOLD_NAME on
+ * the server and VITE_SITE_NAME in the build - not SITE_NAME, which Netlify
+ * sets to the site's own slug and which therefore can never mean this.
+ */
 export const SITE_DEFAULT_NAME = 'Pinhold';
 
 /**

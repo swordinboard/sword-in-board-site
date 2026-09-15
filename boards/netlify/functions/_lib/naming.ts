@@ -42,7 +42,10 @@ function canonical(value: string): string {
 }
 
 export function siteName(): string {
-  return process.env.SITE_NAME || SITE_DEFAULT_NAME;
+  // Not SITE_NAME: Netlify sets that to the site's own slug, so this guard
+  // had been holding back "pinhold-swordinboard" as a board title while
+  // leaving the name it is actually meant to protect free for anyone.
+  return process.env.PINHOLD_NAME?.trim() || SITE_DEFAULT_NAME;
 }
 
 /** A reason the title cannot be used, or null when it is fine. */

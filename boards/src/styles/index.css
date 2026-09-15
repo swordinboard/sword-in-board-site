@@ -529,11 +529,32 @@ button {
   text-align: center;
 }
 
+/*
+ * The name of the place, written rather than set. Everything pinned to a
+ * board on the other side of this screen is in this hand, so the sign over
+ * the door is too - and it leans, because nothing here is hung straight.
+ *
+ * The tilt is on its own element rather than the heading, so the heading
+ * keeps its box and the line below it does not shift as the name swings.
+ */
 .gate-card h1 {
   margin: 0 0 6px;
   font-family: var(--serif);
   font-size: 26px;
   font-weight: 600;
+}
+
+.gate-card h1 .wordmark {
+  display: inline-block;
+  transform: rotate(-3.2deg);
+  color: var(--panel-text);
+  font-family: var(--hand);
+  font-size: 46px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  /* Ink sits on the card rather than floating over it. */
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
 }
 
 .gate-card p {
