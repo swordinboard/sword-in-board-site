@@ -562,8 +562,13 @@
   background: rgba(20, 16, 11, 0.72);
   box-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
   color: #f4ecdc;
-  font-family: var(--serif);
-  font-size: 26px;
+  /*
+   * Whatever hand the board was given, falling back to the serif it was
+   * always set in. Each face has its own size, because a wood-type slab and
+   * an inscriptional capital are not the same height at the same number.
+   */
+  font-family: var(--title-face, var(--serif));
+  font-size: calc(26px * var(--title-scale, 1));
   line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
@@ -740,4 +745,45 @@
     url('./tex/hazard-h.png') bottom center / 1500px 100px no-repeat,
     url('./tex/hazard-v.png') left center / 100px 1000px no-repeat,
     url('./tex/hazard-v.png') right center / 100px 1000px no-repeat;
+}
+
+/* ---------- the hands a board's name can be written in ---------- */
+
+/*
+ * Set on the stage, so the name and its preview in the style dialog can both
+ * read one declaration. The scale is per face rather than one size for all:
+ * set at the same number, Cinzel's caps tower over Patrick Hand's x-height
+ * and Rye's slab reads a size larger again.
+ */
+.board-name[data-font='marker'] {
+  --title-face: var(--title-marker);
+  --title-scale: 1.15;
+}
+
+.board-name[data-font='plain'] {
+  --title-face: var(--title-plain);
+  --title-scale: 1;
+}
+
+.board-name[data-font='carved'] {
+  --title-face: var(--title-carved);
+  --title-scale: 0.92;
+  letter-spacing: 0.04em;
+}
+
+.board-name[data-font='console'] {
+  --title-face: var(--title-console);
+  --title-scale: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.board-name[data-font='saloon'] {
+  --title-face: var(--title-saloon);
+  --title-scale: 0.88;
+}
+
+.board-name[data-font='stencil'] {
+  --title-face: var(--title-stencil);
+  --title-scale: 0.92;
+  letter-spacing: 0.01em;
 }

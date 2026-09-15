@@ -7,23 +7,24 @@ import {
   FRAME_STYLES,
   HANGER_STYLES,
   LINE_KINDS,
+  MAGNET_FINISHES,
   MAX_BOARD_PICTURES,
-  MAX_TYPE_PT,
-  MIN_TYPE_PT,
   MAX_GALLERY,
   MAX_LINES,
   MAX_STRINGS,
+  MAX_TYPE_PT,
+  MIN_TYPE_PT,
   STRING_COLORS,
-  MAGNET_FINISHES,
+  titleFont,
   type BoardItem,
-  type BoardString,
-  type StringColor,
   type BoardLine,
   type BoardLineKind,
   type BoardState,
-  type MagnetFinish,
+  type BoardString,
   type FrameStyle,
   type HangerStyle,
+  type MagnetFinish,
+  type StringColor,
 } from '../../shared/types';
 import { isCalendarDate, isTimeZone } from '../../shared/clock';
 
@@ -224,6 +225,9 @@ export default async (req: Request): Promise<Response> => {
       // so a whiteboard can never be left counting against nothing.
       timeZone: isTimeZone(body.timeZone) ? body.timeZone : current.timeZone,
       style: boardStyle(body.style) ?? current.style,
+      // A hand the app does not have is not a hand: anything unrecognised
+      // leaves the board with whatever it was already written in.
+      titleFont: titleFont(body.titleFont) ?? current.titleFont,
       submissions: typeof body.submissions === 'boolean' ? body.submissions : current.submissions,
       strings: sanitizeStrings(body.strings, items),
       // Only a plain hex colour: this ends up in a style attribute, and

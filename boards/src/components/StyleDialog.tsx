@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { BoardState, BoardStyle } from '../../shared/types';
-import { BOARD_STYLES } from '../../shared/types';
+import type { BoardState, BoardStyle, TitleFont } from '../../shared/types';
+import { BOARD_STYLES, TITLE_FONTS, TITLE_FONT_LABELS } from '../../shared/types';
 import Scrim from './Scrim';
 
 interface Props {
@@ -15,6 +15,20 @@ const STYLE_LABELS: Record<BoardStyle, { name: string; blurb: string }> = {
   scifi: { name: 'Sci-fi', blurb: 'Graphite frame, a lit panel.' },
   western: { name: 'Western', blurb: 'Bleached planks and dust.' },
   industrial: { name: 'Industrial', blurb: 'Steel, rust and warning paint.' },
+};
+
+/**
+ * What each hand is for. Said in terms of the thing rather than the typeface,
+ * because "Roman inscriptional capitals" tells almost nobody anything and
+ * "a carved sign" tells almost everybody.
+ */
+const FONT_BLURBS: Record<TitleFont, string> = {
+  marker: 'The hand everything else is written in.',
+  plain: 'A quiet serif. The one it has always been.',
+  carved: 'Cut into a sign, for the medieval board.',
+  console: 'Squared off and lit, for the sci-fi panel.',
+  saloon: 'Wood type, for the western board.',
+  stencil: 'Sprayed through a plate, for the industrial one.',
 };
 
 /** A few walls that suit the boards, for anyone not after a colour picker. */
@@ -68,6 +82,30 @@ export default function StyleDialog({ board, onChange, onClose }: Props) {
             >
               {STYLE_LABELS[style].name}
               <span className="sub">{STYLE_LABELS[style].blurb}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/*
+        The name's hand. Each button is set in the face it offers, which is
+        the whole of what somebody needs to choose one - and it is the thing
+        that fetches the face, so nothing is downloaded until this is opened.
+      */}
+      <div className="field">
+        <label>The name on it</label>
+        <div className="chooser fonts">
+          {TITLE_FONTS.map((font) => (
+            <button
+              type="button"
+              key={font}
+              className={`title-font title-${font}${(board.titleFont ?? 'plain') === font ? ' on' : ''}`}
+              onClick={() => onChange({ titleFont: font })}
+            >
+              <span className="sample">{board.title || TITLE_FONT_LABELS[font]}</span>
+              <span className="sub">
+                {TITLE_FONT_LABELS[font]} &mdash; {FONT_BLURBS[font]}
+              </span>
             </button>
           ))}
         </div>

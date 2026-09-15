@@ -197,6 +197,8 @@ export interface BoardState {
   expiresAt?: string;
   /** How the board is dressed. Unset is the plain cork one. */
   style?: BoardStyle;
+  /** The hand the board's name is written in. Unset is the marker. */
+  titleFont?: TitleFont;
   /**
    * The wall behind the board, as a hex colour, overriding whatever the
    * style would have used.
@@ -232,6 +234,46 @@ export function boardStyle(raw: unknown): BoardStyle | undefined {
   if (BOARD_STYLES.includes(raw as BoardStyle)) return raw as BoardStyle;
   return RENAMED_STYLES[raw];
 }
+
+/* ------------------------------------------------- the name on the board --- */
+
+/**
+ * The hand a board's name is written in.
+ *
+ * One per board style, plus the two the app already writes in, so a board
+ * dressed as a sci-fi panel can be lettered like one - but the choice is the
+ * editor's and is never tied to the style. Somebody who wants a wood-type
+ * western name over a corkboard is allowed to have it.
+ *
+ * Every one of these is bundled with the app and licensed under the SIL Open
+ * Font License; see public/fonts/OFL.txt. Nothing is fetched from a font CDN,
+ * which the Content-Security-Policy would refuse anyway.
+ */
+export type TitleFont = 'marker' | 'plain' | 'carved' | 'console' | 'saloon' | 'stencil';
+
+export const TITLE_FONTS: TitleFont[] = [
+  'marker',
+  'plain',
+  'carved',
+  'console',
+  'saloon',
+  'stencil',
+];
+
+/** What each is called in the picker, and what it is for. */
+export const TITLE_FONT_LABELS: Record<TitleFont, string> = {
+  marker: 'Marker',
+  plain: 'Plain',
+  carved: 'Carved',
+  console: 'Console',
+  saloon: 'Saloon',
+  stencil: 'Stencil',
+};
+
+export const titleFont = (raw: unknown): TitleFont | undefined =>
+  typeof raw === 'string' && TITLE_FONTS.includes(raw as TitleFont)
+    ? (raw as TitleFont)
+    : undefined;
 
 /**
  * A string run between two items, tied at the hanger on each.

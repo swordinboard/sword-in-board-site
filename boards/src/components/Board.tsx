@@ -423,6 +423,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
         */}
         <div
           className="board-name"
+          data-font={board.titleFont ?? 'plain'}
           style={{ transform: `translateX(-50%) scale(${1 / view.z})` }}
         >
           {board.title}
