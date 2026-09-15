@@ -1308,7 +1308,17 @@ button {
   left: 50%;
   z-index: 40;
   display: flex;
+  justify-content: center;
   gap: 2px;
+  /*
+   * The bar is centred by translating it half its own width, so anything
+   * wider than the screen bleeds off both edges at once rather than simply
+   * running past the right. This holds it inside the viewport; the tools
+   * scroll inside it rather than a tool being lost off an edge.
+   */
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  row-gap: 4px;
   padding: 4px;
   transform: translateX(-50%);
   border-radius: 12px;
@@ -1317,13 +1327,67 @@ button {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
+/*
+ * The five tools, as one thing. They never break apart: either they all fit
+ * on the line or the whole group moves down, and on a screen too narrow even
+ * for that the group scrolls rather than losing its last tool off the edge.
+ */
+.editor-tools {
+  display: flex;
+  gap: 2px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.editor-tools::-webkit-scrollbar {
+  display: none;
+}
+
 /* The colours a string can be, shown only while one is being tied. */
 .string-colors {
   display: flex;
+  flex-shrink: 0;
   gap: 5px;
   align-items: center;
-  padding: 0 8px 0 4px;
+  justify-content: center;
+  padding: 2px 6px;
+}
+
+/*
+ * A rule between the colours and the tools, drawn on whichever side they
+ * happen to be on. Beside the tools it is a divider; above them it is a line
+ * under a heading, and a border-right there would be a stray mark.
+ */
+.editor-bar .string-colors {
   border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/*
+ * Narrow enough that the colours and the tools cannot share a line: the two
+ * of them want about 423px and there has to be room either side of that.
+ *
+ * Which of the two it is, is decided here rather than left to the bar to work
+ * out by wrapping. A shrink-to-fit flex container measures its own unwrapped
+ * width, and the buttons are fractional pixels wide, so that measurement came
+ * out a pixel short of what the contents needed and the bar wrapped itself on
+ * a landscape screen with four hundred pixels to spare. A width the layout
+ * has to guess at is a width that will be guessed wrong.
+ */
+@media (max-width: 480px) {
+  .editor-bar {
+    /* Two lines, so the bar is as wide as its wider line rather than as wide
+       as both of them side by side. */
+    width: auto;
+    flex-wrap: wrap;
+  }
+
+  .editor-bar .string-colors {
+    width: 100%;
+    padding-bottom: 5px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
 }
 
 .string-colors .swatch {

@@ -73,11 +73,19 @@ export default function EditorBar({
         the tools say the same thing in one place.
       */}
       <div className="mode-flag">Editing</div>
-      <Tool glyph="+" label="Pin up" onClick={onAdd} />
-      <Tool glyph="#" label="Grid" on={gridOn} onClick={onToggleGrid} />
-      <Tool glyph="⁄" label="String" on={stringing} onClick={onToggleStringing} />
-      <Tool glyph="✎" label="Name" onClick={onRename} />
-      <Tool glyph="◑" label="Style" onClick={onStyle} />
+      {/*
+        The tools are held together rather than sitting loose in the bar, so
+        that when the colours appear beside them the two groups wrap as wholes.
+        Loose in the bar they broke mid-row and cut the last tool in half on a
+        portrait phone, while a landscape screen had room for everything.
+      */}
+      <div className="editor-tools">
+        <Tool glyph="+" label="Pin up" onClick={onAdd} />
+        <Tool glyph="#" label="Grid" on={gridOn} onClick={onToggleGrid} />
+        <Tool glyph="⁄" label="String" on={stringing} onClick={onToggleStringing} />
+        <Tool glyph="✎" label="Name" onClick={onRename} />
+        <Tool glyph="◑" label="Style" onClick={onStyle} />
+      </div>
     </div>
   );
 }
