@@ -399,9 +399,14 @@ export const WALLS = [
     name: 'wall-floral',
     tile: [300, 300],
     /*
-     * A small repeating sprig on a papered ground, with a faint vertical
-     * stripe under it the way old paper was printed. The motif sits at the
-     * quarter points and is repeated at every edge and corner so it wraps.
+     * A five-petal rose on a stem, with two leaves, printed in a half-drop.
+     *
+     * Five petals and a stem on purpose. The first attempt was four petals at
+     * ninety degrees with a curved tail off each one, and four arms bent the
+     * same way around a centre is a swastika at a glance whatever it was
+     * drawn as. Nothing with fourfold rotational symmetry and trailing arms
+     * goes on a wall. An odd number of petals cannot make that shape, and a
+     * stem gives the motif an up, which settles it further.
      */
     svg: `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'>
       <defs>
@@ -409,18 +414,22 @@ export const WALLS = [
           <feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch' seed='3'/>
           <feColorMatrix type='matrix' values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.24 0.1 0.08 0.06 0 -0.02'/>
         </filter>
+        <g id='petal5'>
+          <g fill='#a9789b'>
+            <ellipse cx='0' cy='-13' rx='7' ry='11'/>
+            <ellipse cx='0' cy='-13' rx='7' ry='11' transform='rotate(72)'/>
+            <ellipse cx='0' cy='-13' rx='7' ry='11' transform='rotate(144)'/>
+            <ellipse cx='0' cy='-13' rx='7' ry='11' transform='rotate(216)'/>
+            <ellipse cx='0' cy='-13' rx='7' ry='11' transform='rotate(288)'/>
+          </g>
+          <circle r='5' fill='#d8b25c'/>
+        </g>
+        <!-- One sprig: a flower, the stem it sits on, and a leaf either side. -->
         <g id='sprig'>
-          <g fill='#9a7c92' opacity='0.85'>
-            <ellipse cx='0' cy='-11' rx='5.5' ry='9'/>
-            <ellipse cx='0' cy='11' rx='5.5' ry='9'/>
-            <ellipse cx='-11' cy='0' rx='9' ry='5.5'/>
-            <ellipse cx='11' cy='0' rx='9' ry='5.5'/>
-          </g>
-          <circle cx='0' cy='0' r='4.4' fill='#c8a44e'/>
-          <g stroke='#6f8566' stroke-width='2.4' fill='none' opacity='0.8'>
-            <path d='M -20 16 Q -9 21 0 17'/>
-            <path d='M 20 -16 Q 9 -21 0 -17'/>
-          </g>
+          <path d='M 0 0 Q 3 20 0 40' stroke='#6f8566' stroke-width='3' fill='none'/>
+          <path d='M 0 16 Q -14 16 -18 28 Q -6 30 0 20 Z' fill='#7d9473'/>
+          <path d='M 0 26 Q 13 26 17 37 Q 5 39 0 30 Z' fill='#6f8566'/>
+          <use href='#petal5'/>
         </g>
       </defs>
       <rect width='300' height='300' fill='#e7ded0'/>
@@ -431,27 +440,31 @@ export const WALLS = [
         <rect x='220' width='11' height='300'/>
         <rect x='295' width='11' height='300'/>
       </g>
-      <!-- A smaller bud between the sprigs, so the paper is not mostly ground. -->
-      <g fill='#a98aa0' opacity='0.5'>
-        <circle cx='150' cy='38' r='6'/>
-        <circle cx='38' cy='150' r='6'/>
-        <circle cx='262' cy='150' r='6'/>
-        <circle cx='150' cy='262' r='6'/>
-        <circle cx='38' cy='38' r='5'/>
-        <circle cx='262' cy='262' r='5'/>
-        <circle cx='262' cy='38' r='5'/>
-        <circle cx='38' cy='262' r='5'/>
-      </g>
+      <!-- A half-drop: the second column sits half a step down from the
+           first, which is how a paper like this is actually printed and what
+           stops the motifs reading as a grid. Anything crossing an edge is
+           drawn again on the opposite one. -->
       <g>
-        <use href='#sprig' transform='translate(75 75)'/>
-        <use href='#sprig' transform='translate(225 225)'/>
-        <use href='#sprig' transform='translate(225 75) rotate(90)'/>
-        <use href='#sprig' transform='translate(75 225) rotate(90)'/>
-        <use href='#sprig' transform='translate(0 0) rotate(45)'/>
-        <use href='#sprig' transform='translate(300 0) rotate(45)'/>
-        <use href='#sprig' transform='translate(0 300) rotate(45)'/>
-        <use href='#sprig' transform='translate(300 300) rotate(45)'/>
-        <use href='#sprig' transform='translate(150 150) rotate(45)'/>
+        <use href='#sprig' transform='translate(40 28)'/>
+        <use href='#sprig' transform='translate(190 28)'/>
+        <use href='#sprig' transform='translate(115 103)'/>
+        <use href='#sprig' transform='translate(265 103)'/>
+        <use href='#sprig' transform='translate(40 178)'/>
+        <use href='#sprig' transform='translate(190 178)'/>
+        <use href='#sprig' transform='translate(115 253)'/>
+        <use href='#sprig' transform='translate(265 253)'/>
+        <use href='#sprig' transform='translate(-35 103)'/>
+        <use href='#sprig' transform='translate(-35 253)'/>
+      </g>
+      <g fill='#b08fa6' opacity='0.42'>
+        <circle cx='115' cy='40' r='4.5'/>
+        <circle cx='265' cy='40' r='4.5'/>
+        <circle cx='40' cy='115' r='4.5'/>
+        <circle cx='190' cy='115' r='4.5'/>
+        <circle cx='115' cy='190' r='4.5'/>
+        <circle cx='265' cy='190' r='4.5'/>
+        <circle cx='40' cy='265' r='4.5'/>
+        <circle cx='190' cy='265' r='4.5'/>
       </g>
       <rect width='300' height='300' filter='url(#paper)'/>
     </svg>`,
