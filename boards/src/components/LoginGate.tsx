@@ -416,8 +416,6 @@ export default function LoginGate({ title, site, onEntered, onCreated }: Props) 
           <a href="/legal/rules.html">Site rules</a>
           {' · '}
           <a href="/legal/privacy.html">Privacy</a>
-          {' · '}
-          <a href="/legal/reporting.html">Reporting</a>
         </p>
       </form>
     </div>

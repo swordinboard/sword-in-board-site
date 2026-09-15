@@ -504,7 +504,7 @@ export const PIN_COLORS = [
  * what somebody agreed to has actually changed - a new rule, a new use of
  * their data - and not when a typo is fixed.
  */
-export const RULES_VERSION = '2026-09-14';
+export const RULES_VERSION = '2026-09-15';
 
 /**
  * Where an agreement is remembered.

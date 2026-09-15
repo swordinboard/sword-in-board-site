@@ -213,10 +213,6 @@ export default function SidePanel({
             <a href="/legal/privacy.html" target="_blank" rel="noopener noreferrer">
               Privacy
             </a>
-            {' · '}
-            <a href="/legal/copyright.html" target="_blank" rel="noopener noreferrer">
-              Copyright
-            </a>
           </p>
 
           <p className="meta">

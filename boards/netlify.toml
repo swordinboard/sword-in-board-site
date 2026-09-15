@@ -13,6 +13,18 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# The notices are real files, not app routes. Named before the fallback so the
+# hub resolves to its own index rather than being swallowed by the shell.
+[[redirects]]
+  from = "/legal"
+  to = "/legal/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/legal/"
+  to = "/legal/index.html"
+  status = 200
+
 # SPA fallback: everything that is not a function or an asset serves the shell.
 [[redirects]]
   from = "/*"
