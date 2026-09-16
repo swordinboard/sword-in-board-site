@@ -57,17 +57,33 @@ const SAVE_DELAY_MS = 600;
 const SESSION_CHECK_MS = 45_000;
 
 /*
- * Zoom runs from 8% to 300%, so a slider that moved through it linearly would
- * spend two thirds of its travel above 100% and squeeze everything below into
- * a sliver. Stepping by a constant ratio instead gives each end of the range
- * the same amount of thumb.
+ * Where the thumb sits, from all the way out to as close as it goes.
+ *
+ * Stepping by a constant ratio rather than a constant amount, because the
+ * range spans a factor of forty or so: a linear slider would spend most of
+ * its travel above life size and squeeze everything below into a sliver.
+ *
+ * Neither end is a constant any more. How far out goes is the zoom that puts
+ * the whole board and a margin of wall on screen, and how far in goes is at
+ * least enough to fill the screen - both of which depend on the board's size
+ * and the screen's, so the board measures them and hands them over. Which is
+ * why the readout is the position rather than the scale: the same view is 6%
+ * of life size on a phone and 12% on a desktop, and a number that moves with
+ * the window is no use to anybody. Nothing about the board changes with it -
+ * the zoom is one number and everything pinned up keeps its proportions.
  */
-const ZOOM_MIN = 0.08;
-const ZOOM_MAX = 3;
-const zoomToSlider = (z: number) =>
-  Math.round((Math.log(z / ZOOM_MIN) / Math.log(ZOOM_MAX / ZOOM_MIN)) * 1000);
-const sliderToZoom = (value: number) =>
-  ZOOM_MIN * (ZOOM_MAX / ZOOM_MIN) ** (value / 1000);
+interface ZoomRange {
+  min: number;
+  max: number;
+}
+const DEFAULT_ZOOM_RANGE: ZoomRange = { min: 0.08, max: 3 };
+const zoomSpan = (range: ZoomRange) => Math.max(Math.log(range.max / range.min), 0.0001);
+const zoomToSlider = (z: number, range: ZoomRange) =>
+  Math.round(
+    Math.min(1000, Math.max(0, (Math.log(z / range.min) / zoomSpan(range)) * 1000)),
+  );
+const sliderToZoom = (value: number, range: ZoomRange) =>
+  range.min * (range.max / range.min) ** (value / 1000);
 
 export default function App() {
   const [session, setSession] = useState<SessionInfo | null>(null);
@@ -108,6 +124,7 @@ export default function App() {
   const [activeBoardId, setActiveBoardId] = useState<string | null>(null);
   const [keysFor, setKeysFor] = useState<{ id: string; title: string } | null>(null);
   const [zoom, setZoom] = useState(0.5);
+  const [zoomRange, setZoomRange] = useState<ZoomRange>(DEFAULT_ZOOM_RANGE);
   const [toast, setToast] = useState<Toast | null>(null);
 
   const boardHandle = useRef<BoardHandle>(null);
@@ -497,6 +514,7 @@ export default function App() {
         onMoveItem={moveItem}
         onCommit={commit}
         onZoomChange={setZoom}
+        onRangeChange={setZoomRange}
       />
 
       <div className="chrome">
@@ -526,11 +544,13 @@ export default function App() {
             type="range"
             min={0}
             max={1000}
-            value={zoomToSlider(zoom)}
+            value={zoomToSlider(zoom, zoomRange)}
             aria-label="Zoom"
-            onChange={(e) => boardHandle.current?.zoomTo(sliderToZoom(Number(e.target.value)))}
+            onChange={(e) =>
+              boardHandle.current?.zoomTo(sliderToZoom(Number(e.target.value), zoomRange))
+            }
           />
-          <span className="level">{Math.round(zoom * 100)}%</span>
+          <span className="level">{Math.round(zoomToSlider(zoom, zoomRange) / 10)}%</span>
           {/*
             The strings dimmer sits with the zoom, because it is the same kind
             of thing: a way of seeing this board, belonging to whoever is

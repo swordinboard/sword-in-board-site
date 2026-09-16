@@ -16,16 +16,31 @@ import { Moulding } from './ItemFace';
 import { useToday } from '../lib/clock';
 import { mediaUrl } from '../lib/api';
 
-const MIN_ZOOM = 0.08;
 /** Gap allowed between the two taps of a double tap. */
 const DOUBLE_TAP_MS = 400;
 /** Diameter of the settings handle, matching board.css. */
 const HANDLE_SIZE = 34;
 /** How far a finger may wander and still count as a tap rather than a pan. */
 const TAP_SLOP = 7;
-const MAX_ZOOM = 3;
 /** Wood frame thickness from board.css, needed when fitting the board to view. */
 const FRAME_PAD = 100;
+
+/**
+ * How much wall shows around the board once you have pulled right out, as a
+ * share of the board on each side. A quarter is enough to see the board is
+ * hung on something without it becoming a stamp in the middle of a wall.
+ */
+const ROOM_MARGIN = 0.25;
+
+/**
+ * As close as anyone can get, as a multiple of life size.
+ *
+ * Three is well past a real board, which is the point: on a big screen the
+ * board should be able to fill it rather than stopping at the size the thing
+ * would be in a hallway. Everything on it keeps its proportions either way -
+ * the zoom is one number and it scales the lot.
+ */
+const CLOSEST = 3;
 
 interface View {
   x: number;
@@ -59,6 +74,11 @@ interface Props {
   onMoveItem: (id: string, x: number, y: number) => void;
   onCommit: () => void;
   onZoomChange?: (zoom: number) => void;
+  /*
+   * How far out and in this board can go, which is not a constant: it depends
+   * on the board's size and the screen's, so the slider has to be told.
+   */
+  onRangeChange?: (range: { min: number; max: number }) => void;
   /** How much of the strings this reader wants to see. Theirs, not the board's. */
   stringView: StringView;
   /** An editor is tying strings: taps pick ends rather than selecting. */
@@ -66,32 +86,148 @@ interface Props {
   onCutString?: (id: string) => void;
 }
 
-const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+/**
+ * Where a viewer may go: how far out, how far in, and how far off to the side.
+ *
+ * There used to be no answer to the last of those. Zoom was pinned between
+ * two constants that knew nothing about the screen, and panning was unbounded,
+ * so a board could be dragged away into wall until it was gone and the only
+ * way back was Fit. Worse, with nowhere the wall stopped there was no size a
+ * wall could be - which is why an uploaded one had to repeat.
+ *
+ * So there is a room, and everything falls out of it. The furthest out is the
+ * zoom that puts the board and a margin of wall on screen together; the
+ * closest is at least life size and at least enough to fill the screen; the
+ * view is clamped so it never looks past the room's edges; and an uploaded
+ * wall is one picture the size of everything the room can ever show.
+ *
+ * `edge` is how much wall may show past the board, in board pixels, and the
+ * catch is that it cannot simply be a share of the board. A quarter of a
+ * board is eleven hundred board pixels, which is a comfortable margin pulled
+ * right out and half a phone screen at a middling zoom - so a board could be
+ * shoved clean off the side and you would be looking at blank wall. The
+ * margin is therefore whichever is smaller, that share or half a screen,
+ * which comes to the same thing when pulled out and keeps half the screen on
+ * the board when close in.
+ *
+ * `wall` is the widest the view can ever reach, which is what it reaches at
+ * the floor: every zoom above it sees less, and the clamp keeps that inside.
+ * Coordinates are the board's own, so the board is the box from 0,0 to its
+ * outer width and height.
+ */
+interface Room {
+  floor: number;
+  ceiling: number;
+  outerW: number;
+  outerH: number;
+  marginX: number;
+  marginY: number;
+  wall: { x0: number; y0: number; x1: number; y1: number };
+}
+
+function roomFor(board: BoardState, stageW: number, stageH: number): Room {
+  const outerW = board.width + FRAME_PAD * 2;
+  const outerH = board.height + FRAME_PAD * 2;
+  const marginX = outerW * ROOM_MARGIN;
+  const marginY = outerH * ROOM_MARGIN;
+  // Far enough out that the board and its margin are on screen together.
+  const floor = Math.min(
+    stageW / (outerW + marginX * 2),
+    stageH / (outerH + marginY * 2),
+    CLOSEST,
+  );
+  const halfW = stageW / floor / 2;
+  const halfH = stageH / floor / 2;
+  return {
+    floor,
+    // Never less than life size, and never too far out to fill the screen.
+    ceiling: Math.max(CLOSEST, floor, stageW / outerW, stageH / outerH),
+    outerW,
+    outerH,
+    marginX,
+    marginY,
+    wall: {
+      x0: outerW / 2 - halfW,
+      y0: outerH / 2 - halfH,
+      x1: outerW / 2 + halfW,
+      y1: outerH / 2 + halfH,
+    },
+  };
+}
 
 /**
- * The walls that are one picture rather than a pattern, measured in boards.
+ * The nearest view to this one that stays in the room.
  *
- * Most walls are made of something with a size of its own - a brick is seven
- * inches whatever it is behind - and the stylesheet says so. These two have
- * no such size. A door is drawn as one door against the board it is behind,
- * and a picture somebody uploaded is whatever they uploaded. Both need the
- * board's measurements, so both are worked out here.
+ * Along each axis the view shows board coordinates from -pos/z to
+ * (size - pos)/z, and both ends have to be inside the board plus its margin.
+ * That pins `pos` between two bounds. They meet exactly when the screen holds
+ * the whole of that span, which is what the floor zoom arranges, and open up
+ * as you come closer. When the screen is wider than the span there is nowhere
+ * to go, so it sits in the middle.
+ */
+function inRoom(v: View, room: Room, stageW: number, stageH: number): View {
+  const z = Math.min(room.ceiling, Math.max(room.floor, v.z));
+  const along = (pos: number, size: number, extent: number, margin: number) => {
+    const edge = Math.min(margin, size / 2 / z);
+    const lo = -edge;
+    const hi = extent + edge;
+    if (size / z >= hi - lo) return size / 2 - ((lo + hi) / 2) * z;
+    return Math.min(-lo * z, Math.max(size - hi * z, pos));
+  };
+  return {
+    z,
+    x: along(v.x, stageW, room.outerW, room.marginX),
+    y: along(v.y, stageH, room.outerH, room.marginY),
+  };
+}
+
+/**
+ * The door, measured in boards, because it has no size of its own.
  *
- * `across` is how many boards wide one copy is drawn, and `above` is how far
- * over the top of the board its own top edge starts, in boards. The door gets
- * a rise so its head casing and the wall above it land clear of the board,
- * instead of the top of the door being hidden behind it.
+ * Most walls are made of something that does - a brick is seven inches
+ * whatever it is behind - and the stylesheet says so. A door is drawn against
+ * the board it is behind instead: `across` is how many boards wide one is,
+ * and `above` is how far over the top of the board it starts, which puts the
+ * head casing and the wall over it clear of the board rather than behind it.
  */
 const BY_BOARD: Partial<Record<WallTexture, { across: number; above: number }>> = {
-  /*
-   * A board and a half across, and starting a board and two thirds over the
-   * top of it - which puts the head casing a little above the board with the
-   * picture's own deep run of wall above that, and the door below this one
-   * off the top of the screen at any zoom a phone can reach.
-   */
   door: { across: 1.5, above: 1.69 },
 };
-const OWN_WALL = { across: 2, above: 0 };
+
+/**
+ * A little past the room, so a rounded pixel never shows the end of a wall.
+ *
+ * Pulled right out the view is pinned to the room exactly, which puts the
+ * edge of a covering picture on the edge of the screen - correct to the
+ * pixel, and one rounding away from a hairline of bare colour down the side.
+ */
+const WALL_BLEED = 1.03;
+
+/**
+ * The proportions of an uploaded wall, once the browser knows them.
+ *
+ * A picture has to cover the room, and covering is a comparison between two
+ * shapes - so the picture's shape has to be known, and nothing here knows it
+ * until the file has loaded. It is one decode, off a file the wall is about
+ * to ask for anyway, so it is in cache by the time it is drawn with.
+ */
+function useWallShape(id: string | undefined): number | null {
+  const [shape, setShape] = useState<number | null>(null);
+  useEffect(() => {
+    setShape(null);
+    if (!id) return;
+    let live = true;
+    const img = new Image();
+    img.onload = () => {
+      if (live && img.naturalHeight) setShape(img.naturalWidth / img.naturalHeight);
+    };
+    img.src = mediaUrl(id);
+    return () => {
+      live = false;
+    };
+  }, [id]);
+  return shape;
+}
 
 /**
  * The wall, as inline variables on the stage.
@@ -108,31 +244,60 @@ const OWN_WALL = { across: 2, above: 0 };
  * get bigger when it is pinched, instead of sitting still like a backdrop
  * painted on the window.
  *
- * Everything on a wall repeats, the door and an uploaded picture included. A
- * picture that covered instead would have an edge, and in board space there
- * is no size that edge could be: pinch out far enough and you would find it,
- * with bare colour past it. Drawn this big the repeat is out of reach - the
- * door is three and a half boards long - so what anybody actually sees is one
- * door, running off the bottom of the screen.
+ * An uploaded wall is one picture over the whole room. That is only possible
+ * because the room has edges - before there were any, a covering picture had
+ * no size it could be, since pinching out far enough would always find the
+ * end of it. Now the far end of the zoom is the room, so a picture the size
+ * of the room is a wall nobody can see past. It is covered rather than
+ * stretched, so a picture keeps its own shape and is cropped instead.
  *
- * Only the width is ever set. `auto` for the height keeps a picture in its
- * own proportions, which is what stops a door from being stretched and means
- * nothing here has to go and measure a wall somebody uploaded a minute ago.
+ * The door still repeats. It is drawn well past the room in both directions,
+ * so the repeat is out of reach either way, and repeating means it does not
+ * have to be measured.
  */
-function wallStyle(board: BoardState, view: View): CSSProperties {
+function wallStyle(
+  board: BoardState,
+  view: View,
+  room: Room,
+  wallShape: number | null,
+): CSSProperties {
   const style: Record<string, string> = {
     '--wall-zoom': String(view.z),
     '--wall-x': `${view.x}px`,
     '--wall-y': `${view.y}px`,
   };
   if (board.wall) style['--wall-color'] = board.wall;
-  if (board.wallImage) style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
 
-  const hung = board.wallImage ? OWN_WALL : board.wallTex && BY_BOARD[board.wallTex];
+  const outerW = board.width + FRAME_PAD * 2;
+  const outerH = board.height + FRAME_PAD * 2;
+
+  if (board.wallImage) {
+    /*
+     * Held back until the shape is known rather than guessed at. A wall drawn
+     * at the wrong shape and corrected a moment later is a visible flinch;
+     * the board's own colour for that moment is not.
+     */
+    if (wallShape) {
+      const roomW = (room.wall.x1 - room.wall.x0) * WALL_BLEED;
+      const roomH = (room.wall.y1 - room.wall.y0) * WALL_BLEED;
+      const wide = Math.max(roomW, roomH * wallShape);
+      const tall = wide / wallShape;
+      style['--wall-tex'] = `url("${mediaUrl(board.wallImage)}")`;
+      style['--wall-tex-size'] = `${wide * view.z}px ${tall * view.z}px`;
+      style['--wall-tex-repeat'] = 'no-repeat';
+      style['--wall-tex-at'] =
+        `${view.x + (outerW / 2 - wide / 2) * view.z}px ${view.y + (outerH / 2 - tall / 2) * view.z}px`;
+    }
+    return style as CSSProperties;
+  }
+
+  const hung = board.wallTex && BY_BOARD[board.wallTex];
   if (hung) {
-    const outerW = board.width + FRAME_PAD * 2;
-    const outerH = board.height + FRAME_PAD * 2;
     const across = outerW * hung.across;
+    /*
+     * Only the width is set. `auto` for the height keeps the door in its own
+     * proportions, which is what stops it being stretched to this length.
+     */
     style['--wall-tex-size'] = `${across * view.z}px auto`;
     style['--wall-tex-at'] =
       `${view.x + ((outerW - across) / 2) * view.z}px ${view.y - outerH * hung.above * view.z}px`;
@@ -152,6 +317,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     onMoveItem,
     onCommit,
     onZoomChange,
+    onRangeChange,
     stringView,
     stringing,
     onCutString,
@@ -160,6 +326,13 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<View>({ x: 0, y: 0, z: 0.5 });
+  const wallShape = useWallShape(board.wallImage);
+  /*
+   * The room depends on the screen as well as the board, so it is measured
+   * rather than worked out once - a phone turned on its side is a different
+   * room, with a different furthest-out and different edges to stop at.
+   */
+  const [room, setRoom] = useState<Room>(() => roomFor(board, 1024, 768));
   const [panning, setPanning] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   // One clock for the whole board, so every whiteboard on it agrees.
@@ -169,6 +342,8 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   // anything they do not have to.
   const viewRef = useRef(view);
   viewRef.current = view;
+  const roomRef = useRef(room);
+  roomRef.current = room;
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const panStart = useRef<{ x: number; y: number; view: View } | null>(null);
   const pinchStart = useRef<{ distance: number; z: number; mid: { x: number; y: number } } | null>(
@@ -185,20 +360,51 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
    */
   const tapStart = useRef<{ id: string; x: number; y: number } | null>(null);
 
+  /** A view, put back inside the room before it reaches the screen. */
+  const settle = useCallback((next: View | ((v: View) => View)) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    setView((v) => inRoom(
+      typeof next === 'function' ? next(v) : next,
+      roomRef.current,
+      stage.clientWidth,
+      stage.clientHeight,
+    ));
+  }, []);
+
   const fit = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
     const outerW = board.width + FRAME_PAD * 2;
     const outerH = board.height + FRAME_PAD * 2;
     const margin = 48;
-    const z = clampZoom(
-      Math.min((stage.clientWidth - margin) / outerW, (stage.clientHeight - margin) / outerH),
-    );
-    setView({
+    const z = Math.min((stage.clientWidth - margin) / outerW, (stage.clientHeight - margin) / outerH);
+    settle({
       x: (stage.clientWidth - outerW * z) / 2,
       y: (stage.clientHeight - outerH * z) / 2,
       z,
     });
+  }, [board.width, board.height, settle]);
+
+  /*
+   * Measure the room whenever the board or the screen changes shape, and put
+   * the view back inside the new one. Turning a phone on its side moves the
+   * edges; without this the view would be left outside them until the next
+   * drag noticed.
+   */
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const measure = () => {
+      const next = roomFor(board, stage.clientWidth, stage.clientHeight);
+      roomRef.current = next;
+      setRoom(next);
+      setView((v) => inRoom(v, next, stage.clientWidth, stage.clientHeight));
+    };
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(stage);
+    return () => watch.disconnect();
   }, [board.width, board.height]);
 
   useLayoutEffect(() => {
@@ -209,6 +415,10 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
   useEffect(() => {
     onZoomChange?.(view.z);
   }, [view.z, onZoomChange]);
+
+  useEffect(() => {
+    onRangeChange?.({ min: room.floor, max: room.ceiling });
+  }, [room.floor, room.ceiling, onRangeChange]);
 
   /** Screen point -> board coordinates. */
   const toBoard = useCallback((clientX: number, clientY: number) => {
@@ -228,12 +438,12 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
     const rect = stage.getBoundingClientRect();
     const px = clientX - rect.left;
     const py = clientY - rect.top;
-    setView((v) => {
-      const z = clampZoom(v.z * factor);
+    settle((v) => {
+      const z = Math.min(roomRef.current.ceiling, Math.max(roomRef.current.floor, v.z * factor));
       const ratio = z / v.z;
       return { z, x: px - (px - v.x) * ratio, y: py - (py - v.y) * ratio };
     });
-  }, []);
+  }, [settle]);
 
   useImperativeHandle(
     ref,
@@ -254,11 +464,11 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
         const stage = stageRef.current;
         if (!stage) return;
         const rect = stage.getBoundingClientRect();
-        zoomAt(clampZoom(z) / viewRef.current.z, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        zoomAt(z / viewRef.current.z, rect.left + rect.width / 2, rect.top + rect.height / 2);
       },
       fit,
       zoom: () => viewRef.current.z,
-      range: () => ({ min: MIN_ZOOM, max: MAX_ZOOM }),
+      range: () => ({ min: roomRef.current.floor, max: roomRef.current.ceiling }),
     }),
     [board.width, board.height, toBoard, zoomAt, fit],
   );
@@ -313,8 +523,8 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       const stage = stageRef.current;
       if (!stage) return;
       const rect = stage.getBoundingClientRect();
-      const z = clampZoom(start.z * factor);
-      setView((v) => {
+      const z = Math.min(roomRef.current.ceiling, Math.max(roomRef.current.floor, start.z * factor));
+      settle((v) => {
         const ratio = z / v.z;
         const px = start.mid.x - rect.left;
         const py = start.mid.y - rect.top;
@@ -335,7 +545,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
 
     const start = panStart.current;
     if (!start) return;
-    setView({
+    settle({
       x: start.view.x + (event.clientX - start.x),
       y: start.view.y + (event.clientY - start.y),
       z: start.view.z,
@@ -481,7 +691,7 @@ const Board = forwardRef<BoardHandle, Props>(function Board(
       /* A named paper is a stylesheet's business; an uploaded one is not, so
          only the first reaches the attribute. */
       data-wall={board.wallImage ? undefined : board.wallTex}
-      style={wallStyle(board, view)}
+      style={wallStyle(board, view, room, wallShape)}
       onPointerDown={onStagePointerDown}
       onPointerMove={onStagePointerMove}
       onPointerUp={endPointer}
