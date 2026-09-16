@@ -1608,6 +1608,30 @@ button {
   align-items: center;
 }
 
+/*
+ * Eight to a row, laid out rather than wrapped. Flowing them left to right
+ * put seven on the first line and one orphan on the next, which reads as a
+ * mistake - and worse, broke the one thing the two rows are for, which is
+ * that a dark wall and a pale one can be compared line against line.
+ */
+.wall-row .swatch-rows {
+  flex: 1;
+  min-width: 0;
+}
+
+.wall-row .swatches {
+  display: grid;
+  flex-wrap: nowrap;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+
+.wall-row .swatches button {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
 .wall-row input[type='color'] {
   width: 46px;
   height: 38px;
@@ -1655,6 +1679,62 @@ button {
   /* Straight on, since it is being looked at rather than hung on a wall. */
   transform-origin: 0 0;
   filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.7));
+}
+
+/* ---------- a chooser folded away behind what it is set to ---------- */
+
+/*
+ * Shaped like the dialog's own text fields on purpose. It is the same kind of
+ * thing - one setting, showing its value - and a viewer should not have to
+ * learn that this one is a list in disguise.
+ */
+.folded {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--panel-text);
+  font-family: inherit;
+  font-size: 14px;
+  text-align: left;
+}
+
+.folded.open {
+  border-color: var(--accent);
+  margin-bottom: 8px;
+}
+
+/*
+ * The current setting, which for a hand is the board's name in that hand -
+ * so it has a line of its own to be too big for, and is cut off rather than
+ * allowed to push the arrow off the end.
+ */
+.folded-now {
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folded-now .sample {
+  font-size: 19px;
+}
+
+.folded-mark {
+  flex: 0 0 auto;
+  color: var(--panel-muted);
+  font-size: 11px;
+  transition: transform 0.16s ease;
+}
+
+.folded.open .folded-mark {
+  transform: rotate(180deg);
 }
 
 /* ---------- picking the hand the board's name is written in ---------- */

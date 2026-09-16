@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { BoardState, BoardStyle, TitleFont } from '../../shared/types';
 import {
   BOARD_STYLES,
@@ -43,14 +44,88 @@ const FONT_BLURBS: Record<TitleFont, string> = {
  * A few walls that suit the boards, for anyone not after a colour picker.
  *
  * Two rows, because a board hung on a dark wall and one hung on a pale wall
- * are different rooms, and the picker offered only the first of them. The
- * light ones are plaster and paint rather than white: a true white wall
+ * are different rooms. Eight in each rather than six, and chosen to go round
+ * the hues rather than to sit near one another: the first six were four
+ * browns and two blues in all but name, so most of the row looked like the
+ * same wall twice. These run warm black, brown, oxblood, plum, navy, teal,
+ * forest, charcoal - and the pale row the same way about.
+ *
+ * The light ones are plaster and paint rather than white. A true white wall
  * flattens the board's own shadow to nothing.
  */
-const WALLS_DARK = ['#17140f', '#1b2430', '#241a14', '#2a2a2e', '#101b16', '#2c1f28'];
-const WALLS_LIGHT = ['#e6dfd1', '#d9d3c6', '#cdd5d2', '#d5cfdc', '#e3d5c3', '#c9d2d9'];
+const WALLS_DARK = [
+  '#17140f',
+  '#241a14',
+  '#2b1618',
+  '#2c1f28',
+  '#1b2430',
+  '#132228',
+  '#101b16',
+  '#2a2a2e',
+];
+const WALLS_LIGHT = [
+  '#e6dfd1',
+  '#e4d3bd',
+  '#e8d5cf',
+  '#dfd2e0',
+  '#ccd6e2',
+  '#c9dcd6',
+  '#d5ddc6',
+  '#d9d5cb',
+];
+
+/**
+ * A chooser folded away behind whatever it is currently set to.
+ *
+ * The board styles and the hands are both lists of tall buttons, and together
+ * they were most of the dialog: everything under them - the wall, the paper,
+ * which way up - was a scroll away before you knew it was there. Folded, the
+ * whole of the dialog is on a phone screen at once.
+ *
+ * Not a <select>. The whole of what these two offer is on the buttons: a hand
+ * is chosen by reading the board's name set in it, and a board style by what
+ * it says it is. An option list can carry neither.
+ */
+function Folded({
+  label,
+  now,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  now: ReactNode;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <button
+        type="button"
+        className={`folded${open ? ' open' : ''}`}
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <span className="folded-now">{now}</span>
+        <span className="folded-mark" aria-hidden>
+          &#9662;
+        </span>
+      </button>
+      {open ? children : null}
+    </div>
+  );
+}
 
 export default function StyleDialog({ board, onChange, onClose }: Props) {
+  /*
+   * One at a time. Both open at once is the tall dialog this was meant to
+   * fix, and there is no reason to compare a frame against a typeface.
+   */
+  const [openList, setOpenList] = useState<'style' | 'font' | null>(null);
+  const fold = (which: 'style' | 'font') => () =>
+    setOpenList((now) => (now === which ? null : which));
   const portrait = board.height > board.width;
   const [warning, setWarning] = useState<string | null>(null);
   const [wallBusy, setWallBusy] = useState(false);
@@ -109,37 +184,56 @@ export default function StyleDialog({ board, onChange, onClose }: Props) {
         Everything pinned to it keeps the frame you gave it.
       </p>
 
-      <div className="field">
-        <label>Board</label>
+      <Folded
+        label="Board style"
+        now={STYLE_LABELS[board.style ?? 'cork'].name}
+        open={openList === 'style'}
+        onToggle={fold('style')}
+      >
         <div className="chooser">
           {BOARD_STYLES.map((style) => (
             <button
               type="button"
               key={style}
               className={(board.style ?? 'cork') === style ? 'on' : ''}
-              onClick={() => onChange({ style })}
+              onClick={() => {
+                onChange({ style });
+                setOpenList(null);
+              }}
             >
               {STYLE_LABELS[style].name}
               <span className="sub">{STYLE_LABELS[style].blurb}</span>
             </button>
           ))}
         </div>
-      </div>
+      </Folded>
 
       {/*
         The name's hand. Each button is set in the face it offers, which is
         the whole of what somebody needs to choose one - and it is the thing
         that fetches the face, so nothing is downloaded until this is opened.
+        Which now means opened twice: the list is folded away until asked for.
       */}
-      <div className="field">
-        <label>The name on it</label>
+      <Folded
+        label="Title font"
+        now={
+          <span className={`sample title-${board.titleFont ?? 'plain'}`}>
+            {TITLE_FONT_LABELS[board.titleFont ?? 'plain']}
+          </span>
+        }
+        open={openList === 'font'}
+        onToggle={fold('font')}
+      >
         <div className="chooser fonts">
           {TITLE_FONTS.map((font) => (
             <button
               type="button"
               key={font}
               className={`title-font title-${font}${(board.titleFont ?? 'plain') === font ? ' on' : ''}`}
-              onClick={() => onChange({ titleFont: font })}
+              onClick={() => {
+                onChange({ titleFont: font });
+                setOpenList(null);
+              }}
             >
               <span className="sample">{board.title || TITLE_FONT_LABELS[font]}</span>
               <span className="sub">
@@ -148,7 +242,7 @@ export default function StyleDialog({ board, onChange, onClose }: Props) {
             </button>
           ))}
         </div>
-      </div>
+      </Folded>
 
       <div className="field">
         <label htmlFor="wall-colour">Wall behind it</label>
@@ -230,8 +324,10 @@ export default function StyleDialog({ board, onChange, onClose }: Props) {
         />
         {wallError ? <p className="error-text">{wallError}</p> : null}
         <p className="hint-text">
-          A wall of your own repeats behind the board, about two boards wide, so something that
-          tiles suits it best. It is stored with the board and goes when the board does.
+          A wall of your own covers everything behind the board. <strong>2000 &times; 1500</strong>{' '}
+          is about right &mdash; it is centred on the board and cropped to whatever shape the
+          screen is, so keep what matters near the middle. It is stored with the board and goes
+          when the board does.
         </p>
       </div>
 
