@@ -1,0 +1,602 @@
+/* Crop selection over a source image. */
+
+.cropper {
+  /* Room for handles that sit outside the image on all four sides. */
+  padding: 10px 10px 0;
+  margin-bottom: 14px;
+}
+
+/*
+ * Deliberately not clipped: a selection flush with the image edge puts its
+ * handles just outside these bounds, and overflow:hidden would swallow them.
+ */
+.cropper-canvas {
+  position: relative;
+  margin: 0 auto;
+  background: #0d0b08;
+  border-radius: 8px;
+  touch-action: none;
+  user-select: none;
+}
+
+.cropper-canvas > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.cropper-shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: rgba(10, 8, 6, 0.62);
+  pointer-events: none;
+}
+
+/* The selection shows the image at full brightness through the shade. */
+.cropper-window {
+  position: absolute;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+  cursor: move;
+}
+
+/* Clipping the preview on an inner layer keeps the corner handles grabbable. */
+.cropper-window-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.cropper-window-clip > img {
+  display: block;
+  pointer-events: none;
+}
+
+.cropper-window .grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, transparent 33.33%, rgba(255, 255, 255, 0.28) 33.33%, rgba(255, 255, 255, 0.28) calc(33.33% + 1px), transparent calc(33.33% + 1px), transparent 66.66%, rgba(255, 255, 255, 0.28) 66.66%, rgba(255, 255, 255, 0.28) calc(66.66% + 1px), transparent calc(66.66% + 1px)),
+    linear-gradient(to bottom, transparent 33.33%, rgba(255, 255, 255, 0.28) 33.33%, rgba(255, 255, 255, 0.28) calc(33.33% + 1px), transparent calc(33.33% + 1px), transparent 66.66%, rgba(255, 255, 255, 0.28) 66.66%, rgba(255, 255, 255, 0.28) calc(66.66% + 1px), transparent calc(66.66% + 1px));
+  pointer-events: none;
+}
+
+.cropper-window .handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.cropper-window .handle.nw {
+  top: -8px;
+  left: -8px;
+  cursor: nwse-resize;
+}
+.cropper-window .handle.ne {
+  top: -8px;
+  right: -8px;
+  cursor: nesw-resize;
+}
+.cropper-window .handle.sw {
+  bottom: -8px;
+  left: -8px;
+  cursor: nesw-resize;
+}
+.cropper-window .handle.se {
+  bottom: -8px;
+  right: -8px;
+  cursor: nwse-resize;
+}
+
+.cropper-readout {
+  margin: 8px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ---------- choosers shared by the add and submit dialogs ---------- */
+
+.chooser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chooser button {
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--panel-text);
+  font-size: 13px;
+}
+
+.chooser button.on {
+  border-color: var(--accent);
+  background: rgba(217, 164, 65, 0.16);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.chooser button .sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--panel-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.chooser button.on .sub {
+  color: rgba(217, 164, 65, 0.75);
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Darks on one line, lights on the next, so neither row has to be read
+   against the other to be told apart. */
+.swatch-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * A pale swatch on a pale-ish panel needs an edge of its own, or the ones at
+ * the light end of the row lose their shape against the dialog.
+ */
+.swatch-rows .swatches button {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.swatches button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.swatches button.on {
+  border-color: #fff;
+}
+
+.dropzone {
+  display: grid;
+  place-items: center;
+  padding: 34px 20px;
+  border: 2px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--panel-muted);
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.over {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dropzone input {
+  display: none;
+}
+
+.thumb-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.thumb {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.thumb.pickable {
+  cursor: pointer;
+  outline: 2px solid transparent;
+}
+
+.thumb.pickable:hover {
+  outline-color: var(--accent);
+}
+
+/* ---------- submission inbox ---------- */
+
+.sub-card {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: var(--panel-raised);
+}
+
+.sub-card .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sub-card .who {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sub-card .when {
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.sub-card .status {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.status.new {
+  background: rgba(192, 57, 43, 0.24);
+  color: #ffab9d;
+}
+.status.reviewed {
+  background: rgba(217, 164, 65, 0.22);
+  color: var(--accent);
+}
+.status.placed {
+  background: rgba(39, 121, 91, 0.26);
+  color: #7fdcb4;
+}
+.status.archived {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--panel-muted);
+}
+
+.sub-card .note {
+  margin: 0 0 4px;
+  color: #ded7c9;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.sub-card .contact {
+  margin: 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.sub-card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sub-card .actions .btn {
+  padding: 8px 13px;
+  font-size: 13px;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  color: var(--panel-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ---------- board and key management rows ---------- */
+
+.row-card {
+  margin-bottom: 12px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: var(--panel-raised);
+}
+
+.row-card.current {
+  border-color: rgba(217, 164, 65, 0.5);
+}
+
+.row-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.row-sub {
+  margin-top: 3px;
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.2);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag.warn {
+  background: rgba(192, 57, 43, 0.24);
+  color: #ffab9d;
+}
+
+.row-card .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.row-card .actions .btn {
+  padding: 8px 13px;
+  font-size: 13px;
+}
+
+.danger-zone {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(192, 57, 43, 0.4);
+  border-radius: 10px;
+  background: rgba(192, 57, 43, 0.12);
+}
+
+.danger-zone p {
+  margin: 0;
+  color: #f2ded9;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* The password itself, tap-to-copy. */
+.secret {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px 13px;
+  border: 1px dashed rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  text-align: left;
+}
+
+.secret:hover {
+  border-color: var(--accent);
+}
+
+.secret code {
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+
+.secret span {
+  flex-shrink: 0;
+  color: var(--panel-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.section-rule {
+  margin: 24px 0 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.field .note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.strength {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.strength.weak {
+  color: #ffab9d;
+}
+
+.strength.ok {
+  color: #7fdcb4;
+}
+
+/* ---------- report reasons ---------- */
+
+.reason {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--panel-text);
+  text-align: left;
+}
+
+.reason.on {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.16);
+}
+
+.reason-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reason-hint {
+  display: block;
+  margin-top: 3px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reason.on .reason-hint {
+  color: rgba(255, 171, 157, 0.85);
+}
+
+.modal .fine {
+  margin: 14px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* ---------- preview of the item as it will hang ---------- */
+
+.preview-well {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 26px 0;
+  border-radius: 10px;
+  /* The cork, so the preview is judged against what it will sit on. */
+  background: url('./tex/surface-cork.jpg') center / cover no-repeat, #c69a63;
+  overflow: hidden;
+}
+
+.preview-stage {
+  position: relative;
+  flex: none;
+}
+
+/* The crop shown by offsetting the source inside a clipped box. */
+.crop-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.crop-view img {
+  position: absolute;
+  max-width: none;
+  object-fit: fill;
+}
+
+
+/* ---------- pictures chosen for a folder or magazine ---------- */
+
+.gallery-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.strip-cell {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #0d0b08;
+}
+
+.strip-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.strip-cell button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.68);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.strip-first {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 2px 7px;
+  border-radius: 0 7px 0 0;
+  background: rgba(216, 164, 74, 0.92);
+  color: #2a1c08;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

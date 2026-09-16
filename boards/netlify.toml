@@ -1,0 +1,50 @@
+# Netlify config for Pinhold.
+# Attach this to its own Netlify site with base directory = "boards".
+
+[build]
+  base = "boards"
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# The notices are real files, not app routes. Named before the fallback so the
+# hub resolves to its own index rather than being swallowed by the shell.
+[[redirects]]
+  from = "/legal"
+  to = "/legal/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/legal/"
+  to = "/legal/index.html"
+  status = 200
+
+# SPA fallback: everything that is not a function or an asset serves the shell.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+    Cross-Origin-Opener-Policy = "same-origin"
+    # Gated content must never be cached by a shared cache.
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

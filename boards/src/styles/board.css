@@ -1,0 +1,891 @@
+/* The board surface: procedural cork and wood, plus pan/zoom scaffolding. */
+
+:root {
+  /*
+   * Cork, as granules rather than as a blur. The alpha is stepped so each one
+   * ends somewhere instead of fading out, and the coarsest thing in it is a
+   * granule wide - a texture with anything larger in it reads as a repeating
+   * pattern once it is tiled across four thousand pixels of board.
+   */
+  /* Broad mottling so the cork does not read as uniform noise. */
+  /* Ghosted marker, the smear a dry eraser leaves behind. Stretched wide so
+     it streaks sideways, the way a hand wipes. */
+  --tex-wipe: url('./tex/tex-wipe.png') 0 0 / 100% 100% no-repeat;
+  /* A panel grid, for the sci-fi board. Cheaper than turbulence and it
+     tiles exactly, which is the point of a grid. */
+  --tex-grid:
+    repeating-linear-gradient(0deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(90deg, rgba(120, 200, 225, 0.07) 0 1px, transparent 1px 42px);
+  /*
+   * Rust, for the board nobody has maintained in a while. The tile is large
+   * relative to the grain on purpose: a smaller one showed its own edges as
+   * a visible lattice across the board.
+   */
+  /* Grain running the length of a plank: fine across it, long along it. */
+  /* Hide: a fine irregular grain with no direction to it. */
+  /* Grime, the same clouding as the mottle but cold: steel does not brown. */
+  /*
+   * A hand-forged nail head: not round, because nothing off an anvil is, and
+   * matte, because iron that has been hammered does not shine.
+   */
+  --iron-nail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='52'%3E%3Cdefs%3E%3CradialGradient id='i' cx='34%25' cy='26%25' r='78%25'%3E%3Cstop offset='0' stop-color='%238b857b'/%3E%3Cstop offset='38%25' stop-color='%233d3933'/%3E%3Cstop offset='100%25' stop-color='%230b0a09'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cg transform='rotate(9 26 26)'%3E%3Crect x='5' y='9' width='42' height='42' rx='13' fill='%23000' fill-opacity='0.5'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='url(%23i)'/%3E%3Crect x='5' y='4' width='42' height='42' rx='13' fill='none' stroke='%23a39c90' stroke-opacity='0.3' stroke-width='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  /* Tooth for paper stock. */
+  --tex-paper: url('./tex/tex-paper.png') 0 0 / 100% 100% no-repeat;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /*
+   * Three layers, not one. The light sits on top, whatever the wall is
+   * papered with sits under it, and the colour is the bottom.
+   *
+   * It was one shorthand, `var(--wall-color) var(--wall-glow)`, and the glow
+   * was a gradient between two opaque colours - so it painted straight over
+   * the colour and the wall picker did nothing at all. A style still worked
+   * because a style set both.
+   */
+  background-color: var(--wall-color);
+  background-image: var(--wall-glow), var(--wall-tex, none);
+  background-repeat: no-repeat, var(--wall-tex-repeat, repeat);
+  background-size: auto, var(--wall-tex-size, auto);
+  background-position: center, var(--wall-tex-at, center);
+  cursor: grab;
+  touch-action: none;
+  overscroll-behavior: none;
+
+  /*
+   * Where the board is, so the wall can be behind it rather than beside it.
+   *
+   * The light belongs to the room and stays put in the middle of the screen.
+   * What the wall is papered with belongs to the wall: pan the board and the
+   * bricks pan with it, pinch and they grow. So the tile grid is anchored to
+   * the board's own top-left corner and sized by the board's zoom.
+   *
+   * Board.tsx rewrites these on every frame of a gesture. It is already
+   * rewriting the board's transform on those frames, so this costs nothing
+   * extra - and the painting stays inside the viewport, rather than on a
+   * layer the size of everything visible at the furthest zoom out, which at
+   * 0.08 is some 48000px across.
+   */
+  --wall-zoom: 1;
+  --wall-x: 0px;
+  --wall-y: 0px;
+  --wall-tex-at: var(--wall-x) var(--wall-y);
+}
+
+.stage.panning {
+  cursor: grabbing;
+}
+
+.stage.placing {
+  cursor: crosshair;
+}
+
+.board-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+/*
+ * The layer is deliberately NOT promoted while the board is moved.
+ *
+ * Promoting it was the right trade when the surface was drawn by filters:
+ * rasterising cost hundreds of milliseconds, so it was worth rasterising once
+ * and letting the GPU scale that one copy. The cost was that the scaled copy
+ * smears - the texture goes soft while a finger is down and snaps sharp on
+ * release, which is the board visibly changing as it is moved.
+ *
+ * The textures are bitmaps now and a frame costs about the same either way:
+ * promoted, 16.7ms a frame but 520-680ms to build the layer at the start of
+ * every gesture; not promoted, 16.7ms median with a 33-50ms worst frame, and
+ * the surface never changes. So it stays unpromoted, and stays sharp.
+ */
+
+/* ---------- the frame ---------- */
+
+/*
+ * A frame is four lengths of moulding, and each length is cut with the grain
+ * running down it - so the grain on each side runs along that side. One
+ * texture stretched over the whole frame gives all four the same direction,
+ * which is right on two of them and reads as veneer on the other two.
+ *
+ * So each length is its own piece, and the pieces are mitred: cut at 45 from
+ * the outer corner, meeting without overlapping. Four bands laid over each
+ * other instead would each paint the same corner square, and two of these
+ * textures stacked is darker than one - a block of colour change at every
+ * corner, which is the thing a mitre exists to avoid.
+ */
+.moulding {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.moulding.top,
+.moulding.bottom {
+  left: 0;
+  right: 0;
+  height: var(--moulding-depth);
+  background: var(--moulding-rail, none) 0 0 / 100% 100px no-repeat;
+}
+
+.moulding.left,
+.moulding.right {
+  top: 0;
+  bottom: 0;
+  width: var(--moulding-depth);
+  background: var(--moulding-stile, none) 0 0 / 100px 100% no-repeat;
+}
+
+.moulding.top {
+  top: 0;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--moulding-depth)) 100%,
+    var(--moulding-depth) 100%
+  );
+}
+
+.moulding.bottom {
+  bottom: 0;
+  background-position: left bottom;
+  clip-path: polygon(
+    var(--moulding-depth) 0,
+    calc(100% - var(--moulding-depth)) 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.moulding.left {
+  left: 0;
+  clip-path: polygon(
+    0 0,
+    100% var(--moulding-depth),
+    100% calc(100% - var(--moulding-depth)),
+    0 100%
+  );
+}
+
+.moulding.right {
+  right: 0;
+  background-position: right top;
+  clip-path: polygon(
+    100% 0,
+    100% 100%,
+    0 calc(100% - var(--moulding-depth)),
+    0 var(--moulding-depth)
+  );
+}
+
+/* Nailed together out of rough stock; nobody mitred that. */
+.stage[data-board-style='medieval'] .moulding {
+  clip-path: none;
+}
+
+/*
+ * The sci-fi panel is notched: still mitred at the corners, but an eighth of
+ * a side in from each one it angles away and runs at half depth across the
+ * middle, leaving the channel behind it showing. The run equals the depth it
+ * gives up, so the angle is 45 like the mitre it shares the corner with.
+ */
+.stage[data-board-style='scifi'] .moulding.top {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--moulding-depth)) 100%,
+    87.5% 100%,
+    calc(87.5% - var(--notch-run)) var(--notch-depth),
+    calc(12.5% + var(--notch-run)) var(--notch-depth),
+    12.5% 100%,
+    var(--moulding-depth) 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.bottom {
+  clip-path: polygon(
+    var(--moulding-depth) 0,
+    12.5% 0,
+    calc(12.5% + var(--notch-run)) calc(100% - var(--notch-depth)),
+    calc(87.5% - var(--notch-run)) calc(100% - var(--notch-depth)),
+    87.5% 0,
+    calc(100% - var(--moulding-depth)) 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.left {
+  clip-path: polygon(
+    0 0,
+    100% var(--moulding-depth),
+    100% 12.5%,
+    var(--notch-depth) calc(12.5% + var(--notch-run)),
+    var(--notch-depth) calc(87.5% - var(--notch-run)),
+    100% 87.5%,
+    100% calc(100% - var(--moulding-depth)),
+    0 100%
+  );
+}
+
+.stage[data-board-style='scifi'] .moulding.right {
+  clip-path: polygon(
+    100% 0,
+    100% 100%,
+    0 calc(100% - var(--moulding-depth)),
+    0 87.5%,
+    calc(100% - var(--notch-depth)) calc(87.5% - var(--notch-run)),
+    calc(100% - var(--notch-depth)) calc(12.5% + var(--notch-run)),
+    0 12.5%,
+    0 var(--moulding-depth)
+  );
+}
+
+
+.board {
+  position: relative;
+  /* Matches FRAME_PAD in Board.tsx, which places everything against it. */
+  padding: 100px;
+  border-radius: 13px;
+  --moulding-depth: 100px;
+  background: linear-gradient(180deg, var(--frame-light), var(--frame-mid) 45%, var(--frame-dark));
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.14) inset,
+    0 -3px 6px rgba(0, 0, 0, 0.5) inset,
+    0 30px 70px rgba(0, 0, 0, 0.65),
+    0 6px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* Bevel where the frame meets the cork. */
+.board::after {
+  content: '';
+  position: absolute;
+  inset: 80px;
+  border-radius: 7px;
+  box-shadow: var(--frame-bevel, 0 0 0 4px rgba(0, 0, 0, 0.32), 0 4px 11px rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+/*
+ * Whatever has been painted on the frame. A pseudo-element rather than more
+ * layers on .board's own background: only one preset wants marks, and a
+ * per-layer size list on a shared background is a thing every other preset
+ * would then have to keep in step. It sits above the frame and below the
+ * cork, so it shows in the border and nowhere else.
+ */
+.board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 13px;
+  /* Above the moulding: paint and nails go on after the frame is built. */
+  z-index: 1;
+  background: var(--frame-marks, none);
+  pointer-events: none;
+}
+
+/* ---------- the cork ---------- */
+
+.cork {
+  position: relative;
+  border-radius: 2px;
+  background: var(--tex-surface), var(--surface-base);
+  box-shadow: 0 3px 12px var(--surface-shadow) inset;
+}
+
+/*
+ * An alignment grid, drawn over the surface but under everything pinned to
+ * it. Only a guide: nothing snaps to it, because a board where every item
+ * lands on a gridline stops looking like anything anybody hung by hand.
+ */
+.cork.gridded::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 80px);
+  pointer-events: none;
+}
+
+.cork-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--surface-ink);
+  font-family: var(--serif);
+  font-size: 26px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.cork-empty small {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+}
+
+/* ---------- items ---------- */
+
+.item {
+  /*
+   * Every item measures itself, so what is written on it can be sized against
+   * the thing it is written on rather than against nothing.
+   */
+  container-type: size;
+  position: absolute;
+  transform-origin: 50% 8%;
+  /* drop-shadow follows clip-path, so torn edges cast a torn shadow. */
+  filter: drop-shadow(2px 5px 5px rgba(40, 22, 6, 0.42))
+    drop-shadow(0 12px 18px rgba(40, 22, 6, 0.22));
+  transition: filter 140ms ease;
+}
+
+.item.editable {
+  cursor: grab;
+}
+
+.item.dragging {
+  cursor: grabbing;
+  filter: drop-shadow(6px 16px 14px rgba(40, 22, 6, 0.45))
+    drop-shadow(0 26px 34px rgba(40, 22, 6, 0.3));
+}
+
+.item.selected .surface {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
+}
+
+.item .surface {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- strings ---------- */
+
+/*
+ * Drawn over the items, under the hangers. Over, because a web shown in
+ * pieces is not a web; under the hangers, because a string passes beneath the
+ * pin holding it. Items carry z-index from their own stacking order, which is
+ * a small integer, so these two sit well clear of the top of it.
+ */
+.strings {
+  position: absolute;
+  inset: 0;
+  z-index: 100000;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.string {
+  fill: none;
+  stroke-width: 9px;
+  stroke-linecap: round;
+  filter: drop-shadow(1px 2px 2px rgba(20, 12, 4, 0.45));
+}
+
+/* A five pixel line is not a tap target; this one is, and is invisible. */
+.string-grab {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 46px;
+  stroke-linecap: round;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+
+.hangers {
+  position: absolute;
+  inset: 0;
+  z-index: 100001;
+  pointer-events: none;
+}
+
+/*
+ * An empty copy of an item, carrying nothing but its hanger. It keeps the
+ * item's box, its tilt and its frame class, which is all the fastener rules
+ * ask for - but not the item class itself, or every `.cork .item` anywhere
+ * would quietly have started matching two elements instead of one.
+ */
+.hanger-ghost {
+  position: absolute;
+  /* The same pivot as .item, or a tilted hanger lands away from its item. */
+  transform-origin: 50% 8%;
+}
+
+/* ---------- fasteners ---------- */
+
+/*
+ * Where an item hangs from: the centre of its pin, nail or tape, measured
+ * down from its own top edge.
+ *
+ * One number per frame, and every fastener centres itself on it, because a
+ * pin, a nail and a strip of tape holding the same sheet all go through the
+ * same part of it. Set per frame in frames.css; anything that does not say
+ * hangs from its very edge.
+ *
+ * It matters that this is one number rather than a top for each fastener on
+ * each frame: `hangerDrop` in lib/frames.ts is the same measurement, and a
+ * string ties to that. Two lists to keep in step would drift, and a drifted
+ * knot is a string tied to thin air beside the pin.
+ */
+
+.fastener {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Pushpin: a lit sphere with a small collar and a cast shadow. */
+.fastener.pin {
+  /* Centred on the frame's hanging point: half the pin's height back up. */
+  top: calc(var(--hang, 0px) - 11px);
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 42%),
+    radial-gradient(circle at 68% 74%, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0) 55%),
+    var(--pin, #c0392b);
+  box-shadow:
+    0 1px 1px rgba(255, 255, 255, 0.35) inset,
+    0 4px 6px rgba(40, 22, 6, 0.5);
+}
+
+/* Nail head for framed pieces. */
+.fastener.nail {
+  top: calc(var(--hang, 0px) - 6px);
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, #f2f0ec, #8d8880 55%, #4b4640);
+  box-shadow: 0 3px 5px rgba(40, 22, 6, 0.55);
+}
+
+/* Two strips of translucent tape across the top corners. */
+.fastener.tape {
+  top: calc(var(--hang, 0px) - 13px);
+  width: 62px;
+  height: 26px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 253, 240, 0.34),
+    rgba(226, 216, 186, 0.5) 45%,
+    rgba(255, 253, 240, 0.3)
+  );
+  border-left: 1px solid rgba(255, 255, 255, 0.32);
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 4px rgba(40, 22, 6, 0.26);
+}
+
+/*
+ * Magnets, at the size the real thing comes in: a bar half an inch by an inch
+ * and a quarter, and a three-quarter-inch disc, at the board's 117px to the
+ * inch. Each straddles the item's top edge rather than sitting down on it -
+ * a magnet put square in the middle of a note covers the first line of it,
+ * which is not where anybody puts one. So where a pin or a nail moves down
+ * into the item far enough to look like it is holding it, a magnet does not:
+ * it is already big enough to be holding the thing from the edge, and moving
+ * it in would only cost a line of writing.
+ */
+.fastener.magnet {
+  left: 50%;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 5px 9px rgba(0, 0, 0, 0.42);
+}
+
+.fastener.magnet.bar {
+  top: calc(var(--hang-magnet, 0px) - 29.5px);
+  width: 146px;
+  height: 59px;
+  margin-left: -73px;
+  border-radius: 7px;
+}
+
+.fastener.magnet.disc {
+  top: calc(var(--hang-magnet, 0px) - 44px);
+  width: 88px;
+  height: 88px;
+  margin-left: -44px;
+  border-radius: 50%;
+}
+
+.fastener.magnet.black {
+  background:
+    radial-gradient(120% 90% at 36% 18%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, #3b3b3f, #17171a 58%, #0b0b0d);
+}
+
+/*
+ * Chrome is not a colour, it is a horizon: everything above the middle is the
+ * sky it reflects and everything below is the ground, with a hard change
+ * where they meet. A flat grey with a highlight reads as plastic.
+ */
+.fastener.magnet.chrome {
+  background:
+    radial-gradient(70% 50% at 32% 16%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 60%),
+    linear-gradient(
+      180deg,
+      #f1f5f7 0%,
+      #c3cbd1 26%,
+      #737c84 48%,
+      #98a2a9 52%,
+      #dde4e9 72%,
+      #7d868d 100%
+    );
+}
+
+.fastener.tape.left {
+  left: -16px;
+  transform: rotate(-42deg);
+}
+
+.fastener.tape.right {
+  right: -16px;
+  transform: rotate(42deg);
+}
+
+
+/* ---------- the board's name ---------- */
+
+/*
+ * Sits above the frame and counter-scales against the zoom, so it reads at a
+ * constant size on screen. Anchored bottom-centre so it stays just clear of
+ * the top edge however far out the board is zoomed.
+ */
+.board-name {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform-origin: bottom center;
+  max-width: 90vw;
+  padding: 7px 20px;
+  border-radius: 999px;
+  /*
+   * The name has to stay readable against whatever the wall turns out to be,
+   * including a pale one and including a picture somebody uploaded. So the
+   * bubble is nearly opaque and carries a rim and a soft spread of its own -
+   * at 0.72 over a busy wallpaper the letters had the wall running through
+   * them.
+   */
+  background: rgba(18, 15, 11, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 2px 18px rgba(0, 0, 0, 0.55),
+    0 0 0 6px rgba(12, 10, 7, 0.28);
+  color: #f4ecdc;
+  /*
+   * Whatever hand the board was given, falling back to the serif it was
+   * always set in. Each face has its own size, because a wood-type slab and
+   * an inscriptional capital are not the same height at the same number.
+   */
+  font-family: var(--title-face, var(--serif));
+  font-size: calc(26px * var(--title-scale, 1));
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+/* ---------- the way in to one item's settings ---------- */
+
+/*
+ * The ring marking what is picked. Drawn in screen coordinates so it is the
+ * same weight whether the board is at 8% or 300% - inside the board it scaled
+ * down to an invisible hairline exactly when it was needed most.
+ */
+.item-ring {
+  position: absolute;
+  border: 2px solid var(--accent, #d8a44a);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(216, 164, 74, 0.45);
+  pointer-events: none;
+  z-index: 24;
+}
+
+.item-settings {
+  position: absolute;
+  display: grid;
+  /* Positioned by its centre on the item's corner, in screen coordinates. */
+  margin: -17px 0 0 -17px;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  background: var(--accent, #d8a44a);
+  color: #2a1c08;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
+  /* Above the board, below the chrome and any dialog. */
+  z-index: 25;
+}
+
+.item-settings span {
+  position: relative;
+  top: -5px;
+  letter-spacing: 1px;
+}
+
+
+/*
+ * ---------- how the board is dressed ----------
+ *
+ * A style is a list of colours and textures and nothing else: the layout,
+ * the bevel, the vignette and the shadows are the same board underneath. It
+ * dresses the board, its frame and the wall, and never touches what is
+ * pinned to it - a preset must not overrule a frame somebody chose.
+ *
+ * The default is the plain cork one, whose values are the base tokens.
+ */
+
+.stage {
+  --moulding-rail: url('./tex/frame-wood-rail.png');
+  --moulding-stile: url('./tex/frame-wood-stile.png');
+  --tex-surface: url('./tex/surface-cork.jpg') center / cover no-repeat;
+}
+
+/*
+ * A sign, out of dark planks worked with rough tools.
+ *
+ * The boards are set on end and joined, and the joins are deliberately not
+ * evenly spaced: two runs of seams at lengths that do not divide into each
+ * other, so the repeat is long enough that nobody counts it. Anything evenly
+ * spaced reads as machined, which is the one thing it should not be.
+ */
+.stage[data-board-style='medieval'] {
+  --frame-light: #3c2a15;
+  --frame-mid: #24180b;
+  --frame-dark: #181007;
+  --surface-base: #3a2814;
+  --surface-shadow: rgba(12, 7, 2, 0.72);
+  --surface-ink: rgba(226, 202, 160, 0.4);
+  --wall-color: #14100c;
+  --wall-glow: radial-gradient(
+    circle at 50% 34%,
+    rgba(255, 226, 170, 0.11) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  --moulding-rail: url('./tex/frame-plank-rail.png');
+  --moulding-stile: url('./tex/frame-plank-stile.png');
+  --tex-surface: url('./tex/surface-medieval.jpg') center / cover no-repeat;
+  /* A sign this rough was never trimmed out; it was nailed together. */
+  --frame-bevel: none;
+  --frame-marks:
+    var(--iron-nail) left 24px top 24px / 52px 52px no-repeat,
+    var(--iron-nail) right 24px top 24px / 52px 52px no-repeat,
+    var(--iron-nail) left 24px bottom 24px / 52px 52px no-repeat,
+    var(--iron-nail) right 24px bottom 24px / 52px 52px no-repeat;
+}
+
+/* Brushed graphite and a backlit panel. */
+.stage[data-board-style='scifi'] {
+  /* The channel the panel is set into; what a notch leaves showing. */
+  --frame-light: #2b323b;
+  --frame-mid: #1c222a;
+  --frame-dark: #12171c;
+  --surface-base: #1e2c36;
+  --surface-shadow: rgba(0, 14, 24, 0.65);
+  --surface-ink: rgba(150, 205, 225, 0.55);
+  --wall-color: #06090c;
+  --wall-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(122, 192, 255, 0.13) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  /*
+   * A machined panel edge: no grain to run anywhere, so the moulding is the
+   * panel itself rather than a texture over one. It sits proud of the channel
+   * behind it, which is what makes a notch read as a notch.
+   */
+  --moulding-rail: linear-gradient(180deg, #626d7c, #47515d 55%, #2e3640);
+  --moulding-stile: linear-gradient(90deg, #626d7c, #47515d 55%, #2e3640);
+  /* The notch: the panel angles away an eighth of a side in from each corner
+     and runs half depth across the middle. The run equals the depth it gives
+     up, which is what makes the angle 45. */
+  --notch-depth: 50px;
+  --notch-run: 50px;
+  /* Nothing to bevel: the notch is the only line the frame needs. */
+  --frame-bevel: none;
+  --tex-surface: url('./tex/surface-scifi.jpg') center / cover no-repeat;
+}
+
+/*
+ * Hide stretched over a frame somebody took trouble over.
+ *
+ * The one board where a broad mottle is right rather than blurry: a skin is
+ * unevenly coloured, so the large-scale variation is the material rather
+ * than a texture failing to hide its own tiling. Kept gentle all the same.
+ */
+.stage[data-board-style='western'] {
+  --frame-light: #9d7b4e;
+  --frame-mid: #6f5330;
+  --frame-dark: #503b21;
+  --surface-base: #c9a978;
+  --surface-shadow: rgba(72, 48, 18, 0.52);
+  --surface-ink: rgba(84, 58, 24, 0.6);
+  --wall-color: #1b1610;
+  --wall-glow: radial-gradient(
+    circle at 50% 38%,
+    rgba(255, 219, 158, 0.14) 0%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+  --moulding-rail: url('./tex/frame-wood-rail.png');
+  --moulding-stile: url('./tex/frame-wood-stile.png');
+  --tex-surface: url('./tex/surface-western.jpg') center / cover no-repeat;
+  /* Rustic materials, well put together - but not trimmed out either. */
+  --frame-bevel: none;
+}
+
+/* Steel that has been out in it, and warning paint on the frame. */
+.stage[data-board-style='industrial'] {
+  /* Steel underneath; the rust texture over it is what makes it rust. */
+  --frame-light: #5e6160;
+  --frame-mid: #3a3d3c;
+  --frame-dark: #292c2b;
+  --surface-base: #515553;
+  --surface-shadow: rgba(14, 17, 17, 0.7);
+  --surface-ink: rgba(226, 230, 228, 0.5);
+  --wall-color: #0e1010;
+  --wall-glow: radial-gradient(
+    circle at 50% 36%,
+    rgba(203, 222, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  --moulding-rail: url('./tex/frame-steel-rail.png');
+  --moulding-stile: url('./tex/frame-steel-stile.png');
+  /* Rust where it has taken, and steel everywhere it has not. */
+  --tex-surface: url('./tex/surface-industrial.jpg') center / cover no-repeat;
+  /*
+   * Hazard stripes, one run centred on each side. They stop well short of the
+   * corners: this is paint somebody put where a hand or a shin would meet the
+   * frame, not a border.
+   */
+  --frame-marks:
+    url('./tex/hazard-h.png') top center / 1500px 100px no-repeat,
+    url('./tex/hazard-h.png') bottom center / 1500px 100px no-repeat,
+    url('./tex/hazard-v.png') left center / 100px 1000px no-repeat,
+    url('./tex/hazard-v.png') right center / 100px 1000px no-repeat;
+}
+
+/* ---------- the hands a board's name can be written in ---------- */
+
+/*
+ * Set on the stage, so the name and its preview in the style dialog can both
+ * read one declaration. The scale is per face rather than one size for all:
+ * set at the same number, Cinzel's caps tower over Patrick Hand's x-height
+ * and Rye's slab reads a size larger again.
+ */
+.board-name[data-font='marker'] {
+  --title-face: var(--title-marker);
+  --title-scale: 1.15;
+}
+
+.board-name[data-font='plain'] {
+  --title-face: var(--title-plain);
+  --title-scale: 1;
+}
+
+.board-name[data-font='carved'] {
+  --title-face: var(--title-carved);
+  --title-scale: 0.92;
+  letter-spacing: 0.04em;
+}
+
+.board-name[data-font='console'] {
+  --title-face: var(--title-console);
+  --title-scale: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.board-name[data-font='saloon'] {
+  --title-face: var(--title-saloon);
+  --title-scale: 0.88;
+}
+
+.board-name[data-font='stencil'] {
+  --title-face: var(--title-stencil);
+  --title-scale: 0.92;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- what the wall is papered with ---------- */
+
+/*
+ * Over the wall colour, under the light. All four wrap at their own edges.
+ *
+ * Three of them are made of something with a size of its own and are sized
+ * here. The door is not - it is drawn against the board it is behind - so
+ * Board.tsx sizes and places that one, the same way it does a wall somebody
+ * uploaded, whose address is a media id no stylesheet could name anyway.
+ *
+ * The sizes here are board pixels, not screen pixels, and that is a different unit
+ * from the one these tiles were first drawn against. 117px is an inch here,
+ * and the board is 4200 x 3000 - a three foot corkboard - so a brick tile of
+ * 480px used to be a comfortable brick on screen and is a four inch pebble
+ * against the board. Each is set to about the size the real thing is: a brick
+ * roughly seven inches across, a tread on the plate an inch and a half, a
+ * flower every six inches or so of paper. They stay that size relative to the
+ * board however far it is zoomed, which is the point.
+ */
+.stage[data-wall='brick'] {
+  --wall-tex: url('./tex/wall-brick.png');
+  --wall-tex-size: calc(1680px * var(--wall-zoom)) calc(1120px * var(--wall-zoom));
+}
+
+.stage[data-wall='plate'] {
+  --wall-tex: url('./tex/wall-plate.png');
+  --wall-tex-size: calc(840px * var(--wall-zoom)) calc(840px * var(--wall-zoom));
+}
+
+.stage[data-wall='floral'] {
+  --wall-tex: url('./tex/wall-floral.png');
+  --wall-tex-size: calc(1500px * var(--wall-zoom)) calc(1500px * var(--wall-zoom));
+}
+
+/*
+ * One door, as wide as a board and a half and three and a half times that
+ * long, so it runs off the bottom of any screen rather than stacking. Its
+ * size and its place need the board's measurements, so Board.tsx sets them
+ * and all the stylesheet owns is which file.
+ */
+.stage[data-wall='door'] {
+  --wall-tex: url('./tex/wall-door.jpg');
+}

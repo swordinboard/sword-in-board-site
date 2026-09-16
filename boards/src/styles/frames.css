@@ -1,0 +1,1034 @@
+/* Five ways for something to hang on the cork. */
+
+/* ---------- plain sheet of paper ---------- */
+
+.frame-paper .surface {
+  padding: 12px;
+  border-radius: 1px;
+  background: var(--tex-paper), linear-gradient(170deg, #fbf7ec, var(--paper) 60%, #ece5d3);
+  box-shadow:
+    0 0 0 1px rgba(140, 125, 95, 0.28),
+    -8px 0 14px -12px rgba(60, 40, 12, 0.5) inset,
+    0 -10px 16px -14px rgba(60, 40, 12, 0.45) inset;
+}
+
+.frame-paper img {
+  box-shadow: 0 0 0 1px rgba(120, 105, 78, 0.22);
+}
+
+/* Text-only sheets read as a typed notice. */
+.frame-paper .body-text,
+.frame-clipping .body-text,
+.frame-note .body-text {
+  display: block;
+}
+
+/*
+ * The size the writing on this frame is set at. Twelve point is the floor -
+ * below that nobody is reading it - and a size chosen for the item wins over
+ * whatever the frame would have worked out. A title is sized against this
+ * rather than against the page, so the two keep their relation at any size.
+ */
+.item.frame-paper {
+  --text: var(--type, max(20px, 2cqw));
+}
+
+.frame-paper .body-text {
+  padding: 10px 14px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ---------- instant photo ---------- */
+
+.frame-polaroid .surface {
+  /* 23 / 23 / 94 at three and a half inches across, kept as a fraction of
+     the width so the mount scales with the photograph rather than thinning
+     out as it is pulled larger. */
+  padding: 5.61cqw 5.61cqw 22.93cqw;
+  background: linear-gradient(175deg, #ffffff, #f4f1e9 70%, #e6e1d4);
+  box-shadow:
+    0 0 0 1px rgba(120, 110, 90, 0.24),
+    0 -14px 22px -18px rgba(50, 35, 12, 0.55) inset;
+}
+
+.frame-polaroid img {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.2) inset;
+  filter: saturate(0.94) contrast(1.03);
+}
+
+/*
+ * Written across the white below the picture.
+ *
+ * Laid into the chin rather than added under the photograph, so however long
+ * it is it cannot push the picture up or the strip of white down: that strip
+ * is three quarters of an inch because that is what an instant photo has,
+ * and the writing has to live inside it.
+ *
+ * Which means the writing is sized to the room there is rather than the room
+ * it would like - the same bargain anybody makes with a pen and a photo. The
+ * length comes from the markup, and the line gets narrower as it gets longer.
+ */
+.frame-polaroid .photo-caption {
+  position: absolute;
+  right: 7%;
+  bottom: 2.9cqw;
+  left: 7%;
+  height: 17cqw;
+  overflow: hidden;
+  color: #2f2a22;
+  font-family: var(--hand);
+  font-size: max(10px, min(var(--type, 8.3cqw), calc(100cqw * 0.86 / var(--chars, 20) * 2.1)));
+  /* Matched to the box, so one line sits centred in the white. */
+  line-height: 17cqw;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Nobody writes on a photograph perfectly straight. */
+  transform: rotate(-0.7deg);
+}
+
+/* ---------- a clipping, cut from a column ---------- */
+
+/*
+ * Cut out rather than torn out all round.
+ *
+ * A piece taken from a newspaper is cut down the column rules and torn across
+ * the top and bottom, because that is the way the paper gives: cleanly along
+ * the grain, raggedly against it. The old outline was ragged on all four
+ * sides, which read as a torn corner of something rather than as a column.
+ */
+.frame-clipping .surface {
+  /* Clear of the tear, which bites a percentage of the height out of the top
+     and bottom and so reaches further in on a taller clipping. The head has
+     more room than the foot: a pin or a nail is pushed down past the tear to
+     land on paper, and it has to land on paper rather than on the headline. */
+  padding: max(38px, 4.4cqw) 2.4cqw max(20px, 2.6cqw);
+  background:
+    var(--tex-paper),
+    linear-gradient(168deg, #eeeade, var(--newsprint) 45%, #d9d3c2);
+  /* Sides cut with scissors - near enough straight, wavering a little; top
+     and bottom torn, at a depth in pixels rather than a share of the height,
+     so the padding that clears the tear does not depend on the height it is
+     helping to work out. drop-shadow on .item traces the outline. */
+  clip-path: polygon(
+    0.8% 0px, 9.7% 12.5px, 18.7% 0px, 27.6% 13.0px, 36.5% 0px, 45.4% 11.8px, 54.4% 0px, 63.3% 11.8px, 72.2% 0px, 81.1% 11.3px, 90.1% 0px, 99.0% 14.0px,
+    99.4% 20%, 98.8% 40%, 99.4% 60%, 98.8% 80%,
+    99.0% 100%, 90.1% calc(100% - 10.8px), 81.1% 100%, 72.2% calc(100% - 10.2px), 63.3% 100%, 54.4% calc(100% - 10.7px), 45.4% 100%, 36.5% calc(100% - 10.7px), 27.6% 100%, 18.7% calc(100% - 11.0px), 9.7% 100%, 0.8% calc(100% - 10.7px),
+    1.2% 80%, 0.6% 60%, 1.2% 40%, 0.6% 20%
+  );
+}
+
+/* The rules the column was cut along, left standing just inside the cut. */
+.frame-clipping .surface::before {
+  content: '';
+  position: absolute;
+  top: 6%;
+  right: 0.9cqw;
+  bottom: 6%;
+  left: 0.9cqw;
+  border-right: 1px solid rgba(52, 46, 36, 0.42);
+  border-left: 1px solid rgba(52, 46, 36, 0.42);
+  pointer-events: none;
+}
+
+/*
+ * A pin goes through paper, and on a clipping the paper starts a little way
+ * down: the tear bites up to fourteen pixels out of the top edge, so a
+ * fastener set against that edge is holding air, so it comes down past it.
+ */
+.item.frame-clipping,
+.hanger-ghost.frame-clipping {
+  --hang: 15px;
+}
+
+/* Newsprint runs a photograph grey, flat and contrasty. */
+.frame-clipping img {
+  filter: grayscale(1) contrast(1.12) brightness(0.97) sepia(0.14);
+}
+
+/*
+ * And prints it as a screen of dots, which is the one thing that says
+ * newspaper at a glance however small the picture is.
+ */
+.frame-clipping .media {
+  position: relative;
+}
+
+.frame-clipping .media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(24, 20, 14, 0.55) 0.9px, rgba(0, 0, 0, 0) 1.1px);
+  background-size: 3px 3px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.item.frame-clipping {
+  --text: var(--type, max(20px, 3.4cqw));
+}
+
+.frame-clipping .body-text {
+  padding: 6px 2px 2px;
+  color: #2e2a23;
+  font-family: var(--serif);
+  font-size: var(--text);
+  line-height: 1.42;
+  text-align: justify;
+  hyphens: auto;
+  white-space: pre-wrap;
+}
+
+/* ---------- small framed piece ---------- */
+
+.frame-framed .surface {
+  /* 70px of moulding at seven inches across. */
+  padding: 8.55cqw;
+  border-radius: 5.8px;
+  /*
+   * Four lengths of moulding, mitred, exactly as on the board's own frame -
+   * the same .moulding pieces, cut to this frame's depth. Grain runs along
+   * each side, and the mat's own inset decides how much of each shows.
+   */
+  /*
+   * The depth the moulding SHOWS, not the padding: the mat covers everything
+   * inside 26.3px, and a piece that ran under it would paint over the mat
+   * instead. The mitre is the same 45 line from the outer corner either way.
+   */
+  --moulding-depth: 26.3px;
+  --moulding-rail: url('./tex/frame-wood-rail.png');
+  --moulding-stile: url('./tex/frame-wood-stile.png');
+  background: linear-gradient(150deg, #7d5230, #5a3a1f 48%, #33200f);
+  box-shadow:
+    0 2.9px 0 rgba(255, 226, 190, 0.28) inset,
+    0 -5.8px 11.7px rgba(0, 0, 0, 0.5) inset,
+    0 0 0 2.9px rgba(0, 0, 0, 0.45);
+}
+
+/* The mat board inside the moulding. */
+.frame-framed .surface::before {
+  content: '';
+  position: absolute;
+  inset: 26.3px;
+  border-radius: 2.9px;
+  background: linear-gradient(160deg, #f2ece0, #ddd5c4);
+  box-shadow: 0 2.9px 11.7px rgba(0, 0, 0, 0.35);
+}
+
+.frame-framed .mat {
+  display: block;
+  position: absolute;
+  inset: 55.6px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2.9px rgba(70, 55, 35, 0.5),
+    0 5.8px 23.4px rgba(0, 0, 0, 0.4) inset;
+}
+
+.frame-framed .mat img {
+  width: 100%;
+  height: 100%;
+}
+
+/* A raking sheen so it reads as glass. */
+.frame-framed .surface::after {
+  content: '';
+  position: absolute;
+  inset: 26.3px;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.05) 26%,
+    rgba(255, 255, 255, 0) 46%
+  );
+  pointer-events: none;
+}
+
+/* ---------- sticky note ---------- */
+
+.frame-note .surface {
+  padding: 20px 18px;
+  background:
+    linear-gradient(190deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 34%),
+    linear-gradient(160deg, var(--note), #efd447 70%, #dcbf34);
+  box-shadow:
+    0 0 0 1px rgba(150, 125, 30, 0.24),
+    0 -12px 18px -16px rgba(90, 70, 10, 0.7) inset;
+}
+
+/* Curled bottom corner. */
+.frame-note .surface::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border-width: 0 0 22px 22px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.12) transparent;
+}
+
+.item.frame-note {
+  --text: var(--type, max(20px, 6.8cqw));
+}
+
+.frame-note .body-text {
+  color: #3d3306;
+  font-family: var(--hand);
+  font-size: var(--text);
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+/* ---------- the title across the top of a written item ---------- */
+
+.item .title-text {
+  flex: 0 0 auto;
+  margin-bottom: 0.45em;
+  /* Against the writing it heads, not against the page. */
+  font-size: calc(var(--text, 20px) * 1.5);
+  line-height: 1.12;
+  white-space: pre-wrap;
+}
+
+.frame-paper .title-text {
+  padding: 0 6px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 600;
+}
+
+.frame-note .title-text,
+.frame-lined .title-text {
+  color: inherit;
+  font-family: var(--hand);
+  /* Underlined the way anybody underlines a heading by hand. */
+  border-bottom: 1px solid currentcolor;
+  padding-bottom: 0.1em;
+}
+
+.frame-lined .title-text {
+  /* Sits on a rule like everything else written on the page. */
+  line-height: var(--rule);
+  margin-bottom: 0;
+  border-bottom: 0;
+  text-decoration: underline;
+}
+
+/*
+ * On a clipping the title is the headline, and a headline is set bigger,
+ * tighter and heavier than the story, across the full measure rather than in
+ * the columns.
+ */
+.frame-clipping .title-text {
+  margin-bottom: 0.3em;
+  padding-bottom: 0.2em;
+  border-bottom: 1.5px solid rgba(52, 46, 36, 0.5);
+  color: #221f19;
+  font-family: var(--serif);
+  font-size: calc(var(--text, 20px) * 2.3);
+  font-weight: 700;
+  line-height: 1.03;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+/* ---------- shared media block ---------- */
+
+.item .media {
+  display: block;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+ * A picture is the shape it was cropped to, and stays it.
+ *
+ * As a flexible box it was whatever was left after everything else had taken
+ * its height, so adding a headline and a story to a clipping squeezed the
+ * photograph into a letterbox strip rather than making the clipping taller.
+ * The crop decides the picture's height; what has to give is the item.
+ */
+.item.shaped .stack .media {
+  flex: 0 0 auto;
+  aspect-ratio: var(--aspect);
+}
+
+.item .stack {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/*
+ * Writing keeps its full height and the picture above it gives up the room.
+ * The other way round - which is what a flexible picture and shrinkable text
+ * gave - cut the last lines off the bottom of the sheet, and a line that is
+ * cut off is simply gone, while a slightly shorter photograph is not.
+ */
+.item .stack .body-text {
+  flex: 0 0 auto;
+}
+
+/* ---------- notebook page, torn out ---------- */
+
+/*
+ * One measure for the page: how far apart the rules are. The writing sits on
+ * them at any size because both come from the same number, which is not true
+ * of a ruling fixed in pixels under type that scales.
+ */
+.item.frame-lined {
+  --text: var(--type, max(20px, 2.7cqw));
+  --rule: calc(var(--text) * 1.36);
+}
+
+.frame-lined .surface {
+  padding: calc(var(--rule) * 0.6) calc(var(--rule) * 0.6) calc(var(--rule) * 0.6)
+    calc(var(--rule) * 1.2);
+  background:
+    /* Ruled lines. */
+    repeating-linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0,
+      rgba(0, 0, 0, 0) calc(var(--rule) - 1px),
+      rgba(86, 126, 172, 0.42) calc(var(--rule) - 1px),
+      rgba(86, 126, 172, 0.42) var(--rule)
+    ),
+    var(--tex-paper),
+    linear-gradient(180deg, #fdfcf6, #f4f1e4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+  /*
+   * The rag is cut out of the sheet rather than laid over it: an overlay only
+   * ever looks like a strip, and taking the bite out of the paper is what
+   * reads as torn. Down the left, where a page comes away from its binding.
+   * The points are irregular on purpose - an even zigzag reads as pinking
+   * shears rather than a tear.
+   */
+  clip-path: polygon(0.0px 0.0%, 6.0px 3.8%, 0.0px 7.7%, 6.5px 11.5%, 0.0px 15.4%, 5.3px 19.2%, 0.0px 23.1%, 5.3px 26.9%, 0.0px 30.8%, 4.8px 34.6%, 0.0px 38.5%, 7.5px 42.3%, 0.0px 46.2%, 4.3px 50.0%, 0.0px 53.8%, 3.7px 57.7%, 0.0px 61.5%, 4.2px 65.4%, 0.0px 69.2%, 4.2px 73.1%, 0.0px 76.9%, 4.5px 80.8%, 0.0px 84.6%, 4.2px 88.5%, 0.0px 92.3%, 3.5px 96.2%, 0.0px 100.0%, 100% 100%, 100% 0);
+}
+
+/* The margin rule, just clear of the torn edge. */
+.frame-lined .surface::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--rule) * 0.9);
+  width: 1px;
+  background: rgba(196, 96, 96, 0.5);
+}
+
+/* A shade along the rag, so the torn edge has a little thickness. */
+.frame-lined .tear {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 9px;
+  background: linear-gradient(90deg, rgba(120, 96, 58, 0.34), rgba(120, 96, 58, 0));
+  clip-path: polygon(0.0px 0.0%, 6.0px 3.8%, 0.0px 7.7%, 6.5px 11.5%, 0.0px 15.4%, 5.3px 19.2%, 0.0px 23.1%, 5.3px 26.9%, 0.0px 30.8%, 4.8px 34.6%, 0.0px 38.5%, 7.5px 42.3%, 0.0px 46.2%, 4.3px 50.0%, 0.0px 53.8%, 3.7px 57.7%, 0.0px 61.5%, 4.2px 65.4%, 0.0px 69.2%, 4.2px 73.1%, 0.0px 76.9%, 4.5px 80.8%, 0.0px 84.6%, 4.2px 88.5%, 0.0px 92.3%, 3.5px 96.2%, 0.0px 100.0%, 100% 100%, 100% 0);
+  pointer-events: none;
+}
+
+.frame-lined .body-text {
+  position: relative;
+  color: #253048;
+  font-family: var(--hand);
+  font-size: var(--text);
+  /* The same measure the rules are drawn at, so the writing sits on them. */
+  line-height: var(--rule);
+  white-space: pre-wrap;
+}
+
+/* ---------- manila folder ---------- */
+
+.frame-folder .surface {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+/*
+ * A folder's body starts below the tab, so a fastener against the item's top
+ * edge is pinned to the tab's corner and holding nothing. The magnets come
+ * down with it here, unlike on other frames: above the body there is only
+ * tab, and a magnet stuck to a tab is not holding the folder.
+ */
+.item.frame-folder,
+.hanger-ghost.frame-folder {
+  --hang: 62px;
+  --hang-magnet: 62px;
+}
+
+.frame-folder .folder-tab {
+  position: absolute;
+  top: 0;
+  left: 39.7px;
+  max-width: 62%;
+  padding: 19.9px 71.5px 27.8px 55.6px;
+  border-radius: 27.8px 55.6px 0 0;
+  background: linear-gradient(180deg, #e3bd74, #d8ad60);
+  box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.45) inset;
+  color: #4a3410;
+  font-family: var(--hand);
+  font-size: 59.6px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Above the contents: the sheet peeking out used to cover its own tab. */
+  z-index: 2;
+}
+
+.frame-folder .folder-body {
+  position: absolute;
+  top: 87.4px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 47.7px;
+  border-radius: 15.9px 31.8px 23.8px 23.8px;
+  background:
+    var(--tex-paper),
+    linear-gradient(170deg, #e6c081, #d7ab5f 60%, #c99a4c);
+  box-shadow:
+    0 4px 0 rgba(255, 255, 255, 0.4) inset,
+    0 39.7px 79.4px -47.7px rgba(0, 0, 0, 0.7);
+}
+
+/*
+ * The top picture, taped to the front of a closed folder.
+ *
+ * Held well inside the folder on every side. It used to start high enough
+ * that the tape reached up past the folder's own top edge and across the tab,
+ * so the strips were stuck to the cork and the label ran underneath them.
+ * The tape rises 43.7px above the picture, so the picture has to sit at least
+ * that far below where the tab ends.
+ */
+.frame-folder .folder-sheet {
+  position: absolute;
+  top: 103.3px;
+  right: 135px;
+  bottom: 119.1px;
+  left: 135px;
+  border-radius: 7.9px;
+  background: #f6f2e6;
+  box-shadow:
+    0 7.9px 27.8px rgba(0, 0, 0, 0.4),
+    0 0 0 15.9px #f8f4e8;
+  transform: rotate(-1.4deg);
+}
+
+/* Two strips holding it on, one at each top corner. */
+.frame-folder .tape-strip {
+  position: absolute;
+  top: -43.7px;
+  z-index: 1;
+  width: 166.8px;
+  height: 75.5px;
+  background: linear-gradient(
+    170deg,
+    rgba(246, 240, 214, 0.82),
+    rgba(226, 216, 182, 0.72)
+  );
+  box-shadow: 0 4px 7.9px rgba(0, 0, 0, 0.28);
+}
+
+.frame-folder .tape-strip.left {
+  left: -51.6px;
+  transform: rotate(-38deg);
+}
+
+.frame-folder .tape-strip.right {
+  right: -51.6px;
+  transform: rotate(38deg);
+}
+
+.frame-folder .folder-sheet img,
+.frame-folder .folder-sheet .crop-view {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* The fold down the left, which is what says this is a folder and not card. */
+.frame-folder .folder-body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 27.8px;
+  border-radius: 15.9px 0 0 15.9px;
+  background: linear-gradient(
+    90deg,
+    rgba(120, 84, 30, 0.45),
+    rgba(255, 255, 255, 0.22) 70%,
+    rgba(0, 0, 0, 0.08)
+  );
+}
+
+.frame-folder .folder-count {
+  position: absolute;
+  z-index: 1;
+  right: 47.7px;
+  bottom: 31.8px;
+  left: 47.7px;
+  color: #4a3410;
+  font-family: var(--hand);
+  font-size: 55.6px;
+  text-align: right;
+}
+
+/* ---------- magazine ---------- */
+
+.frame-magazine .surface {
+  padding: 0;
+  overflow: hidden;
+  /* Corners softened unevenly: a magazine that has been handled does not keep
+     the crisp right angles it left the press with. */
+  border-radius: 6.9px 31px 17.2px 10.3px;
+  background: #201b14;
+  box-shadow:
+    0 6.9px 0 rgba(255, 255, 255, 0.12) inset,
+    0 55.1px 96.5px -48.2px rgba(0, 0, 0, 0.8);
+}
+
+.frame-magazine .mag-cover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.frame-magazine .mag-cover img,
+.frame-magazine .mag-cover .crop-view {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The masthead, over a wash so it stays readable on any cover. */
+.frame-magazine .mag-masthead {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding: 34.5px 41.4px 55.1px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0));
+  color: #fff8ea;
+  font-family: var(--serif);
+  font-size: 72.4px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-shadow: 0 6.9px 20.7px rgba(0, 0, 0, 0.75);
+  word-break: break-word;
+}
+
+/* The bound edge. */
+.frame-magazine .mag-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 31px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.18) 55%,
+    rgba(255, 255, 255, 0.12)
+  );
+}
+
+.frame-magazine .mag-count {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 55.1px 41.4px 27.6px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.66), rgba(0, 0, 0, 0));
+  color: #f2e7d2;
+  font-family: var(--sans);
+  font-size: 41.4px;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+/*
+ * Wear along the magazine's edges.
+ *
+ * Painted normally rather than with a blend mode: overlay takes its strength
+ * from whatever the cover happens to be, so on a dark photograph the wear all
+ * but vanished, which is the opposite of what a battered magazine looks like.
+ * Plain low-alpha white rubs read the same on any cover.
+ */
+.frame-magazine .mag-wear {
+  position: absolute;
+  inset: 0;
+  background:
+    /* Rubbed pale at the outer corners, where it is picked up. */
+    radial-gradient(75.8px 103.4px at 100% 0%, rgba(252, 248, 238, 0.85), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(89.6px 89.6px at 100% 100%, rgba(252, 248, 238, 0.7), rgba(0, 0, 0, 0) 70%),
+    radial-gradient(62px 82.7px at 0% 100%, rgba(252, 248, 238, 0.45), rgba(0, 0, 0, 0) 70%),
+    /* And along the outer edge and the head. */
+    linear-gradient(90deg, rgba(0, 0, 0, 0) 96.5%, rgba(252, 248, 238, 0.6)),
+    linear-gradient(180deg, rgba(252, 248, 238, 0.45), rgba(0, 0, 0, 0) 2.5%),
+    linear-gradient(0deg, rgba(252, 248, 238, 0.4), rgba(0, 0, 0, 0) 2%),
+    /* A crease running down from the head, a third of the way across. */
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0) 30%,
+      rgba(0, 0, 0, 0.26) 32.5%,
+      rgba(255, 255, 255, 0.22) 34%,
+      rgba(0, 0, 0, 0) 37%
+    );
+  pointer-events: none;
+}
+
+/*
+ * A turned-up corner. The triangle is the back of the page, so it is paper
+ * coloured and lit from the opposite side, with the cover's own shadow cast
+ * into the notch it leaves behind.
+ */
+.frame-magazine .mag-dogear {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 103.4px;
+  height: 103.4px;
+  background: linear-gradient(45deg, #f2eade 0%, #d8cbb2 60%, #b3a68c 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  box-shadow: -10.3px -10.3px 20.7px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* The shadow the lifted corner throws back onto the cover. */
+.frame-magazine .mag-dogear::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 103.4px;
+  height: 103.4px;
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0) 55%);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* ---------- whiteboard ---------- */
+
+/*
+ * A whiteboard is drawn at the size of the pen used on it.
+ *
+ * Marker writing is three quarters of an inch to an inch tall, because that
+ * is what the nib gives you, and it is also why less fits on a whiteboard
+ * than people expect. Everything here is derived from that one measure
+ * instead of from numbers picked to look right at one size, which is what
+ * left a whiteboard scaled up to a foot across still carrying writing three
+ * sixteenths of an inch tall.
+ *
+ * The cap is what keeps a small board from clipping: below about fourteen
+ * inches there is no room for a full-sized pen, so it writes smaller rather
+ * than running off the edge.
+ */
+.item.frame-whiteboard {
+  /*
+   * Never below twelve point, whatever size the board is cut to, and never
+   * above the inch a marker gives you however big it gets.
+   */
+  --wb-pen: var(--type, clamp(20px, 7.2cqh, 100px));
+}
+
+.frame-whiteboard .surface {
+  padding: calc(var(--wb-pen) * 0.5) calc(var(--wb-pen) * 0.55) calc(var(--wb-pen) * 0.95);
+  border-radius: calc(var(--wb-pen) * 0.05);
+  background:
+    /* Old marker never quite comes off. */
+    var(--tex-wipe),
+    linear-gradient(158deg, #ffffff, #f2f6fa 55%, #e7edf3);
+  /* The aluminium frame is drawn inside the item's own box, so a board never
+     measures larger on the cork than the size it was given. */
+  box-shadow:
+    inset 0 0 0 calc(var(--wb-pen) * 0.02) rgba(96, 108, 120, 0.55),
+    inset 0 0 0 calc(var(--wb-pen) * 0.4) #d7dce2,
+    inset 0 0 0 calc(var(--wb-pen) * 0.44) rgba(96, 108, 120, 0.45),
+    inset 0 calc(var(--wb-pen) * 0.03) 0 rgba(255, 255, 255, 0.85),
+    inset 0 calc(var(--wb-pen) * -0.2) calc(var(--wb-pen) * 0.3) calc(var(--wb-pen) * -0.22)
+      rgba(35, 55, 78, 0.4);
+}
+
+/* The gloss, laid over everything including the writing. */
+.wb-sheen {
+  position: absolute;
+  inset: calc(var(--wb-pen) * 0.44);
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0) 26%,
+    rgba(255, 255, 255, 0.46) 40%,
+    rgba(255, 255, 255, 0) 52%
+  );
+}
+
+/* Pen tray along the bottom, and a marker left in it. */
+.wb-tray {
+  position: absolute;
+  right: calc(var(--wb-pen) * 0.44);
+  bottom: calc(var(--wb-pen) * 0.44);
+  left: calc(var(--wb-pen) * 0.44);
+  height: calc(var(--wb-pen) * 0.42);
+  border-radius: 0 0 calc(var(--wb-pen) * 0.04) calc(var(--wb-pen) * 0.04);
+  background: linear-gradient(180deg, #eef1f4, #b3bac2 58%, #cfd5db);
+  box-shadow:
+    0 calc(var(--wb-pen) * -0.03) calc(var(--wb-pen) * 0.07) calc(var(--wb-pen) * -0.04)
+      rgba(28, 44, 62, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Five and a half inches of marker, which on a small board is most of it. */
+.wb-marker {
+  position: absolute;
+  right: calc(var(--wb-pen) * 1.6);
+  bottom: calc(var(--wb-pen) * 0.5);
+  width: calc(var(--wb-pen) * 6.4);
+  height: calc(var(--wb-pen) * 0.3);
+  border-radius: calc(var(--wb-pen) * 0.15);
+  background: linear-gradient(
+    90deg,
+    #2b3440 0 calc(var(--wb-pen) * 1.6),
+    #1d4e89 calc(var(--wb-pen) * 1.6) 100%
+  );
+  box-shadow: 0 1px 2px rgba(20, 34, 50, 0.45);
+}
+
+.frame-whiteboard .wb-face {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  flex-direction: column;
+  gap: calc(var(--wb-pen) * 0.3);
+  height: 100%;
+  overflow: hidden;
+}
+
+.wb-title {
+  color: #1d4e89;
+  font-family: var(--hand);
+  font-size: calc(var(--wb-pen) * 1.2);
+  line-height: 1.15;
+  white-space: pre-wrap;
+  /* Marker bleeds very slightly into the gloss. */
+  text-shadow: 0 0 1px rgba(29, 78, 137, 0.3);
+}
+
+/* Whatever else is written on the board, under the heading. */
+.wb-body {
+  color: #2c3642;
+  font-family: var(--hand);
+  font-size: var(--wb-pen);
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+
+/* A rule under the heading, but only when something is listed beneath it. */
+.wb-title:not(:only-child) {
+  padding-bottom: calc(var(--wb-pen) * 0.2);
+  border-bottom: calc(var(--wb-pen) * 0.045) solid rgba(29, 78, 137, 0.32);
+}
+
+.wb-lines {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--wb-pen) * 0.22);
+  min-height: 0;
+}
+
+.wb-line {
+  display: flex;
+  gap: calc(var(--wb-pen) * 0.4);
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--hand);
+}
+
+.wb-label {
+  flex: 1;
+  /* Cut short rather than run into the number beside it, which is what a
+     long label on a narrow board would otherwise do. */
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #3b4654;
+  font-size: calc(var(--wb-pen) * 0.95);
+  line-height: 1.2;
+}
+
+/* A line with no label of its own still lands under the other values. */
+.wb-lines.labelled .wb-value {
+  margin-left: auto;
+}
+
+.wb-value {
+  color: #9c2b20;
+  font-size: calc(var(--wb-pen) * 1.05);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 0 1px rgba(156, 43, 32, 0.28);
+}
+
+/* ---------- written in a little Markdown ---------- */
+
+/*
+ * Everything here inherits: the frame has already said what ink, what type,
+ * what measure and what line spacing its writing is set in, and a list or a
+ * link written on that frame has to look like that frame. So these rules set
+ * only what the shape of a list needs and nothing about how it reads.
+ */
+.md {
+  /* The run-in a paragraph or a list leaves after it, in units of the
+     writing, so the gaps hold at whatever size the frame set the type. */
+  --md-gap: 0.62em;
+}
+
+.md-p,
+.md-list {
+  margin: 0;
+}
+
+/*
+ * A list starting under the line that introduces it is a break but not a
+ * gap, so it gets a little air and no more.
+ */
+.md > * + * {
+  margin-top: var(--md-gap);
+}
+
+/*
+ * A blank line somebody typed, though, stays a blank line. It was one before
+ * any of this was parsed - the writing was simply shown as typed - and a note
+ * that closed those up on the day lists arrived would have rewritten itself.
+ * One line of this writing, at whatever size the frame set it.
+ */
+.md > .md-air {
+  margin-top: 1em;
+  margin-top: 1lh;
+}
+
+.md-list {
+  /* Room for the marker, again in units of the writing, so the hanging
+     indent stays the same shape as the sheet is pulled larger or smaller. */
+  padding-left: 1.5em;
+  /* A justified list pulls its items apart to reach a right edge it has no
+     business reaching, so a list is left-set even where the page is not. */
+  text-align: left;
+}
+
+.md-list .md-list {
+  margin-top: calc(var(--md-gap) * 0.35);
+  padding-left: 1.3em;
+}
+
+.md-list li + li {
+  margin-top: calc(var(--md-gap) * 0.35);
+}
+
+/* Marked, whether or not it can be followed from here. */
+.md-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.16em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+a.md-link {
+  cursor: pointer;
+}
+
+.md-code {
+  padding: 0 0.25em;
+  border-radius: 0.2em;
+  background: color-mix(in srgb, currentColor 9%, transparent);
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  /* Monospace runs large against a serif at the same nominal size. */
+  font-size: 0.88em;
+}
+
+/*
+ * A whiteboard is written in marker, and a marker has no bold, no italic and
+ * no monospace. What it has is one nib, so the marks all come out the same
+ * weight and only the list shapes survive.
+ */
+.wb-body .md-code {
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 1em;
+}
+
+/* ---------- where each frame hangs from ---------- */
+
+/*
+ * How far into an item its pin, nail or tape actually sits.
+ *
+ * Every one of these was nought, which put a pin's centre exactly on the top
+ * edge: half of it over the item, half over the cork, and nothing between the
+ * two. A real pin goes through the paper, so each of these is far enough in
+ * to have something under it, and no further than the frame's own margin -
+ * a pin should never be sitting on the writing.
+ *
+ * Kept in step with hangerDrop in lib/frames.ts, which is where a string ties.
+ */
+
+/* A pin through a sheet, a fifth of an inch down. */
+.item.frame-paper,
+.hanger-ghost.frame-paper {
+  --hang: 24px;
+}
+
+/* The square of a sticky note, above its first line. */
+.item.frame-note,
+.hanger-ghost.frame-note {
+  --hang: 22px;
+}
+
+/* In the white margin above the photograph, which is 23px of room. */
+.item.frame-polaroid,
+.hanger-ghost.frame-polaroid {
+  --hang: 14px;
+}
+
+/* On the page above the ruling, where a strip of tape would go. */
+.item.frame-lined,
+.hanger-ghost.frame-lined {
+  --hang: 20px;
+}
+
+/* Into the moulding, which is 70px of wood, rather than on the wall above. */
+.item.frame-framed,
+.hanger-ghost.frame-framed {
+  --hang: 32px;
+}
+
+/* Through the masthead. */
+.item.frame-magazine,
+.hanger-ghost.frame-magazine {
+  --hang: 20px;
+}
+
+/* Into the board's own frame, not the writing surface inside it. */
+.item.frame-whiteboard,
+.hanger-ghost.frame-whiteboard {
+  --hang: 26px;
+}

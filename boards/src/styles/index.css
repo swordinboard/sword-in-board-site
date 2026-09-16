@@ -1,0 +1,1789 @@
+/*
+ * Patrick Hand, by Patrick Wagesreiter. SIL Open Font License 1.1; the licence
+ * travels with the files in public/fonts. Subset to latin and latin-ext, which
+ * is all this app writes in.
+ */
+@font-face {
+  font-family: 'Patrick Hand';
+  src: url('/fonts/patrick-hand.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Patrick Hand';
+  src: url('/fonts/patrick-hand-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
+ * The hands a board's name can be written in. One per board style, plus the
+ * two the app already writes in.
+ *
+ * Every one is the latin/latin-ext subset published by Google Fonts, taken
+ * unmodified, under the SIL Open Font License. The notices and the licence
+ * travel with the files in public/fonts/OFL.txt, which is what that licence
+ * asks for. They are served from here rather than a CDN because the
+ * Content-Security-Policy sets font-src to 'self' and data: only.
+ *
+ * A face is only fetched when a board actually asks for it: a browser loads
+ * a font when it has text to draw with it and not before, so six families in
+ * this list costs one download, not six.
+ */
+
+/* Roman inscriptional caps, for a board dressed as a medieval sign. */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/fonts/cinzel.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Cinzel';
+  src: url('/fonts/cinzel-ext.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Squared and wide, for the sci-fi panel. No latin-ext subset exists. */
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/orbitron.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+/* Wood-type slab, for the western board. */
+@font-face {
+  font-family: 'Rye';
+  src: url('/fonts/rye.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Rye';
+  src: url('/fonts/rye-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Stencilled, for the industrial board and its warning paint. */
+@font-face {
+  font-family: 'Black Ops One';
+  src: url('/fonts/black-ops-one.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Black Ops One';
+  src: url('/fonts/black-ops-one-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Base tokens, resets, and the chrome that floats above the board. */
+
+:root {
+  /*
+   * How the board itself is dressed. Every one of these is re-set by the
+   * board styles in board.css, so a preset is a list of colours and textures
+   * rather than a second copy of the board's layout.
+   */
+  --frame-light: #8b5e34;
+  --frame-mid: #6b4423;
+  --frame-dark: #513319;
+  --surface-base: #c69a63;
+  --surface-deep: #bc8f59;
+  --surface-shadow: rgba(60, 33, 10, 0.55);
+  --surface-inner: rgba(60, 33, 10, 0.18);
+  --surface-ink: rgba(70, 42, 16, 0.6);
+  --wall-color: #17140f;
+  --wall-glow: radial-gradient(
+    circle at 50% 40%,
+    rgba(255, 244, 222, 0.09) 0%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
+
+  --paper: #f6f1e3;
+  --paper-edge: #d9d0ba;
+  --newsprint: #ece5d5;
+  --note: #f7e26b;
+
+  --ink: #23201b;
+  --ink-soft: #5a5346;
+
+  --panel: #1d1a16;
+  --panel-raised: #2a2620;
+  --panel-text: #ece6da;
+  --panel-muted: #a49a89;
+  --accent: #d9a441;
+
+  /*
+   * Print handwriting, not cursive. The old stack led with Bradley Hand and
+   * fell back to generic `cursive`, both of which loop and swirl - unreadable
+   * at the sizes a note is actually read at, which is why it is shipped with
+   * the app rather than left to whatever the device happens to have.
+   */
+  --hand: 'Patrick Hand', 'Segoe Print', 'Chalkboard SE', Noteworthy, 'Comic Sans MS', sans-serif;
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /*
+   * The hands a board's name can be written in. Each falls back to something
+   * of its own kind, so a name still reads as intended while its face is
+   * being fetched, or if it never arrives at all.
+   */
+  --title-marker: var(--hand);
+  --title-plain: var(--serif);
+  --title-carved: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Palatino, Georgia, serif;
+  --title-console: 'Orbitron', 'Eurostile', 'Bank Gothic', 'Arial Narrow', sans-serif;
+  --title-saloon: 'Rye', 'Playbill', 'Rockwell', 'Courier New', serif;
+  --title-stencil: 'Black Ops One', 'Stencil', 'Impact', 'Haettenschweiler', sans-serif;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background: #17140f;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ---------- floating chrome ---------- */
+
+.chrome {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.chrome > * {
+  pointer-events: auto;
+}
+
+.tridot {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #efe7d6, #d6cbb4);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 6px 14px rgba(0, 0, 0, 0.45);
+  transition: transform 120ms ease;
+}
+
+.tridot:hover {
+  transform: translateY(-1px);
+}
+
+.tridot:active {
+  transform: translateY(1px);
+}
+
+.tridot .dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3c342a;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.zoom-bar {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(24, 20, 16, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.zoom-bar button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--panel-text);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.zoom-bar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.zoom-bar .level {
+  min-width: 52px;
+  padding: 0 6px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* The label across the top of the editing bar. */
+.mode-flag {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.94);
+  color: #2b2109;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 40px));
+  padding: 11px 18px;
+  border-radius: 10px;
+  background: rgba(20, 17, 13, 0.94);
+  color: var(--panel-text);
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.toast.error {
+  background: rgba(122, 32, 24, 0.96);
+}
+
+/* ---------- side panel ---------- */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fade 160ms ease;
+}
+
+.panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  width: min(400px, 100vw);
+  background: var(--panel);
+  color: var(--panel-text);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.55);
+  animation: slide-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.panel header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 22px 20px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.panel header h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.panel header button {
+  border: 0;
+  background: transparent;
+  color: var(--panel-muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.panel .body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px 28px;
+}
+
+.panel .section-label {
+  margin: 22px 0 10px;
+  color: var(--panel-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel .section-label:first-child {
+  margin-top: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--panel-raised);
+  color: inherit;
+  text-align: left;
+}
+
+.nav-item:hover {
+  border-color: rgba(217, 164, 65, 0.4);
+}
+
+.nav-item .glyph {
+  width: 22px;
+  font-size: 17px;
+  text-align: center;
+}
+
+.nav-item .label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.nav-item .hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.nav-item .count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #c0392b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.panel .meta {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ---------- forms and dialogs ---------- */
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.field input[type='text'],
+.field input[type='password'],
+.field input[type='email'],
+.field input[type='date'],
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--panel-text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.field .note {
+  margin-top: 6px;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.btn {
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #2b2109;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--panel-text);
+  font-weight: 600;
+}
+
+.btn.danger {
+  background: #a8322a;
+  color: #fff;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.error-text {
+  margin: 10px 0 0;
+  color: #ffb4a8;
+  font-size: 13px;
+}
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.66);
+  animation: fade 160ms ease;
+  /* A phone browser keeps its URL bar over the bottom of the layout viewport,
+     so 100vh is taller than the part anyone can actually see or tap. dvh is
+     the visible part, and shrinks as the bar appears. */
+  height: 100vh;
+  height: 100dvh;
+}
+
+.modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  /* No bottom padding: the action row below supplies it, so that the row can
+     sit flush against the bottom of the scrolling area. */
+  padding: 24px 24px 0;
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--panel-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * The action row stays put while the rest scrolls under it.
+ *
+ * Without this the primary button sits at the end of a long dialog, which on a
+ * phone puts it under the browser's chrome. A tap there either does nothing or
+ * lands on the scrim and dismisses the dialog - and a dismissed dialog looks
+ * exactly like a button that did not work.
+ */
+.modal .btn-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 18px -24px 0;
+  padding: 14px 24px calc(18px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--panel);
+}
+
+.modal h2 {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.modal .lede {
+  margin: 0 0 20px;
+  color: var(--panel-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---------- login gate ---------- */
+
+.gate {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.gate-card {
+  width: min(400px, 100%);
+  padding: 30px 28px;
+  border-radius: 14px;
+  background: var(--panel);
+  color: var(--panel-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+
+/*
+ * The name of the place, written rather than set. Everything pinned to a
+ * board on the other side of this screen is in this hand, so the sign over
+ * the door is too - and it leans, because nothing here is hung straight.
+ *
+ * The tilt is on its own element rather than the heading, so the heading
+ * keeps its box and the line below it does not shift as the name swings.
+ */
+.gate-card h1 {
+  margin: 0 0 6px;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.gate-card h1 .wordmark {
+  display: inline-block;
+  transform: rotate(-3.2deg);
+  color: var(--panel-text);
+  font-family: var(--hand);
+  font-size: 46px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  /* Ink sits on the card rather than floating over it. */
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+
+.gate-card p {
+  margin: 0 0 22px;
+  color: var(--panel-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.gate-card .field {
+  text-align: left;
+}
+
+.gate-card .btn {
+  width: 100%;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- item inspector ---------- */
+
+.inspector {
+  position: fixed;
+  top: 78px;
+  left: 18px;
+  bottom: 18px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  width: 306px;
+  border-radius: 14px;
+  background: rgba(24, 21, 17, 0.95);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
+  color: var(--panel-text);
+}
+
+.inspector header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--panel-muted);
+}
+
+.inspector header button {
+  border: 0;
+  background: transparent;
+  color: var(--panel-muted);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.inspector .chooser button {
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.inspector input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.inspector .btn-row .btn {
+  flex: 1;
+  padding: 9px 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .inspector {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 52vh;
+  }
+
+  .zoom-bar {
+    bottom: auto;
+    top: 18px;
+    right: 12px;
+  }
+}
+
+/* ---------- gate variants for making and recovering a board ---------- */
+
+.gate-card.wide {
+  width: min(460px, 100%);
+  text-align: left;
+}
+
+.gate-card.wide h1,
+.gate-card.wide > p {
+  text-align: center;
+}
+
+.gate-card .btn.wide-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.gate-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gate-links button {
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/*
+ * The notices, in the two places somebody might want them: under the sign-in
+ * form, and at the foot of the menu. Small and quiet - they are not a feature
+ * - but present on every screen rather than only on a page nobody links to.
+ */
+.gate-legal,
+.nav-legal {
+  margin: 16px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.gate-legal a,
+.nav-legal a {
+  color: var(--panel-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nav-legal {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gate-card .fine {
+  margin: 14px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.gate-card .fine.ok {
+  color: #7fdcb4;
+}
+
+.secret.standalone {
+  margin: 4px 0 0;
+  padding: 16px;
+}
+
+.secret.standalone code {
+  font-size: 18px;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  color: var(--panel-text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.confirm input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+/*
+ * The one tick on the way in. A sentence rather than a label, so it sets from
+ * the top and reads at a normal weight - a line somebody is meant to actually
+ * read cannot be in small caps.
+ */
+.confirm.agree {
+  align-items: flex-start;
+  margin: 20px 0 4px;
+  padding: 13px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.confirm.agree input {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.confirm.agree a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.gate-card .field label {
+  text-align: left;
+}
+
+.mode-note {
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--panel-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mode-note.open {
+  border-color: rgba(192, 57, 43, 0.5);
+  background: rgba(192, 57, 43, 0.14);
+}
+
+.mode-note .how {
+  display: block;
+  margin-top: 6px;
+  color: var(--panel-muted);
+  font-size: 12px;
+}
+
+.mode-note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.gate-logo {
+  display: block;
+  width: 104px;
+  height: auto;
+  margin: 0 auto 14px;
+}
+
+@media (max-height: 680px) {
+  /* On a short phone the form matters more than the mark. */
+  .gate-logo {
+    width: 72px;
+    margin-bottom: 8px;
+  }
+}
+
+.confirm.compact {
+  /* Sits inside a .field, whose labels are small caps. This is a sentence. */
+  align-items: flex-start;
+  margin: 10px 0 0;
+  color: var(--panel-text);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.confirm.compact input {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Marks a board as the site's own. Only the master editor can set it. */
+.panel header h1 .official {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.2);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.tag.official-tag {
+  background: rgba(217, 164, 65, 0.24);
+  color: var(--accent);
+}
+
+
+/* ---------- zoom slider ---------- */
+
+.zoom-bar input[type='range'] {
+  width: 116px;
+  height: 24px;
+  margin: 0 2px;
+  padding: 0;
+  background: none;
+  accent-color: var(--accent, #d8a44a);
+  cursor: pointer;
+}
+
+/* A thumb big enough to catch, which the default is not on a phone. */
+.zoom-bar input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent, #d8a44a);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.zoom-bar input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.zoom-bar input[type='range']::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent, #d8a44a);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.zoom-bar input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.zoom-bar .level {
+  min-width: 44px;
+  text-align: center;
+}
+
+
+/* A developer-only notice about something broken in the deployment itself. */
+.panel-warning {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 170, 120, 0.35);
+  border-radius: 9px;
+  background: rgba(150, 70, 30, 0.22);
+  color: #ffcbaa;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.devtag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(120, 180, 255, 0.18);
+  color: #9ecbff;
+  font-family: var(--sans, inherit);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+
+/* Shelf tabs in the developer's board list. */
+.chooser.shelves {
+  margin-bottom: 18px;
+}
+
+.chooser.shelves .count {
+  margin-left: 7px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chooser.shelves button.on .count {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+
+/* ---------- what is inside a folder or a magazine ---------- */
+
+.gallery {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  /* Opaque, not nearly so: at 94% the tridot, the zoom slider and the board's
+     name all showed faintly through the picture being looked at. */
+  background: #0a0805;
+  animation: fade 160ms ease;
+}
+
+.gallery header {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gallery header h1,
+.gallery header h2 {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  color: #f4ecdc;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.gallery header .of {
+  color: var(--panel-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery header button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f4ecdc;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gallery-main {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  padding: 12px;
+}
+
+.gallery-main .leaves {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.gallery-main img {
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  border-radius: 3px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  object-fit: contain;
+}
+
+/*
+ * A magazine opens as facing pages, so the two share the width and sit
+ * shoulder to shoulder with the fold between them.
+ */
+.gallery-main.spread .leaves {
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+}
+
+.gallery-main.spread img {
+  flex: 1 1 50%;
+  max-width: 50%;
+  box-shadow: none;
+  object-fit: contain;
+}
+
+.gallery-main.spread img:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.gallery-main.spread img:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+/* The fold, drawn between the facing pages. */
+.gallery-main.spread .leaves::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gallery-main.spread .leaves {
+  position: relative;
+}
+
+/*
+ * Paging arrows, kept off the picture's middle so a thumb never covers it.
+ * Above the pages: in a spread the leaves fill the width and, being a later
+ * positioned sibling, painted straight over the previous-page arrow.
+ */
+.gallery-main .page {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f4ecdc;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.gallery-main .page.prev {
+  left: 8px;
+}
+
+.gallery-main .page.next {
+  right: 8px;
+}
+
+.gallery-thumbs {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  overflow-x: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gallery-thumbs button {
+  flex: none;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.gallery-thumbs button.on {
+  border-color: var(--accent, #d8a44a);
+  opacity: 1;
+}
+
+.gallery-thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- the lines a whiteboard keeps ---------- */
+
+.lines-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.line-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.line-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.line-kind {
+  flex: 1;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* What the line will actually say once it is on the wall. */
+.line-reads {
+  color: var(--accent);
+  font-family: var(--hand);
+  font-size: 16px;
+}
+
+.line-head button {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--panel-muted);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.line-row input[type='text'],
+.line-row input[type='date'] {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--panel-text);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.hint-text {
+  margin: 8px 0 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* The marks themselves, shown as marks rather than as more prose. */
+.hint-text code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--panel-text);
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: 11px;
+  white-space: pre;
+}
+
+/* ---------- editing the pictures inside a gallery ---------- */
+
+.gallery-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Promotes a picture to the front of the set, where the cover comes from. */
+.strip-promote {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--panel-text);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.dropzone.small {
+  min-height: 0;
+  padding: 12px;
+  font-size: 13px;
+}
+
+/* ---------- the editing toolbar ---------- */
+
+/*
+ * Mirrors the zoom controls, at the other end of the screen and only while
+ * editing is on. These four were all buried in the menu, which meant putting
+ * a panel over the board to do anything to the board.
+ */
+/*
+ * The way in for somebody who is only looking. It sits opposite the menu and
+ * out of the editor bar's way, and it is only there in view mode: an editor
+ * pins things up directly and has no use for the queue they would land in.
+ */
+.submit-tab {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 40;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(24, 20, 16, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  color: var(--paper);
+  font: 600 13px/1 var(--sans);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.submit-tab .glyph {
+  font-size: 15px;
+  opacity: 0.85;
+}
+
+.editor-bar {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  /*
+   * The bar is centred by translating it half its own width, so anything
+   * wider than the screen bleeds off both edges at once rather than simply
+   * running past the right. This holds it inside the viewport; the tools
+   * scroll inside it rather than a tool being lost off an edge.
+   */
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  row-gap: 4px;
+  padding: 4px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: rgba(24, 20, 16, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * The five tools, as one thing. They never break apart: either they all fit
+ * on the line or the whole group moves down, and on a screen too narrow even
+ * for that the group scrolls rather than losing its last tool off the edge.
+ */
+.editor-tools {
+  display: flex;
+  gap: 2px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.editor-tools::-webkit-scrollbar {
+  display: none;
+}
+
+/* The colours a string can be, shown only while one is being tied. */
+.string-colors {
+  display: flex;
+  flex-shrink: 0;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+}
+
+/*
+ * A rule between the colours and the tools, drawn on whichever side they
+ * happen to be on. Beside the tools it is a divider; above them it is a line
+ * under a heading, and a border-right there would be a stray mark.
+ */
+.editor-bar .string-colors {
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/*
+ * Narrow enough that the colours and the tools cannot share a line: the two
+ * of them want about 423px and there has to be room either side of that.
+ *
+ * Which of the two it is, is decided here rather than left to the bar to work
+ * out by wrapping. A shrink-to-fit flex container measures its own unwrapped
+ * width, and the buttons are fractional pixels wide, so that measurement came
+ * out a pixel short of what the contents needed and the bar wrapped itself on
+ * a landscape screen with four hundred pixels to spare. A width the layout
+ * has to guess at is a width that will be guessed wrong.
+ */
+@media (max-width: 480px) {
+  .editor-bar {
+    /* Two lines, so the bar is as wide as its wider line rather than as wide
+       as both of them side by side. */
+    width: auto;
+    flex-wrap: wrap;
+  }
+
+  .editor-bar .string-colors {
+    width: 100%;
+    padding-bottom: 5px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+}
+
+.string-colors .swatch {
+  width: 20px;
+  height: 20px;
+  min-width: 0;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.string-colors .swatch.on {
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+.swatch.string-red {
+  background: #b02a22;
+}
+
+.swatch.string-twine {
+  background: #c3a367;
+}
+
+.swatch.string-blue {
+  background: #35629c;
+}
+
+.swatch.string-green {
+  background: #417a49;
+}
+
+.swatch.string-black {
+  background: #1f1d1a;
+}
+
+/* The dimmer, on the zoom bar where the rest of the view controls are. */
+.zoom-bar .strings-view.faint {
+  opacity: 0.55;
+}
+
+.zoom-bar .strings-view.hidden {
+  opacity: 0.28;
+  text-decoration: line-through;
+}
+
+.editor-bar button {
+  display: grid;
+  gap: 1px;
+  place-items: center;
+  min-width: 54px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--panel-text);
+  line-height: 1;
+}
+
+.editor-bar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.editor-bar button.on {
+  background: rgba(217, 164, 65, 0.18);
+  color: var(--accent);
+}
+
+.editor-bar .glyph {
+  font-size: 17px;
+}
+
+.editor-bar .tool-label {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* The toast lands where the bar is, so it steps up out of the way. */
+.toast.raised {
+  bottom: 92px;
+}
+
+/* The wall colour: a swatch grid beside the picker itself. */
+.wall-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.wall-row input[type='color'] {
+  width: 46px;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* ---------- one item, opened to be read ---------- */
+
+/*
+ * Scrolls, because fitting a thing on screen and being able to read it are
+ * not the same question. A letter is eight and a half inches of twelve point
+ * and there is no size a phone can show all of it at and still be read, so
+ * the writing wins and what does not fit can be scrolled to.
+ */
+/*
+ * Pushed around and zoomed into rather than fitted: the item is the shape it
+ * was given, and reading it is the reader's business, the way a page of a
+ * document is.
+ */
+.item-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  overscroll-behavior: none;
+  /* Dragging here moves the page, and a drag that highlights the words
+     instead is a drag that did not move it. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.item-view.moving {
+  cursor: grabbing;
+}
+
+.item-view .item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Straight on, since it is being looked at rather than hung on a wall. */
+  transform-origin: 0 0;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.7));
+}
+
+/* ---------- picking the hand the board's name is written in ---------- */
+
+/*
+ * One per line rather than side by side: the point of each button is the
+ * sample on it, and a sample squeezed into a third of a phone's width is not
+ * a sample of anything.
+ */
+.chooser.fonts {
+  flex-direction: column;
+}
+
+.chooser.fonts .title-font {
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+/* The sample is set in the face the button is offering. That is the label. */
+.title-font .sample {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 23px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-font .sub {
+  font-size: 11px;
+  opacity: 0.72;
+}
+
+.title-marker .sample {
+  font-family: var(--title-marker);
+}
+
+.title-plain .sample {
+  font-family: var(--title-plain);
+}
+
+.title-carved .sample {
+  font-family: var(--title-carved);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.04em;
+}
+
+.title-console .sample {
+  font-family: var(--title-console);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+}
+
+.title-saloon .sample {
+  font-family: var(--title-saloon);
+  font-size: 20px;
+}
+
+.title-stencil .sample {
+  font-family: var(--title-stencil);
+  font-size: 21px;
+}
+
+/* ---------- what the wall is papered with ---------- */
+
+.chooser.walls {
+  flex-wrap: wrap;
+}
+
+.chooser.walls button {
+  flex: 0 0 auto;
+  gap: 7px;
+  min-width: 96px;
+  font-size: 12px;
+}
+
+/*
+ * A scrap of the actual paper, so the button shows the thing rather than a
+ * name for it. Each repeats the way it does on the wall, at whatever size
+ * reads in 34px of button - which is not the size it is drawn on the wall,
+ * where a brick is seven inches and a door is a door. The uploaded one is the
+ * exception: it is shown covering, because one look at the picture is more
+ * use on a button than a grid of it.
+ */
+.wall-swatch {
+  display: block;
+  width: 100%;
+  height: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 5px;
+  background: #1b1712 center / cover no-repeat;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.wall-swatch.bare {
+  background: radial-gradient(circle at 50% 30%, #2f2820, #12100b);
+}
+
+.wall-swatch.wall-brick {
+  background: url('./tex/wall-brick.png') center / 96px 64px repeat;
+}
+
+.wall-swatch.wall-plate {
+  background: url('./tex/wall-plate.png') center / 60px 60px repeat;
+}
+
+.wall-swatch.wall-floral {
+  background: url('./tex/wall-floral.png') center / 75px 75px repeat;
+}
+
+/*
+ * The door's head, fitted to the width of the button. The picture is three
+ * and a half times as tall as it is wide, so fitting it by height leaves a
+ * sliver nobody could read - and its actual top is the deep run of wall above
+ * the casing, which on a button is a grey rectangle. 22% down is the casing
+ * and the first row of panels, which is the part that says door.
+ */
+.wall-swatch.wall-door {
+  background: url('./tex/wall-door.jpg') center 22% / 100% auto no-repeat;
+}
+
+/* Until there is one, the slot for an uploaded wall reads as empty. */
+.wall-swatch.uploaded {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: none;
+  border-style: dashed;
+}

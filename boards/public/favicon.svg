@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Pinhold">
+  <title>Pinhold</title>
+  <!--
+    The small mark. A browser tab is 16px, so this carries two shapes and no
+    more: a crenellated wall and the pin in it. The notice, the courses and the
+    pin's stem are all dropped - at a quarter of this size they close up into
+    dirt.
+
+    The wall floats with ground on every side rather than bleeding off the
+    tile. Run to the edges it stopped reading as a wall at all and became a
+    pale block with a dot on it. Crenels are nearly as wide as the merlons and
+    cut down two fifths of the shape's height, which is what keeps the teeth
+    from closing up at 16px.
+  -->
+  <rect width="64" height="64" rx="14" fill="#8b5e34" />
+  <path
+    d="M 8 52 V 18 H 18 V 32 H 27 V 18 H 37 V 32 H 46 V 18 H 56 V 52 Z"
+    fill="#f1e9d8"
+  />
+  <circle cx="32" cy="42" r="8.5" fill="#b8432f" />
+  <circle cx="29" cy="39" r="2.4" fill="#e8917f" />
+</svg>
