@@ -4,25 +4,21 @@
  * is working against them.
  */
 
+/*
+ * Dark, whatever the device is set to. These pages used to follow the reader
+ * and turn pale in the daytime, which made them the one part of Pinhold that
+ * did: the board, the gate and every dialog are dark and always were. A
+ * notice that does not look like the site it belongs to is a notice somebody
+ * has to stop and place.
+ */
 :root {
-  color-scheme: dark light;
+  color-scheme: dark;
   --ink: #ece7dc;
   --muted: #a49c8c;
   --bg: #17150f;
   --panel: #201d16;
   --edge: #3a352a;
   --accent: #d9a441;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --ink: #24211a;
-    --muted: #6b6455;
-    --bg: #f5f1e6;
-    --panel: #fffdf7;
-    --edge: #ddd5c2;
-    --accent: #9a6d15;
-  }
 }
 
 * {
